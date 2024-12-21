@@ -13,7 +13,13 @@ export default defineNuxtConfig({
           src: '/autofill.js',
           defer: true
         }
-      ]
+      ],
+      title: 'Název vašeho webu',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Popis vašeho webu' }
+      ],
     }
   },
   devtools: { enabled: true },
@@ -30,5 +36,33 @@ export default defineNuxtConfig({
 
   experimental: {
     payloadExtraction: false
+  },
+
+  nitro: {
+    preset: 'netlify',
+    prerender: {
+      crawlLinks: false,
+      routes: ['/']
+    }
+  },
+
+  ssr: false,
+
+  typescript: {
+    strict: true
+  },
+
+  routeRules: {
+    '/': {
+      ssr: true,
+      prerender: true
+    },
+    '/**': {
+      ssr: false
+    }
+  },
+
+  generate: {
+    dir: 'dist'
   }
 })
