@@ -14,7 +14,7 @@ export default defineNuxtConfig({
           defer: true
         }
       ],
-      title: 'Název vašeho webu',
+      title: 'Marika Singers',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
