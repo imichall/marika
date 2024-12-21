@@ -1,7 +1,5 @@
 <template>
-  <nav
-    class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800"
-  >
+  <nav class="fixed top-0 w-full z-50">
     <div class="bg-black">
       <div
         class="container mx-auto px-4 py-2 flex justify-between items-center"
@@ -49,42 +47,84 @@
         <!-- Login Button -->
         <button
           @click="showLoginModal = true"
-          class="inline-flex items-center gap-2 text-white hover:text-gray-200 transition-colors duration-200 group"
+          class="text-white hover:text-gray-200"
         >
-          <span>Členská sekce</span>
-          <svg
-            class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          Členská sekce
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobilní menu trigger -->
+    <button
+      @click="toggleMenu"
+      class="md:hidden fixed top-10 right-4 z-50 flex flex-col gap-3 p-2"
+      :class="{ hidden: isMenuOpen }"
+    >
+      <span
+        class="w-16 h-1.5 bg-black transition-all duration-300 rounded-sm"
+      ></span>
+      <span
+        class="w-8 h-1.5 self-end bg-black transition-all duration-300 rounded-sm"
+      ></span>
+    </button>
+
+    <!-- Desktop menu -->
+    <div class="hidden md:block container mx-auto px-4 py-2">
+      <div class="flex justify-between items-center">
+        <div class="logo">
+          <NuxtLink to="/">
+            <img src="/images/logo.png" alt="Logo" class="h-8" />
+          </NuxtLink>
+        </div>
+        <div class="flex space-x-6">
+          <button
+            v-for="item in menuItems"
+            :key="item.id"
+            @click="scrollToSection(item.id)"
+            class="text-gray-700 hover:text-gray-900 transition-colors"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14 5l7 7m0 0l-7 7m7-7H3"
-            />
-          </svg>
-        </button>
+            {{ item.text }}
+          </button>
+        </div>
       </div>
     </div>
-    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
-      <div class="logo">
-        <NuxtLink to="/">
-          <img src="/images/logo.png" alt="Logo" class="h-8" />
-        </NuxtLink>
-      </div>
-      <div class="flex space-x-6">
+
+    <!-- Mobilní menu -->
+    <Transition name="slide">
+      <div v-if="isMenuOpen" class="fixed inset-0 bg-black/90 z-40 md:hidden">
+        <!-- Zavírací tlačítko -->
         <button
-          v-for="item in menuItems"
-          :key="item.id"
-          @click="scrollToSection(item.id)"
-          class="text-gray-700 hover:text-gray-900 transition-colors"
+          @click="toggleMenu"
+          class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center"
         >
-          {{ item.text }}
+          <span class="absolute w-16 h-1.5 bg-white transform rotate-45"></span>
+          <span
+            class="absolute w-16 h-1.5 bg-white transform -rotate-45"
+          ></span>
         </button>
+
+        <!-- Mobilní menu obsah -->
+        <div class="flex flex-col h-full pt-20 px-6">
+          <div class="text-[40px] text-white space-y-6">
+            <button
+              v-for="item in menuItems"
+              :key="item.id"
+              @click="handleMobileClick(item.id)"
+              class="block w-full text-left font-bold"
+            >
+              {{ item.text }}
+            </button>
+          </div>
+
+          <!-- Logo v mobilním menu -->
+          <div class="mt-auto mb-8">
+            <NuxtLink to="/" @click="isMenuOpen = false">
+              <img src="/images/logo.png" alt="Logo" class="h-12" />
+            </NuxtLink>
+          </div>
+        </div>
       </div>
-    </div>
+    </Transition>
   </nav>
 
   <!-- Login Modal -->
@@ -135,20 +175,15 @@
 </template>
 
 <script setup>
-const { scrollToSection } = useScroll();
+import { ref, watch } from "vue";
+
+const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
-const loginForm = reactive({
-  username: "",
-  password: "",
-});
+const { scrollToSection } = useScroll();
 
-const handleLogin = () => {
-  // Store credentials in localStorage
-  localStorage.setItem("ms_username", loginForm.username);
-  localStorage.setItem("ms_password", loginForm.password);
-
-  // Redirect to login page
-  window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value;
+  console.log("Menu state:", isMenuOpen.value);
 };
 
 const menuItems = [
@@ -157,4 +192,52 @@ const menuItems = [
   { id: "testimonials", text: "NAPSALI O NÁS" },
   { id: "contact", text: "KONTAKT" },
 ];
+
+const handleMobileClick = (id) => {
+  scrollToSection(id);
+  isMenuOpen.value = false;
+};
+
+watch(isMenuOpen, (newValue) => {
+  if (process.client) {
+    document.body.style.overflow = newValue ? "hidden" : "";
+  }
+});
+
+const loginForm = reactive({
+  username: "",
+  password: "",
+});
+
+const handleLogin = () => {
+  localStorage.setItem("ms_username", loginForm.username);
+  localStorage.setItem("ms_password", loginForm.password);
+  window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
+};
 </script>
+
+<style scoped>
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  transform: translateX(0);
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+.md\:hidden {
+  z-index: 60;
+}
+</style>

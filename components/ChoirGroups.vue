@@ -10,7 +10,7 @@
         <div
           v-for="group in groups"
           :key="group.id"
-          class="text-center grid grid-cols-2 gap-14"
+          class="text-center grid grid-cols-1 md:grid-cols-2 gap-14"
         >
           <div>
             <img
