@@ -1,7 +1,17 @@
 <template>
-  <div class="p-4">
-    <h1 class="text-3xl font-bold text-blue-600">
-      Vítej v Nuxt 3 s Tailwind CSS!
-    </h1>
+  <div class="min-h-screen">
+    <Navigation />
+    <Header />
+    <main>
+      <ConcertGrid />
+      <NewsletterSection />
+      <ChoirGroups />
+      <GalleryGrid />
+      <TestimonialSection />
+    </main>
+    <Footer />
   </div>
 </template>
+
+<script setup>
+</script>
