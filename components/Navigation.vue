@@ -82,7 +82,7 @@
           <button
             v-for="item in menuItems"
             :key="item.id"
-            @click="scrollToSection(item.id)"
+            @click="handleDesktopClick(item.id)"
             class="text-gray-700 hover:text-gray-900 transition-colors"
           >
             {{ item.text }}
@@ -178,7 +178,10 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
 
+const router = useRouter();
+const route = useRoute();
 const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
 const { scrollToSection } = useScroll();
@@ -195,9 +198,28 @@ const menuItems = [
   { id: "contact", text: "KONTAKT" },
 ];
 
-const handleMobileClick = (id) => {
-  scrollToSection(id);
+const handleDesktopClick = async (id) => {
+  if (route.path !== "/") {
+    await router.push("/");
+    setTimeout(() => {
+      scrollToSection(id);
+    }, 100);
+  } else {
+    scrollToSection(id);
+  }
+};
+
+const handleMobileClick = async (id) => {
   isMenuOpen.value = false;
+
+  if (route.path !== "/") {
+    await router.push("/");
+    setTimeout(() => {
+      scrollToSection(id);
+    }, 100);
+  } else {
+    scrollToSection(id);
+  }
 };
 
 watch(isMenuOpen, (newValue) => {
