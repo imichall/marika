@@ -7,6 +7,12 @@ export default defineNuxtConfig({
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'
         }
+      ],
+      script: [
+        {
+          src: '/autofill.js',
+          defer: true
+        }
       ]
     }
   },

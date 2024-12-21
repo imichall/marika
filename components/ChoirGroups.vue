@@ -1,5 +1,5 @@
 <template>
-  <section class="py-16 bg-white font-instrument">
+  <section id="about" class="py-16 bg-white font-instrument">
     <div class="container mx-auto px-4">
       <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
@@ -22,8 +22,25 @@
           <div class="grid grid-rows-[100px_auto_auto] justify-items-start">
             <h3 class="text-[36px] font-regular mb-2">{{ group.name }}</h3>
             <p class="text-gray-600 mb-4 text-left">{{ group.description }}</p>
-            <button class="border border-black px-6 py-2 self-end uppercase">
-              Poslechnout -->
+            <button
+              class="border border-black px-6 py-2 self-end uppercase inline-flex items-center gap-2 group hover:bg-black hover:text-white transition-all duration-300"
+            >
+              Poslechnout
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="transform transition-transform duration-300 group-hover:translate-x-1"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
             </button>
           </div>
         </div>

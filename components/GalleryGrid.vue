@@ -1,5 +1,5 @@
 <template>
-  <section class="py-16 bg-gray-100 font-instrument">
+  <section id="gallery" class="py-16 bg-gray-100 font-instrument">
     <div class="container mx-auto px-4">
       <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
@@ -9,7 +9,6 @@
     </div>
     <div class="mx-auto p-4">
       <div class="grid grid-cols-7 grid-rows-3 gap-2">
-        <!-- Velký čtverec vlevo nahoře -->
         <div class="col-span-2 row-span-2 overflow-hidden rounded-xl">
           <img
             :src="`/images/mansory/${galleryImages[9]}`"
@@ -18,7 +17,6 @@
           />
         </div>
 
-        <!-- Menší čtverce vpravo nahoře -->
         <div class="overflow-hidden col-span-2 rounded-xl row-span-1">
           <img
             :src="`/images/mansory/${galleryImages[5]}`"
@@ -35,7 +33,6 @@
           />
         </div>
 
-        <!-- Široký obdélník vpravo -->
         <div class="col-span-1 row-span-2 overflow-hidden rounded-xl">
           <img
             :src="`/images/mansory/${galleryImages[1]}`"

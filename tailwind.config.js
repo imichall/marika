@@ -13,6 +13,9 @@ module.exports = {
         sans: ['Instrument Sans'],
         instrument: ['Instrument Sans'],
       },
+      colors: {
+        'custom-gray': '#454545',
+      },
     },
   },
   plugins: [],

@@ -1,5 +1,5 @@
 <template>
-  <footer class="bg-gray-100 py-12">
+  <footer id="contact" class="bg-gray-100 pt-12">
     <div class="container mx-auto px-4">
       <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
@@ -37,9 +37,9 @@
           <p>IČO: 27069699 / DIČ: 27069699</p>
         </div>
       </div>
-      <div class="text-center mt-8 text-sm text-gray-600">
-        © 2024 Marika Singers, z.s.
-      </div>
+    </div>
+    <div class="text-center mt-8 py-4 text-sm bg-black text-white">
+      © 2024 Marika Singers, z.s.
     </div>
   </footer>
 </template>

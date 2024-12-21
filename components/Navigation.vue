@@ -1,20 +1,160 @@
 <template>
-  <nav class="fixed top-0 w-full bg-white z-50 shadow-sm">
+  <nav
+    class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800"
+  >
     <div class="bg-black">
-      <div class="container mx-auto px-4 py-2 flex justify-end items-center">
-        <a href="#" class="text-white">Členská sekce ></a>
+      <div
+        class="container mx-auto px-4 py-2 flex justify-between items-center"
+      >
+        <!-- Social Icons -->
+        <div class="flex items-center space-x-4">
+          <a
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-white hover:text-gray-200"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M18.77,7.46H14.5v-1.9c0-.9.6-1.1,1-1.1h3V.5h-4.33C10.24.5,9.5,3.44,9.5,5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4Z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://youtube.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-white hover:text-gray-200"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M23.498,6.186a3.016,3.016,0,0,0-2.122-2.136C19.505,3.545,12,3.545,12,3.545s-7.505,0-9.377.505A3.017,3.017,0,0,0,.5,6.186C0,8.07,0,12,0,12s0,3.93.5,5.814a3.016,3.016,0,0,0,2.122,2.136c1.871.505,9.376.505,9.376.505s7.505,0,9.377-.505a3.015,3.015,0,0,0,2.122-2.136C24,15.93,24,12,24,12S24,8.07,23.498,6.186ZM9.545,15.568V8.432L15.818,12Z"
+              />
+            </svg>
+          </a>
+          <a
+            href="https://instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-white hover:text-gray-200"
+          >
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M12,2.982c2.937,0,3.285.011,4.445.064a6.087,6.087,0,0,1,2.042.379,3.408,3.408,0,0,1,1.265.823,3.408,3.408,0,0,1,.823,1.265,6.087,6.087,0,0,1,.379,2.042c.053,1.16.064,1.508.064,4.445s-.011,3.285-.064,4.445a6.087,6.087,0,0,1-.379,2.042,3.643,3.643,0,0,1-2.088,2.088,6.087,6.087,0,0,1-2.042.379c-1.16.053-1.508.064-4.445.064s-3.285-.011-4.445-.064a6.087,6.087,0,0,1-2.043-.379,3.408,3.408,0,0,1-1.265-.823,3.408,3.408,0,0,1-.823-1.265,6.087,6.087,0,0,1-.379-2.042c-.053-1.16-.064-1.508-.064-4.445s.011-3.285.064-4.445a6.087,6.087,0,0,1,.379-2.042,3.408,3.408,0,0,1,.823-1.265,3.408,3.408,0,0,1,1.265-.823,6.087,6.087,0,0,1,2.043-.379c1.16-.053,1.508-.064,4.445-.064M12,1c-2.987,0-3.362.013-4.535.066a8.074,8.074,0,0,0-2.67.511,5.392,5.392,0,0,0-1.949,1.27,5.392,5.392,0,0,0-1.27,1.949,8.074,8.074,0,0,0-.511,2.67C1.013,8.638,1,9.013,1,12s.013,3.362.066,4.535a8.074,8.074,0,0,0,.511,2.67,5.392,5.392,0,0,0,1.27,1.949,5.392,5.392,0,0,0,1.949,1.27,8.074,8.074,0,0,0,2.67.511C8.638,22.987,9.013,23,12,23s3.362-.013,4.535-.066a8.074,8.074,0,0,0,2.67-.511,5.625,5.625,0,0,0,3.219-3.219,8.074,8.074,0,0,0,.511-2.67C22.987,15.362,23,14.987,23,12s-.013-3.362-.066-4.535a8.074,8.074,0,0,0-.511-2.67,5.392,5.392,0,0,0-1.27-1.949,5.392,5.392,0,0,0-1.949-1.27,8.074,8.074,0,0,0-2.67-.511C15.362,1.013,14.987,1,12,1Zm0,5.351A5.649,5.649,0,1,0,17.649,12,5.649,5.649,0,0,0,12,6.351Zm0,9.316A3.667,3.667,0,1,1,15.667,12,3.667,3.667,0,0,1,12,15.667Zm5.872-10.859a1.32,1.32,0,1,0,1.32,1.32A1.32,1.32,0,0,0,17.872,4.808Z"
+              />
+            </svg>
+          </a>
+        </div>
+
+        <!-- Login Button -->
+        <button
+          @click="showLoginModal = true"
+          class="inline-flex items-center gap-2 text-white hover:text-gray-200 transition-colors duration-200 group"
+        >
+          <span>Členská sekce</span>
+          <svg
+            class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
+          </svg>
+        </button>
       </div>
     </div>
     <div class="container mx-auto px-4 py-2 flex justify-between items-center">
       <div class="logo">
-        <img src="/images/logo.png" alt="Logo" class="h-8" />
+        <NuxtLink to="/">
+          <img src="/images/logo.png" alt="Logo" class="h-8" />
+        </NuxtLink>
       </div>
       <div class="flex space-x-6">
-        <a href="#" class="text-gray-700">O NÁS</a>
-        <a href="#" class="text-gray-700">GALERIE</a>
-        <a href="#" class="text-gray-700">NAPSALI O NÁS</a>
-        <a href="#" class="text-gray-700">KONTAKT</a>
+        <button
+          v-for="item in menuItems"
+          :key="item.id"
+          @click="scrollToSection(item.id)"
+          class="text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          {{ item.text }}
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- Login Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showLoginModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+        <h2 class="text-xl font-bold mb-4">Přihlášení do privátní sekce</h2>
+        <form @submit.prevent="handleLogin">
+          <div class="mb-4">
+            <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
+            <input
+              v-model="loginForm.username"
+              type="text"
+              class="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label class="block text-gray-700 mb-2">Heslo:</label>
+            <input
+              v-model="loginForm.password"
+              type="password"
+              class="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <div class="flex justify-between">
+            <button
+              type="submit"
+              class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+            >
+              Přihlásit
+            </button>
+            <button
+              @click="showLoginModal = false"
+              class="text-gray-600 hover:text-gray-800"
+            >
+              Zavřít
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </Teleport>
 </template>
+
+<script setup>
+const { scrollToSection } = useScroll();
+const showLoginModal = ref(false);
+const loginForm = reactive({
+  username: "",
+  password: "",
+});
+
+const handleLogin = () => {
+  // Store credentials in localStorage
+  localStorage.setItem("ms_username", loginForm.username);
+  localStorage.setItem("ms_password", loginForm.password);
+
+  // Redirect to login page
+  window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
+};
+
+const menuItems = [
+  { id: "about", text: "O NÁS" },
+  { id: "gallery", text: "GALERIE" },
+  { id: "testimonials", text: "NAPSALI O NÁS" },
+  { id: "contact", text: "KONTAKT" },
+];
+</script>
