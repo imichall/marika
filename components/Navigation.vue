@@ -9,7 +9,7 @@
         <!-- Social Icons -->
         <div class="flex items-center space-x-4">
           <a
-            href="https://facebook.com"
+            href="https://www.facebook.com/marikasingers/?locale=cs_CZ"
             target="_blank"
             rel="noopener noreferrer"
             class="text-white hover:text-gray-200"
@@ -21,7 +21,7 @@
             </svg>
           </a>
           <a
-            href="https://youtube.com"
+            href="https://www.youtube.com/user/MarikaSingers"
             target="_blank"
             rel="noopener noreferrer"
             class="text-white hover:text-gray-200"
@@ -33,7 +33,7 @@
             </svg>
           </a>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/marika_singers/"
             target="_blank"
             rel="noopener noreferrer"
             class="text-white hover:text-gray-200"
@@ -49,9 +49,22 @@
         <!-- Login Button -->
         <button
           @click="showLoginModal = true"
-          class="text-white hover:text-gray-200"
+          class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
         >
           Členská sekce
+          <svg
+            class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"
+            />
+          </svg>
         </button>
       </div>
     </div>
