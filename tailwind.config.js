@@ -8,7 +8,12 @@ module.exports = {
     "./app.vue",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Instrument Sans'],
+        instrument: ['Instrument Sans'],
+      },
+    },
   },
   plugins: [],
 }

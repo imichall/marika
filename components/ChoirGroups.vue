@@ -1,7 +1,7 @@
 <template>
-  <section class="py-16 bg-white">
+  <section class="py-16 bg-white font-instrument">
     <div class="container mx-auto px-4">
-      <div class="relative flex py-5">
+      <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
         <span class="flex-shrink mx-4 text-black uppercase">O nás</span>
         <div class="flex-grow border-t border-gray-400"></div>
@@ -20,7 +20,7 @@
             />
           </div>
           <div class="grid grid-rows-[100px_auto_auto] justify-items-start">
-            <h3 class="text-xl font-bold mb-2">{{ group.name }}</h3>
+            <h3 class="text-[36px] font-regular mb-2">{{ group.name }}</h3>
             <p class="text-gray-600 mb-4 text-left">{{ group.description }}</p>
             <button class="border border-black px-6 py-2 self-end uppercase">
               Poslechnout -->
@@ -43,13 +43,13 @@ const groups = [
   },
   {
     id: 2,
-    name: "Marika Singers",
+    name: "Voices",
     description: "Mužské vokální uskupení v doprovodu skvělých muzikantů.",
     image: "/images/about-2.png",
   },
   {
     id: 3,
-    name: "Marika Singers",
+    name: "Five",
     description: "Ženské vokální uskupení v doprovodu skvělých muzikantů.",
     image: "/images/about-3.png",
   },
