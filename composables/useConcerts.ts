@@ -1,62 +1,64 @@
+import { ref } from "vue";
+
 export const useConcerts = () => {
   const concerts = ref([
     {
       id: 1,
-      title: "Praha",
-      group: "MAS, Voices, Five",
-      date: "Čtvrtek 7. července 2024",
-      desc: "Marika Singers spolu s Voices a Five vystoupí v prostorách hotelu Academic v Roztokách!",
-      image: "/images/article-image.png",
-      price: "1000 Kč",
+      title: "Vánoční koncert",
+      date: "2024-12-24",
+      desc: "Tradiční vánoční koncert v kostele sv. Mikuláše",
+      group: "Marika Singers",
+      price: 250,
+      image: "/images/concerts/concert-1.jpg",
     },
     {
       id: 2,
-      title: "České Budějovice",
+      title: "Jarní koncert",
+      date: "2024-03-21",
+      desc: "Uvítání jara s Voices",
       group: "Voices",
-      date: "Pátek 12. září 2024",
-      desc: "Pěti členné mužské uskupení vystoupí na Náplavce spolu s muzikanty.",
-      image: "/images/article-image-2.png",
-      price: "1000 Kč",
+      price: 200,
+      image: "/images/concerts/concert-2.jpg",
     },
     {
       id: 3,
-      title: "Ústí nad Labem",
+      title: "Letní open-air",
+      date: "2024-07-15",
+      desc: "Koncert pod širým nebem s Five",
       group: "Five",
-      date: "Sobota 16. listopadu 2024",
-      desc: "Ženské vokální těleso Five vystoupí v Brně na Tržišti. Čekejte spousta české tvorby!",
-      image: "/images/article-image-3.png",
-      price: "1000 Kč",
+      price: 300,
+      image: "/images/concerts/concert-3.jpg",
     },
-    {
-      id: 4,
-      title: "Praha",
-      group: "MAS, Voices, Five",
-      date: "Čtvrtek 7. července 2024",
-      desc: "Marika Singers spolu s Voices a Five vystoupí v prostorách hotelu Academic v Roztokách!",
-      image: "/images/article-image.png",
-      price: "1000 Kč",
-    },
-    {
-      id: 5,
-      title: "České Budějovice",
-      group: "Voices",
-      date: "Pátek 12. září 2024",
-      desc: "Pěti členné mužské uskupení vystoupí na Náplavce spolu s muzikanty.",
-      image: "/images/article-image-2.png",
-      price: "1000 Kč",
-    },
-    {
-      id: 6,
-      title: "Ústí nad Labem",
-      group: "Five",
-      date: "Sobota 16. listopadu 2024",
-      desc: "Ženské vokální těleso Five vystoupí v Brně na Tržišti. Čekejte spousta české tvorby!",
-      image: "/images/article-image-3.png",
-      price: "1000 Kč",
-    },
-  ])
+  ]);
+
+  const addConcert = (concert) => {
+    concerts.value.push({
+      id: Date.now(),
+      ...concert,
+    });
+  };
+
+  const updateConcert = (id, updatedConcert) => {
+    const index = concerts.value.findIndex((c) => c.id === id);
+    if (index !== -1) {
+      concerts.value[index] = {
+        ...concerts.value[index],
+        ...updatedConcert,
+      };
+    }
+  };
+
+  const deleteConcert = (id) => {
+    const index = concerts.value.findIndex((c) => c.id === id);
+    if (index !== -1) {
+      concerts.value.splice(index, 1);
+    }
+  };
 
   return {
-    concerts
-  }
-}
+    concerts,
+    addConcert,
+    updateConcert,
+    deleteConcert,
+  };
+};
