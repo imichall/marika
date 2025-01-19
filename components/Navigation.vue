@@ -88,7 +88,11 @@
       <div class="flex justify-between items-center">
         <div class="logo">
           <NuxtLink to="/">
-            <img src="/images/logo.png" alt="Logo" class="h-8" />
+            <img
+              src="/images/svg/marika-singers-logo.svg"
+              alt="Logo"
+              class="w-[68px]"
+            />
           </NuxtLink>
         </div>
         <div class="flex space-x-6">
@@ -134,7 +138,11 @@
           <!-- Logo v mobilním menu -->
           <div class="mt-auto mb-8">
             <NuxtLink to="/" @click="isMenuOpen = false">
-              <img src="/images/logo.png" alt="Logo" class="h-12" />
+              <img
+                src="/images/svg/logo-marikasingers.svg"
+                alt="Logo"
+                class="w-10"
+              />
             </NuxtLink>
           </div>
         </div>

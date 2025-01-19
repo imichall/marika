@@ -39,7 +39,13 @@
       </div>
     </div>
     <div class="text-center mt-8 py-4 text-sm bg-black text-white">
-      © 2024 Marika Singers, z.s.
+      © {{ currentYear }} Marika Singers, z.s.
     </div>
   </footer>
 </template>
+
+<script setup>
+import { computed } from "vue";
+
+const currentYear = computed(() => new Date().getFullYear());
+</script>
