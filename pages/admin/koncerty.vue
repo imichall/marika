@@ -5,13 +5,22 @@
       <button
         @click="showAddModal = true"
         class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+        :disabled="loading"
       >
         Přidat koncert
       </button>
     </div>
 
+    <div v-if="loading" class="text-center py-8">
+      <p>Načítání...</p>
+    </div>
+
+    <div v-else-if="error" class="text-center py-8 text-red-600">
+      <p>{{ error }}</p>
+    </div>
+
     <!-- Seznam koncertů -->
-    <div class="grid gap-6">
+    <div v-else class="grid gap-6">
       <div
         v-for="concert in concerts"
         :key="concert.id"
@@ -32,7 +41,7 @@
               Upravit
             </button>
             <button
-              @click="deleteConcert(concert.id)"
+              @click="handleDelete(concert.id)"
               class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
             >
               Smazat
@@ -150,12 +159,30 @@
 </template>
 
 <script setup>
+import { ref, onMounted, watch } from "vue";
+import { useConcerts } from "~/composables/useConcerts";
+
 const {
   concerts,
+  loading,
+  error,
   addConcert,
   updateConcert,
-  deleteConcert: removeConcert,
+  deleteConcert,
+  fetchConcerts,
 } = useConcerts();
+
+// Znovu načteme data při mounted
+onMounted(() => {
+  console.log("Admin koncerty page mounted");
+  fetchConcerts();
+});
+
+// Sledujeme změny v datech
+watch(concerts, (newConcerts) => {
+  console.log("Admin concerts updated:", newConcerts);
+});
+
 const showAddModal = ref(false);
 const editingConcert = ref(null);
 const qrGenerator = ref(null);
@@ -186,22 +213,33 @@ const closeModal = () => {
   resetForm();
 };
 
-const handleSubmit = () => {
-  // Získáme data QR kódu
-  const qrData = qrGenerator.value?.getQRData();
+const handleSubmit = async () => {
+  try {
+    // Získáme data QR kódu
+    const qrData = qrGenerator.value?.getQRData();
 
-  const concertData = {
-    ...form.value,
-    qrCode: qrData,
-  };
+    const concertData = {
+      ...form.value,
+      qrCode: qrData,
+    };
 
-  if (editingConcert.value) {
-    updateConcert(editingConcert.value.id, concertData);
-  } else {
-    addConcert(concertData);
+    console.log("Submitting concert data:", concertData);
+
+    if (editingConcert.value) {
+      await updateConcert(editingConcert.value.id, concertData);
+      console.log("Concert updated successfully");
+    } else {
+      await addConcert(concertData);
+      console.log("Concert added successfully");
+    }
+
+    closeModal();
+  } catch (err) {
+    console.error("Error submitting concert:", err);
+    error.value = err.message;
+    // Zde můžete přidat zobrazení chybové hlášky uživateli
+    alert(`Chyba při ukládání: ${err.message}`);
   }
-
-  closeModal();
 };
 
 const editConcert = (concert) => {
@@ -210,9 +248,10 @@ const editConcert = (concert) => {
   showAddModal.value = true;
 };
 
-const deleteConcert = (id) => {
+const handleDelete = async (id) => {
   if (confirm("Opravdu chcete smazat tento koncert?")) {
-    removeConcert(id);
+    await deleteConcert(id);
+    await fetchConcerts(); // Znovu načteme data po smazání
   }
 };
 </script>

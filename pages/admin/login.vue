@@ -56,7 +56,7 @@ const email = ref("");
 const password = ref("");
 const error = ref("");
 const router = useRouter();
-const { login } = useAuth();
+const { login, loading } = useAuth();
 
 const handleLogin = async () => {
   error.value = "";

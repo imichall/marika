@@ -69,4 +69,11 @@ export default defineNuxtConfig({
   router: {
     middleware: ['auth']
   },
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
+    }
+  }
 })
