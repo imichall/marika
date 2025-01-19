@@ -1,5 +1,8 @@
 <template>
   <div class="container mx-auto px-4 mt-[100px]">
+    <!-- Breadcrumbs -->
+    <AdminBreadcrumbs />
+
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa koncertů</h1>
       <button
@@ -179,7 +182,7 @@
 
                   <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Popis
+                      Informace o koncertu
                     </label>
                     <textarea
                       v-model="form.desc"
@@ -206,7 +209,7 @@
                         <span
                           class="material-icons-outlined text-4xl text-gray-400 mb-2"
                         >
-                          cloud_upload
+                          Nahrát obrázek
                         </span>
                         <p class="text-gray-500">
                           Přetáhněte sem obrázek nebo
@@ -334,8 +337,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { useConcerts } from "~/composables/useConcerts";
+import { useCategories } from "~/composables/useCategories";
 import {
   TransitionRoot,
   TransitionChild,
@@ -346,8 +350,8 @@ import {
 
 const {
   concerts,
-  loading,
-  error,
+  loading: concertsLoading,
+  error: concertsError,
   addConcert,
   updateConcert,
   deleteConcert,
@@ -492,7 +496,6 @@ const handleSubmit = async () => {
   } catch (err) {
     console.error("Error submitting concert:", err);
     error.value = err.message;
-    // Zde můžete přidat zobrazení chybové hlášky uživateli
     alert(`Chyba při ukládání: ${err.message}`);
   }
 };
@@ -519,4 +522,8 @@ const confirmDelete = async () => {
     error.value = err.message;
   }
 };
+
+definePageMeta({
+  layout: "admin",
+});
 </script>

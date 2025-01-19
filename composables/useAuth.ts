@@ -1,10 +1,14 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useSupabaseClient } from '~/utils/supabase'
 
 export const useAuth = () => {
   const supabase = useSupabaseClient()
   const user = ref(null)
-  const isAuthenticated = ref(false)
+  const isAuthenticated = computed(() => {
+    // Zde implementujte vaši logiku pro kontrolu přihlášení
+    // Například:
+    return !!localStorage.getItem('auth_token')
+  })
   const loading = ref(false)
   const error = ref(null)
 
@@ -16,7 +20,9 @@ export const useAuth = () => {
 
       if (session?.user) {
         user.value = session.user
-        isAuthenticated.value = true
+        localStorage.setItem('auth_token', session.user.id)
+      } else {
+        localStorage.removeItem('auth_token')
       }
     } catch (err) {
       console.error('Error checking auth status:', err)
@@ -39,7 +45,7 @@ export const useAuth = () => {
       if (signInError) throw signInError
 
       user.value = authUser
-      isAuthenticated.value = true
+      localStorage.setItem('auth_token', authUser.id)
       return true
     } catch (err) {
       console.error('Error logging in:', err)
@@ -58,7 +64,7 @@ export const useAuth = () => {
       if (signOutError) throw signOutError
 
       user.value = null
-      isAuthenticated.value = false
+      localStorage.removeItem('auth_token')
     } catch (err) {
       console.error('Error logging out:', err)
       error.value = err.message
@@ -75,10 +81,10 @@ export const useAuth = () => {
     supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         user.value = session.user
-        isAuthenticated.value = true
+        localStorage.setItem('auth_token', session.user.id)
       } else {
         user.value = null
-        isAuthenticated.value = false
+        localStorage.removeItem('auth_token')
       }
     })
   }

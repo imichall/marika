@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed top-0 right-0 p-4 z-50">
+  <div class="fixed top-0 right-0 p-4 z-50 admin-menu">
     <div class="relative">
       <!-- Admin menu dropdown -->
       <div
@@ -30,12 +30,20 @@
         >
           Správa referencí
         </NuxtLink>
+        <NuxtLink
+          to="/admin/kontakty"
+          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          Správa kontaktů
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
+
 const isOpen = ref(false);
 
 // Zavřít menu při kliknutí mimo

@@ -1,5 +1,8 @@
 <template>
   <div class="container mx-auto px-4 mt-[100px]">
+    <!-- Breadcrumbs -->
+    <AdminBreadcrumbs />
+
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa referencí</h1>
       <button
@@ -111,6 +114,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: "admin",
+});
+
 const { testimonials } = useTestimonials();
 const showAddModal = ref(false);
 const editingTestimonial = ref(null);

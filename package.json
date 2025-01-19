@@ -9,6 +9,7 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@types/formidable": "^3.4.5",
     "autoprefixer": "^10.4.16",
     "nuxt": "^3.9.0",
     "postcss": "^8.4.32",
@@ -17,7 +18,9 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@supabase/supabase-js": "^2.47.16",
+    "@types/pdfkit": "^0.13.8",
     "formidable": "^3.5.2",
+    "pdfkit": "^0.16.0",
     "qrcode": "^1.5.3"
   }
 }
