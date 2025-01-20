@@ -64,5 +64,16 @@ export default defineNuxtConfig({
 
   generate: {
     dir: 'dist'
+  },
+
+  router: {
+    middleware: ['auth']
+  },
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
+    }
   }
 })

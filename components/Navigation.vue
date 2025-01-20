@@ -1,5 +1,7 @@
 <template>
+  <!-- Frontend Navigation -->
   <nav
+    v-if="!isAdminRoute"
     class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800"
   >
     <div class="bg-black">
@@ -97,7 +99,7 @@
         </div>
         <div class="flex space-x-6">
           <button
-            v-for="item in menuItems"
+            v-for="item in visibleMenuItems"
             :key="item.id"
             @click="handleDesktopClick(item.id)"
             class="text-gray-700 hover:text-gray-900 transition-colors"
@@ -126,7 +128,7 @@
         <div class="flex flex-col h-full pt-20 px-6">
           <div class="text-[40px] text-white space-y-6">
             <button
-              v-for="item in menuItems"
+              v-for="item in visibleMenuItems"
               :key="item.id"
               @click="handleMobileClick(item.id)"
               class="block w-full text-left font-bold"
@@ -148,6 +150,73 @@
         </div>
       </div>
     </Transition>
+  </nav>
+
+  <!-- Admin Navigation -->
+  <nav v-else class="fixed top-0 w-full bg-white z-50 shadow-lg border-b">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center h-16">
+        <!-- Logo a název -->
+        <div class="flex items-center space-x-4">
+          <NuxtLink to="/admin" class="flex items-center space-x-3">
+            <img src="/images/logo.png" alt="Logo" class="h-8" />
+            <span class="text-xl font-semibold text-gray-900"
+              >Administrace</span
+            >
+          </NuxtLink>
+        </div>
+
+        <!-- Pravá část menu -->
+        <div class="flex items-center space-x-6">
+          <!-- Odkaz na frontend -->
+          <NuxtLink
+            to="/"
+            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            <span>Zpět na web</span>
+          </NuxtLink>
+
+          <!-- Oddělovač -->
+          <div class="h-6 w-px bg-gray-200"></div>
+
+          <!-- Logout tlačítko -->
+          <button
+            @click="handleLogout"
+            class="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <span>Odhlásit se</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </nav>
 
   <!-- Login Modal -->
@@ -198,14 +267,20 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { useAuth } from "~/composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
 const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
 const { scrollToSection } = useScroll();
+const { isAuthenticated, logout } = useAuth();
+
+const isAdminRoute = computed(() => {
+  return route.path.startsWith("/admin");
+});
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -213,11 +288,21 @@ const toggleMenu = () => {
 };
 
 const menuItems = [
-  { id: "about", text: "O NÁS" },
-  { id: "gallery", text: "GALERIE" },
-  { id: "testimonials", text: "NAPSALI O NÁS" },
-  { id: "contact", text: "KONTAKT" },
+  { id: "about", text: "O NÁS", requiresAuth: false },
+  { id: "gallery", text: "GALERIE", requiresAuth: false },
+  { id: "testimonials", text: "NAPSALI O NÁS", requiresAuth: false },
+  { id: "contact", text: "KONTAKT", requiresAuth: false },
+  { id: "admin", text: "ADMINISTRACE", requiresAuth: true },
 ];
+
+const visibleMenuItems = computed(() => {
+  return menuItems.filter((item) => {
+    if (item.requiresAuth) {
+      return isAuthenticated.value;
+    }
+    return true;
+  });
+});
 
 const handleDesktopClick = async (id) => {
   if (route.path !== "/") {
@@ -259,6 +344,55 @@ const handleLogin = () => {
   localStorage.setItem("ms_password", loginForm.password);
   window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
 };
+
+const handleLogout = async () => {
+  try {
+    await logout();
+    router.push("/");
+  } catch (error) {
+    console.error("Chyba při odhlášení:", error);
+  }
+};
+
+// Breadcrumbs logika
+const breadcrumbs = computed(() => {
+  const path = route.path;
+  const parts = path.split("/").filter((part) => part);
+  const crumbs = [];
+  let currentPath = "";
+
+  parts.forEach((part, index) => {
+    currentPath += `/${part}`;
+
+    // Přeskočit 'admin' v breadcrumbs, protože máme ikonu domečku
+    if (part === "admin") return;
+
+    let name = part.charAt(0).toUpperCase() + part.slice(1);
+
+    // Mapování názvů sekcí
+    const nameMap = {
+      koncerty: "Koncerty",
+      skupiny: "Skupiny",
+      galerie: "Galerie",
+      reference: "Reference",
+      novinky: "Novinky",
+      kontakty: "Kontakty",
+      new: "Nový záznam",
+      edit: "Upravit",
+    };
+
+    if (nameMap[part]) {
+      name = nameMap[part];
+    }
+
+    crumbs.push({
+      name,
+      path: currentPath,
+    });
+  });
+
+  return crumbs;
+});
 </script>
 
 <style scoped>
@@ -284,5 +418,9 @@ button {
 
 .md\:hidden {
   z-index: 60;
+}
+
+.router-link-active {
+  color: #ef4444; /* text-red-500 */
 }
 </style>
