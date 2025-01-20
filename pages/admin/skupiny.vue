@@ -143,7 +143,7 @@
                         <span
                           class="material-icons-outlined text-4xl text-gray-400 mb-2"
                         >
-                          cloud_upload
+                          Nahrát obrázek
                         </span>
                         <p class="text-gray-500">
                           Přetáhněte sem obrázek nebo

@@ -6,16 +6,29 @@
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa galerie</h1>
       <button
-        @click="showUploadModal = true"
-        class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200"
-        :disabled="loading"
+        @click="zobrazitModalNahraniFotek = true"
+        class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
+        :disabled="nacitani"
       >
-        <span class="material-icons-outlined">add_photo_alternate</span>
-        Přidat fotografie
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+        Nahrát fotografie
       </button>
     </div>
 
-    <div v-if="loading" class="text-center py-8">
+    <div v-if="nacitani" class="text-center py-8">
       <p>Načítání...</p>
     </div>
 
@@ -225,7 +238,7 @@
     </div>
 
     <!-- Modal pro nahrávání -->
-    <TransitionRoot appear :show="showUploadModal" as="template">
+    <TransitionRoot appear :show="zobrazitModalNahraniFotek" as="template">
       <Dialog as="div" @close="closeUploadModal" class="relative z-50">
         <TransitionChild
           as="template"
@@ -267,7 +280,7 @@
                     <span
                       class="material-icons-outlined text-4xl text-gray-400 mb-2"
                     >
-                      cloud_upload
+                      Nahrát obrázek
                     </span>
                     <p class="text-gray-500">
                       Přetáhněte sem fotografie nebo
@@ -470,10 +483,10 @@ import {
 } from "@headlessui/vue";
 
 const images = ref([]);
-const loading = ref(false);
+const nacitani = ref(false);
 const error = ref(null);
 
-const showUploadModal = ref(false);
+const zobrazitModalNahraniFotek = ref(false);
 const showDeleteModal = ref(false);
 const showLightbox = ref(false);
 const isDragging = ref(false);
@@ -493,7 +506,7 @@ onMounted(async () => {
 
 const fetchImages = async () => {
   try {
-    loading.value = true;
+    nacitani.value = true;
     error.value = null;
 
     const response = await fetch("/api/gallery");
@@ -505,7 +518,7 @@ const fetchImages = async () => {
     console.error("Error fetching images:", err);
     error.value = err.message;
   } finally {
-    loading.value = false;
+    nacitani.value = false;
   }
 };
 
@@ -581,7 +594,7 @@ const uploadFiles = async () => {
 };
 
 const closeUploadModal = () => {
-  showUploadModal.value = false;
+  zobrazitModalNahraniFotek.value = false;
   selectedFiles.value = [];
   previewUrls.value = [];
   isDragging.value = false;

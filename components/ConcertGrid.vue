@@ -23,12 +23,12 @@
             <div class="flex gap-4">
               <NuxtLink
                 :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
-                class="flex-1 bg-transparent text-black border border-black px-4 py-2 text-center"
+                class="flex-1 bg-transparent text-black border border-black px-4 py-2 text-center hover:bg-black hover:text-white transition-colors duration-200"
               >
                 Informace
               </NuxtLink>
               <button
-                class="flex-1 bg-red-800 border border-red-800 text-white px-4 py-2"
+                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
               >
                 Vstupenky
               </button>
