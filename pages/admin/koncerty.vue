@@ -347,6 +347,7 @@
 import { ref, onMounted, watch, computed } from "vue";
 import { useConcerts } from "~/composables/useConcerts";
 import { useCategories } from "~/composables/useCategories";
+import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
   TransitionChild,
@@ -365,6 +366,8 @@ const {
   updateConcert,
   deleteConcert,
 } = useConcerts();
+
+const toast = useToast();
 
 const showAddModal = ref(false);
 const editingConcert = ref(null);
@@ -485,17 +488,15 @@ const handleSubmit = async () => {
 
     if (editingConcert.value) {
       await updateConcert(editingConcert.value.id, concertData);
-      console.log("Concert updated successfully");
+      toast.success("Koncert byl úspěšně upraven");
     } else {
       await addConcert(concertData);
-      console.log("Concert added successfully");
+      toast.success("Koncert byl úspěšně přidán");
     }
 
     closeModal();
   } catch (err) {
-    console.error("Error submitting concert:", err);
-    error.value = err.message;
-    alert(`Chyba při ukládání: ${err.message}`);
+    toast.error("Chyba při ukládání koncertu: " + err.message);
   }
 };
 
@@ -526,9 +527,9 @@ const confirmDelete = async () => {
     await fetchConcerts();
     showDeleteModal.value = false;
     concertToDelete.value = null;
+    toast.success("Koncert byl úspěšně smazán");
   } catch (err) {
-    console.error("Error deleting concert:", err);
-    error.value = err.message;
+    toast.error("Chyba při mazání koncertu: " + err.message);
   }
 };
 

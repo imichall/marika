@@ -266,6 +266,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useChoirGroups } from "~/composables/useChoirGroups";
+import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
   TransitionChild,
@@ -283,6 +284,8 @@ const {
   addGroup,
   deleteGroup,
 } = useChoirGroups();
+
+const toast = useToast();
 
 onMounted(() => {
   fetchGroups();
@@ -383,13 +386,14 @@ const handleSubmit = async () => {
   try {
     if (editingGroup.value) {
       await updateGroup(editingGroup.value.id, form.value);
+      toast.success("Skupina byla úspěšně upravena");
     } else {
       await addGroup(form.value);
+      toast.success("Skupina byla úspěšně přidána");
     }
     closeModal();
   } catch (err) {
-    console.error("Error submitting group:", err);
-    alert(`Chyba při ukládání: ${err.message}`);
+    toast.error("Chyba při ukládání skupiny: " + err.message);
   }
 };
 
@@ -413,9 +417,9 @@ const confirmDelete = async () => {
     await deleteGroup(groupToDelete.value);
     showDeleteModal.value = false;
     groupToDelete.value = null;
+    toast.success("Skupina byla úspěšně smazána");
   } catch (err) {
-    console.error("Error deleting group:", err);
-    alert(`Chyba při mazání: ${err.message}`);
+    toast.error("Chyba při mazání skupiny: " + err.message);
   }
 };
 

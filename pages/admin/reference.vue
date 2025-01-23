@@ -114,10 +114,15 @@
 </template>
 
 <script setup>
+import { ref } from "vue";
+import { useToast } from "~/composables/useToast";
+import { useTestimonials } from "~/composables/useTestimonials";
+
 definePageMeta({
   layout: "admin",
 });
 
+const toast = useToast();
 const { testimonials } = useTestimonials();
 const showAddModal = ref(false);
 const editingTestimonial = ref(null);
@@ -143,26 +148,32 @@ const closeModal = () => {
 };
 
 const handleSubmit = () => {
-  if (editingTestimonial.value) {
-    // Aktualizace existující reference
-    const index = testimonials.value.findIndex(
-      (t) => t.id === editingTestimonial.value.id
-    );
-    if (index !== -1) {
-      testimonials.value[index] = {
-        ...testimonials.value[index],
+  try {
+    if (editingTestimonial.value) {
+      // Aktualizace existující reference
+      const index = testimonials.value.findIndex(
+        (t) => t.id === editingTestimonial.value.id
+      );
+      if (index !== -1) {
+        testimonials.value[index] = {
+          ...testimonials.value[index],
+          ...form.value,
+        };
+        toast.success("Reference byla úspěšně upravena");
+      }
+    } else {
+      // Přidání nové reference
+      const newTestimonial = {
+        id: Date.now(),
         ...form.value,
       };
+      testimonials.value.push(newTestimonial);
+      toast.success("Reference byla úspěšně přidána");
     }
-  } else {
-    // Přidání nové reference
-    const newTestimonial = {
-      id: Date.now(), // Jednoduchý způsob generování ID
-      ...form.value,
-    };
-    testimonials.value.push(newTestimonial);
+    closeModal();
+  } catch (err) {
+    toast.error("Chyba při ukládání reference: " + err.message);
   }
-  closeModal();
 };
 
 const editTestimonial = (testimonial) => {
@@ -176,11 +187,16 @@ const editTestimonial = (testimonial) => {
 };
 
 const deleteTestimonial = (id) => {
-  if (confirm("Opravdu chcete smazat tuto referenci?")) {
-    const index = testimonials.value.findIndex((t) => t.id === id);
-    if (index !== -1) {
-      testimonials.value.splice(index, 1);
+  try {
+    if (confirm("Opravdu chcete smazat tuto referenci?")) {
+      const index = testimonials.value.findIndex((t) => t.id === id);
+      if (index !== -1) {
+        testimonials.value.splice(index, 1);
+        toast.success("Reference byla úspěšně smazána");
+      }
     }
+  } catch (err) {
+    toast.error("Chyba při mazání reference: " + err.message);
   }
 };
 </script>

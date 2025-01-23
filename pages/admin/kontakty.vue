@@ -373,6 +373,7 @@
 <script setup>
 import { ref, onMounted, reactive } from "vue";
 import { useContacts } from "~/composables/useContacts";
+import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
   TransitionChild,
@@ -390,6 +391,8 @@ const {
   addContact,
   deleteContact,
 } = useContacts();
+
+const toast = useToast();
 
 const showAddModal = ref(false);
 const showDeleteModal = ref(false);
@@ -424,40 +427,16 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
-    // Připravíme data pro odeslání - prázdné řetězce převedeme na null
-    const formData = {
-      group_name: form.group_name.trim(),
-      address: form.address.trim() || null,
-      ico: form.ico.trim() || null,
-      dic: form.dic.trim() || null,
-      email: form.email.trim() || null,
-    };
-
-    // Validace emailu
-    if (formData.email && !formData.email.includes("@")) {
-      alert("Prosím zadejte platnou emailovou adresu");
-      return;
-    }
-
     if (editingContact.value) {
-      // Při editaci posíláme jen změněná pole
-      const changedFields = {};
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== editingContact.value[key]) {
-          changedFields[key] = formData[key];
-        }
-      });
-
-      if (Object.keys(changedFields).length > 0) {
-        await updateContact(editingContact.value.id, changedFields);
-      }
+      await updateContact(editingContact.value.id, form);
+      toast.success("Kontakt byl úspěšně upraven");
     } else {
-      await addContact(formData);
+      await addContact(form);
+      toast.success("Kontakt byl úspěšně přidán");
     }
     closeModal();
   } catch (err) {
-    console.error("Error saving contact:", err);
-    alert(`Chyba při ukládání: ${err.message}`);
+    toast.error("Chyba při ukládání kontaktu: " + err.message);
   }
 };
 
@@ -471,9 +450,15 @@ const editContact = (contact) => {
   showAddModal.value = true;
 };
 
-const handleDelete = (id) => {
-  contactToDelete.value = id;
-  showDeleteModal.value = true;
+const handleDelete = async (id) => {
+  try {
+    if (confirm("Opravdu chcete smazat tento kontakt?")) {
+      await deleteContact(id);
+      toast.success("Kontakt byl úspěšně smazán");
+    }
+  } catch (err) {
+    toast.error("Chyba při mazání kontaktu: " + err.message);
+  }
 };
 
 const confirmDelete = async () => {

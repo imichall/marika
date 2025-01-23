@@ -10,3 +10,31 @@
     // ... section content ...
   </div>
 </template>
+
+<script setup>
+import { useToast } from "~/composables/useToast";
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+
+const toast = useToast();
+const route = useRoute();
+
+const pageTitle = computed(() => {
+  switch (route.params.section) {
+    case "galerie":
+      return "Správa galerie";
+    case "koncerty":
+      return "Správa koncertů";
+    case "kontakty":
+      return "Správa kontaktů";
+    case "novinky":
+      return "Správa novinek";
+    case "reference":
+      return "Správa referencí";
+    case "skupiny":
+      return "Správa skupin";
+    default:
+      return "Admin";
+  }
+});
+</script>

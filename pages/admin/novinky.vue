@@ -10,9 +10,12 @@
 </template>
 
 <script setup>
+import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 
 definePageMeta({
   layout: "admin",
 });
+
+const toast = useToast();
 </script>

@@ -52,27 +52,35 @@
 </template>
 
 <script setup>
-definePageMeta({
-  layout: "default",
-});
+import { ref } from "vue";
+import { useToast } from "~/composables/useToast";
+import { useAuth } from "~/composables/useAuth";
+
+const toast = useToast();
+const { login } = useAuth();
 
 const email = ref("");
 const password = ref("");
 const error = ref("");
+const loading = ref(false);
 const router = useRouter();
-const { login, loading } = useAuth();
 
 const handleLogin = async () => {
   error.value = "";
   try {
+    loading.value = true;
     const success = await login(email.value, password.value);
     if (success) {
+      toast.success("Přihlášení proběhlo úspěšně");
       router.push("/admin");
     } else {
       error.value = "Nesprávné přihlašovací údaje";
     }
-  } catch (e) {
+  } catch (err) {
+    toast.error("Chyba při přihlášení: " + err.message);
     error.value = "Došlo k chybě při přihlašování";
+  } finally {
+    loading.value = false;
   }
 };
 </script>

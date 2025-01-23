@@ -474,6 +474,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
   TransitionChild,
@@ -495,6 +496,8 @@ const previewUrls = ref([]);
 const uploading = ref(false);
 const imageToDelete = ref(null);
 const currentImageIndex = ref(0);
+
+const toast = useToast();
 
 definePageMeta({
   layout: "admin",
@@ -544,7 +547,9 @@ const handleDrop = (event) => {
 const processFiles = (files) => {
   files.forEach((file) => {
     if (file.size > 5 * 1024 * 1024) {
-      alert(`Soubor ${file.name} je příliš velký. Maximální velikost je 5MB.`);
+      toast.error(
+        `Soubor ${file.name} je příliš velký. Maximální velikost je 5MB.`
+      );
       return;
     }
 
@@ -585,9 +590,10 @@ const uploadFiles = async () => {
 
     await fetchImages();
     closeUploadModal();
+    toast.success("Fotografie byly úspěšně nahrány");
   } catch (err) {
     console.error("Error uploading files:", err);
-    alert("Chyba při nahrávání: " + err.message);
+    toast.error("Chyba při nahrávání: " + err.message);
   } finally {
     uploading.value = false;
   }
@@ -616,9 +622,10 @@ const confirmDelete = async () => {
     await fetchImages();
     showDeleteModal.value = false;
     imageToDelete.value = null;
+    toast.success("Fotografie byla úspěšně smazána");
   } catch (err) {
     console.error("Error deleting image:", err);
-    alert("Chyba při mazání: " + err.message);
+    toast.error("Chyba při mazání: " + err.message);
   }
 };
 
