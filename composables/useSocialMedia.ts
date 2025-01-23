@@ -1,11 +1,16 @@
 import { useSupabaseClient } from '#imports'
-import { ref } from 'vue'
+import { ref, onMounted } from '#imports'
+
+// Create a simple event emitter
+const socialMediaUpdateEvent = new EventTarget();
+const SOCIAL_MEDIA_UPDATED = 'social-media-updated';
 
 interface SocialMedia {
   id: string
   platform: string
   url: string
   icon: string
+  choir_group_id: string | null
   created_at: string
   updated_at: string
 }
@@ -15,6 +20,10 @@ export const useSocialMedia = () => {
   const socialMedia = ref<SocialMedia[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
+
+  const notifyUpdate = () => {
+    socialMediaUpdateEvent.dispatchEvent(new Event(SOCIAL_MEDIA_UPDATED));
+  };
 
   const fetchSocialMedia = async () => {
     try {
@@ -26,7 +35,17 @@ export const useSocialMedia = () => {
 
       if (err) throw err
 
-      socialMedia.value = data as SocialMedia[]
+      if (data) {
+        socialMedia.value = data.map(item => ({
+          id: String(item.id),
+          platform: String(item.platform),
+          url: String(item.url),
+          icon: String(item.icon),
+          choir_group_id: item.choir_group_id ? String(item.choir_group_id) : null,
+          created_at: String(item.created_at),
+          updated_at: String(item.updated_at)
+        }))
+      }
     } catch (err) {
       console.error('Error fetching social media:', err)
       error.value = err instanceof Error ? err.message : 'Unknown error occurred'
@@ -46,9 +65,21 @@ export const useSocialMedia = () => {
 
       if (err) throw err
 
-      const typedNewSocialMedia = newSocialMedia as SocialMedia
-      socialMedia.value.push(typedNewSocialMedia)
-      return typedNewSocialMedia
+      if (newSocialMedia) {
+        const typedNewSocialMedia: SocialMedia = {
+          id: String(newSocialMedia.id),
+          platform: String(newSocialMedia.platform),
+          url: String(newSocialMedia.url),
+          icon: String(newSocialMedia.icon),
+          choir_group_id: newSocialMedia.choir_group_id ? String(newSocialMedia.choir_group_id) : null,
+          created_at: String(newSocialMedia.created_at),
+          updated_at: String(newSocialMedia.updated_at)
+        }
+        socialMedia.value = [...socialMedia.value, typedNewSocialMedia]
+        notifyUpdate();
+        return typedNewSocialMedia
+      }
+      throw new Error('No data returned from insert operation')
     } catch (err) {
       console.error('Error adding social media:', err)
       throw err
@@ -69,12 +100,25 @@ export const useSocialMedia = () => {
 
       if (err) throw err
 
-      const typedUpdatedSocialMedia = updatedSocialMedia as SocialMedia
-      const index = socialMedia.value.findIndex(sm => sm.id === id)
-      if (index !== -1) {
-        socialMedia.value[index] = typedUpdatedSocialMedia
+      if (updatedSocialMedia) {
+        const typedUpdatedSocialMedia: SocialMedia = {
+          id: String(updatedSocialMedia.id),
+          platform: String(updatedSocialMedia.platform),
+          url: String(updatedSocialMedia.url),
+          icon: String(updatedSocialMedia.icon),
+          choir_group_id: updatedSocialMedia.choir_group_id ? String(updatedSocialMedia.choir_group_id) : null,
+          created_at: String(updatedSocialMedia.created_at),
+          updated_at: String(updatedSocialMedia.updated_at)
+        }
+        const index = socialMedia.value.findIndex(sm => sm.id === id)
+        if (index !== -1) {
+          socialMedia.value[index] = typedUpdatedSocialMedia
+          socialMedia.value = [...socialMedia.value]
+          notifyUpdate();
+        }
+        return typedUpdatedSocialMedia
       }
-      return typedUpdatedSocialMedia
+      throw new Error('No data returned from update operation')
     } catch (err) {
       console.error('Error updating social media:', err)
       throw err
@@ -94,6 +138,7 @@ export const useSocialMedia = () => {
       if (err) throw err
 
       socialMedia.value = socialMedia.value.filter(sm => sm.id !== id)
+      notifyUpdate();
     } catch (err) {
       console.error('Error deleting social media:', err)
       throw err
@@ -102,6 +147,10 @@ export const useSocialMedia = () => {
     }
   }
 
+  onMounted(async () => {
+    await fetchSocialMedia()
+  })
+
   return {
     socialMedia,
     loading,
@@ -109,6 +158,10 @@ export const useSocialMedia = () => {
     fetchSocialMedia,
     addSocialMedia,
     updateSocialMedia,
-    deleteSocialMedia
+    deleteSocialMedia,
+    onSocialMediaUpdate: (callback: () => void) => {
+      socialMediaUpdateEvent.addEventListener(SOCIAL_MEDIA_UPDATED, callback);
+      return () => socialMediaUpdateEvent.removeEventListener(SOCIAL_MEDIA_UPDATED, callback);
+    }
   }
 }

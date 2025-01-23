@@ -21,7 +21,7 @@
     <!-- Seznam sociálních sítí -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
       <div
-        v-for="item in socialMedia"
+        v-for="item in socialMedia || []"
         :key="item.id"
         class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl border border-gray-100 transition-all duration-300 relative group"
       >
@@ -117,7 +117,7 @@
 
       <!-- Prázdný stav -->
       <div
-        v-if="!socialMedia.length"
+        v-if="!socialMedia?.length"
         class="col-span-full bg-white rounded-lg p-8 text-center shadow-md border border-gray-100"
       >
         <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" viewBox="0 0 24 24">
@@ -351,8 +351,9 @@
                 >
                   <div class="p-2 bg-gray-50 rounded-full">
                     <svg
+                      v-if="itemToDelete"
                       class="w-6 h-6"
-                      :class="getIconColor(itemToDelete?.platform)"
+                      :class="getIconColor(itemToDelete?.platform || '')"
                       viewBox="0 0 24 24"
                     >
                       <path
@@ -383,8 +384,11 @@
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
                     Opravdu chcete smazat tuto sociální síť?
-                    <span class="block mt-2 font-medium text-gray-700">
-                      {{ itemToDelete?.platform }} - {{ itemToDelete?.url }}
+                    <span
+                      v-if="itemToDelete"
+                      class="block mt-2 font-medium text-gray-700"
+                    >
+                      {{ itemToDelete.platform }} - {{ itemToDelete.url }}
                     </span>
                   </p>
                 </div>
@@ -480,7 +484,7 @@ const editingId = ref<string | null>(null);
 const isAdding = ref(false);
 
 const showDeleteModal = ref(false);
-const itemToDelete = ref<any>(null);
+const itemToDelete = ref<SocialMedia | null>(null);
 
 const getIconColor = (platform: string) => {
   const colors: Record<string, string> = {

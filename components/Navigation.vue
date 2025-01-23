@@ -11,36 +11,39 @@
         <!-- Social Icons -->
         <div class="flex items-center space-x-4">
           <a
-            href="https://www.facebook.com/marikasingers/?locale=cs_CZ"
+            v-for="item in globalSocialMedia"
+            :key="item.id"
+            :href="item.url"
             target="_blank"
             rel="noopener noreferrer"
             class="text-white hover:text-gray-200"
           >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              v-if="item.platform === 'facebook'"
+              class="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 d="M18.77,7.46H14.5v-1.9c0-.9.6-1.1,1-1.1h3V.5h-4.33C10.24.5,9.5,3.44,9.5,5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4Z"
               />
             </svg>
-          </a>
-          <a
-            href="https://www.youtube.com/user/MarikaSingers"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-white hover:text-gray-200"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              v-else-if="item.platform === 'youtube'"
+              class="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 d="M23.498,6.186a3.016,3.016,0,0,0-2.122-2.136C19.505,3.545,12,3.545,12,3.545s-7.505,0-9.377.505A3.017,3.017,0,0,0,.5,6.186C0,8.07,0,12,0,12s0,3.93.5,5.814a3.016,3.016,0,0,0,2.122,2.136c1.871.505,9.376.505,9.376.505s7.505,0,9.377-.505a3.015,3.015,0,0,0,2.122-2.136C24,15.93,24,12,24,12S24,8.07,23.498,6.186ZM9.545,15.568V8.432L15.818,12Z"
               />
             </svg>
-          </a>
-          <a
-            href="https://www.instagram.com/marika_singers/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-white hover:text-gray-200"
-          >
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              v-else-if="item.platform === 'instagram'"
+              class="w-5 h-5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 d="M12,2.982c2.937,0,3.285.011,4.445.064a6.087,6.087,0,0,1,2.042.379,3.408,3.408,0,0,1,1.265.823,3.408,3.408,0,0,1,.823,1.265,6.087,6.087,0,0,1,.379,2.042c.053,1.16.064,1.508.064,4.445s-.011,3.285-.064,4.445a6.087,6.087,0,0,1-.379,2.042,3.643,3.643,0,0,1-2.088,2.088,6.087,6.087,0,0,1-2.042.379c-1.16.053-1.508.064-4.445.064s-3.285-.011-4.445-.064a6.087,6.087,0,0,1-2.043-.379,3.408,3.408,0,0,1-1.265-.823,3.408,3.408,0,0,1-.823-1.265,6.087,6.087,0,0,1-.379-2.042c-.053-1.16-.064-1.508-.064-4.445s.011-3.285.064-4.445a6.087,6.087,0,0,1,.379-2.042,3.408,3.408,0,0,1,.823-1.265,3.408,3.408,0,0,1,1.265-.823,6.087,6.087,0,0,1,2.043-.379c1.16-.053,1.508-.064,4.445-.064M12,1c-2.987,0-3.362.013-4.535.066a8.074,8.074,0,0,0-2.67.511,5.392,5.392,0,0,0-1.949,1.27,5.392,5.392,0,0,0-1.27,1.949,8.074,8.074,0,0,0-.511,2.67C1.013,8.638,1,9.013,1,12s.013,3.362.066,4.535a8.074,8.074,0,0,0,.511,2.67,5.392,5.392,0,0,0,1.27,1.949,5.392,5.392,0,0,0,1.949,1.27,8.074,8.074,0,0,0,2.67.511C8.638,22.987,9.013,23,12,23s3.362-.013,4.535-.066a8.074,8.074,0,0,0,2.67-.511,5.625,5.625,0,0,0,3.219-3.219,8.074,8.074,0,0,0,.511-2.67C22.987,15.362,23,14.987,23,12s-.013-3.362-.066-4.535a8.074,8.074,0,0,0-.511-2.67,5.392,5.392,0,0,0-1.27-1.949,5.392,5.392,0,0,0-1.949-1.27,8.074,8.074,0,0,0-2.67-.511C15.362,1.013,14.987,1,12,1Zm0,5.351A5.649,5.649,0,1,0,17.649,12,5.649,5.649,0,0,0,12,6.351Zm0,9.316A3.667,3.667,0,1,1,15.667,12,3.667,3.667,0,0,1,12,15.667Zm5.872-10.859a1.32,1.32,0,1,0,1.32,1.32A1.32,1.32,0,0,0,17.872,4.808Z"
               />
@@ -293,19 +296,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, watch, computed, onMounted, onUnmounted } from "#imports";
+import { useRouter, useRoute } from "#imports";
 import { useAuth } from "~/composables/useAuth";
+import { useSocialMedia } from "~/composables/useSocialMedia";
+import type { SocialMedia } from "~/types";
+
+interface MenuItem {
+  id: string;
+  text: string;
+  requiresAuth: boolean;
+}
+
+interface Breadcrumb {
+  name: string;
+  path: string;
+}
 
 const router = useRouter();
 const route = useRoute();
 const { user, logout } = useAuth();
+const { socialMedia, fetchSocialMedia, onSocialMediaUpdate } = useSocialMedia();
 const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
 const { scrollToSection } = useScroll();
+const pollingInterval = ref<NodeJS.Timeout | null>(null);
+
+// Initial data fetch and event listener setup
+onMounted(async () => {
+  await fetchSocialMedia();
+  const cleanup = onSocialMediaUpdate(async () => {
+    await fetchSocialMedia();
+  });
+
+  // Clean up event listener on unmount
+  onUnmounted(() => {
+    cleanup();
+  });
+});
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
+});
+
+const globalSocialMedia = computed(() => {
+  return (
+    socialMedia.value?.filter(
+      (item: SocialMedia) => item.choir_group_id === null
+    ) || []
+  );
 });
 
 const toggleMenu = () => {
@@ -317,7 +356,7 @@ const toggleMenu = () => {
   }
 };
 
-const menuItems = [
+const menuItems: MenuItem[] = [
   { id: "about", text: "O NÁS", requiresAuth: false },
   { id: "gallery", text: "GALERIE", requiresAuth: false },
   { id: "testimonials", text: "NAPSALI O NÁS", requiresAuth: false },
@@ -325,7 +364,7 @@ const menuItems = [
 ];
 
 const visibleMenuItems = computed(() => {
-  return menuItems.filter((item) => {
+  return menuItems.filter((item: MenuItem) => {
     if (item.requiresAuth) {
       return user.value;
     }
@@ -333,7 +372,7 @@ const visibleMenuItems = computed(() => {
   });
 });
 
-const handleDesktopClick = async (id) => {
+const handleDesktopClick = async (id: string) => {
   if (route.path !== "/") {
     await router.push("/");
     setTimeout(() => {
@@ -344,9 +383,8 @@ const handleDesktopClick = async (id) => {
   }
 };
 
-const handleMobileClick = async (id) => {
+const handleMobileClick = async (id: string) => {
   isMenuOpen.value = false;
-
   if (route.path !== "/") {
     await router.push("/");
     setTimeout(() => {
@@ -357,7 +395,7 @@ const handleMobileClick = async (id) => {
   }
 };
 
-watch(isMenuOpen, (newValue) => {
+watch(isMenuOpen, (newValue: boolean) => {
   if (process.client) {
     document.body.style.overflow = newValue ? "hidden" : "";
   }
@@ -384,22 +422,20 @@ const handleLogout = async () => {
 };
 
 // Breadcrumbs logika
-const breadcrumbs = computed(() => {
+const breadcrumbs = computed<Breadcrumb[]>(() => {
   const path = route.path;
-  const parts = path.split("/").filter((part) => part);
-  const crumbs = [];
+  const parts = path.split("/").filter((part: string) => part);
+  const crumbs: Breadcrumb[] = [];
   let currentPath = "";
 
-  parts.forEach((part, index) => {
+  parts.forEach((part: string) => {
     currentPath += `/${part}`;
 
-    // Přeskočit 'admin' v breadcrumbs, protože máme ikonu domečku
     if (part === "admin") return;
 
     let name = part.charAt(0).toUpperCase() + part.slice(1);
 
-    // Mapování názvů sekcí
-    const nameMap = {
+    const nameMap: Record<string, string> = {
       koncerty: "Koncerty",
       skupiny: "Skupiny",
       galerie: "Galerie",
