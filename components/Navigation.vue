@@ -48,26 +48,48 @@
           </a>
         </div>
 
-        <!-- Login Button -->
-        <button
-          @click="showLoginModal = true"
-          class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
-        >
-          Členská sekce
-          <svg
-            class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+        <!-- Login a Admin Buttons -->
+        <div class="flex items-center gap-4">
+          <NuxtLink
+            v-if="user"
+            to="/admin"
+            class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M14 5l7 7m0 0l-7 7m7-7H3"
-            />
-          </svg>
-        </button>
+            Administrace
+            <svg
+              class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </NuxtLink>
+          <button
+            @click="showLoginModal = true"
+            class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
+          >
+            Členská sekce
+            <svg
+              class="w-4 h-4 transform transition-transform duration-200 group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -270,17 +292,17 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "~/composables/useAuth";
 
 const router = useRouter();
 const route = useRoute();
+const { user, logout } = useAuth();
 const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
 const { scrollToSection } = useScroll();
-const { isAuthenticated, logout } = useAuth();
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
@@ -288,7 +310,11 @@ const isAdminRoute = computed(() => {
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
-  console.log("Menu state:", isMenuOpen.value);
+  if (isMenuOpen.value) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
 };
 
 const menuItems = [
@@ -296,13 +322,12 @@ const menuItems = [
   { id: "gallery", text: "GALERIE", requiresAuth: false },
   { id: "testimonials", text: "NAPSALI O NÁS", requiresAuth: false },
   { id: "contact", text: "KONTAKT", requiresAuth: false },
-  { id: "admin", text: "ADMINISTRACE", requiresAuth: true },
 ];
 
 const visibleMenuItems = computed(() => {
   return menuItems.filter((item) => {
     if (item.requiresAuth) {
-      return isAuthenticated.value;
+      return user.value;
     }
     return true;
   });
@@ -338,21 +363,21 @@ watch(isMenuOpen, (newValue) => {
   }
 });
 
-const loginForm = reactive({
+const loginForm = ref({
   username: "",
   password: "",
 });
 
 const handleLogin = () => {
-  localStorage.setItem("ms_username", loginForm.username);
-  localStorage.setItem("ms_password", loginForm.password);
+  localStorage.setItem("ms_username", loginForm.value.username);
+  localStorage.setItem("ms_password", loginForm.value.password);
   window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
 };
 
 const handleLogout = async () => {
   try {
     await logout();
-    router.push("/");
+    await router.push("/");
   } catch (error) {
     console.error("Chyba při odhlášení:", error);
   }
