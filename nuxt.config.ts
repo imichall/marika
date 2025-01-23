@@ -6,7 +6,10 @@ export default defineNuxtConfig({
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'
-        }
+        },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon/favicon-16x16.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon/favicon-32x32.png' }
       ],
       script: [
         {
@@ -60,7 +63,8 @@ export default defineNuxtConfig({
     },
     '/**': {
       ssr: true
-    }
+    },
+    '/dev-sw.js': process.env.NODE_ENV === 'development' ? { redirect: '/' } : undefined
   },
 
   runtimeConfig: {
