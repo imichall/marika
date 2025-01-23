@@ -43,10 +43,27 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: false,
       routes: ['/']
+    },
+    routeRules: {
+      '/**': { cors: true }
     }
   },
 
   ssr: false,
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: '',  // Výchozí hodnota
+      supabaseKey: ''   // Výchozí hodnota
+    }
+  },
+
+  appConfig: {
+    supabase: {
+      url: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      key: process.env.NUXT_PUBLIC_SUPABASE_KEY
+    }
+  },
 
   typescript: {
     strict: true
@@ -68,12 +85,5 @@ export default defineNuxtConfig({
 
   router: {
     middleware: ['auth']
-  },
-
-  runtimeConfig: {
-    public: {
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
-    }
   }
 })

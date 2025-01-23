@@ -348,26 +348,7 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 
-const {
-  concerts,
-  loading: concertsLoading,
-  error: concertsError,
-  addConcert,
-  updateConcert,
-  deleteConcert,
-  fetchConcerts,
-} = useConcerts();
-
-// Znovu načteme data při mounted
-onMounted(() => {
-  console.log("Admin koncerty page mounted");
-  fetchConcerts();
-});
-
-// Sledujeme změny v datech
-watch(concerts, (newConcerts) => {
-  console.log("Admin concerts updated:", newConcerts);
-});
+const { concerts, loading, error, fetchConcerts, addConcert, updateConcert, deleteConcert } = useConcerts();
 
 const showAddModal = ref(false);
 const editingConcert = ref(null);
@@ -522,6 +503,17 @@ const confirmDelete = async () => {
     error.value = err.message;
   }
 };
+
+// Znovu načteme data při mounted
+onMounted(() => {
+  console.log("Admin koncerty page mounted");
+  fetchConcerts();
+});
+
+// Sledujeme změny v datech
+watch(concerts, (newConcerts) => {
+  console.log("Admin concerts updated:", newConcerts);
+});
 
 definePageMeta({
   layout: "admin",
