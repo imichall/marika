@@ -49,12 +49,24 @@ export default defineNuxtConfig({
     }
   },
 
-  ssr: false,
+  routeRules: {
+    '/': {
+      ssr: true,
+      prerender: true
+    },
+    '/admin/**': {
+      ssr: false,
+      experimentalNoScripts: false
+    },
+    '/**': {
+      ssr: true
+    }
+  },
 
   runtimeConfig: {
     public: {
-      supabaseUrl: '',  // Výchozí hodnota
-      supabaseKey: ''   // Výchozí hodnota
+      supabaseUrl: '',
+      supabaseKey: ''
     }
   },
 
@@ -69,17 +81,23 @@ export default defineNuxtConfig({
     strict: true
   },
 
-  routeRules: {
-    '/': {
-      ssr: true,
-      prerender: true
-    },
-    '/**': {
-      ssr: false
-    }
+  modules: [
+    'nuxt-icon',
+    '@nuxtjs/color-mode'
+  ],
+
+  components: {
+    dirs: ['~/components']
   },
 
-  generate: {
-    dir: 'dist'
+  imports: {
+    dirs: ['composables']
+  },
+
+  colorMode: {
+    preference: 'light',
+    fallback: 'light',
+    classPrefix: '',
+    classSuffix: '',
   }
 })

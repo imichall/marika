@@ -27,8 +27,8 @@ const pageTitle = computed(() => {
       return "Správa koncertů";
     case "kontakty":
       return "Správa kontaktů";
-    case "novinky":
-      return "Správa novinek";
+    case "socialni-site":
+      return "Správa sociálních sítí";
     case "reference":
       return "Správa referencí";
     case "skupiny":

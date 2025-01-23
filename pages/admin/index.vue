@@ -138,13 +138,13 @@
         </div>
       </NuxtLink>
 
-      <!-- Novinky -->
+      <!-- Sociální sítě -->
       <NuxtLink
-        to="/admin/novinky"
+        to="/admin/socialni-site"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Novinky</h2>
+          <h2 class="text-xl font-semibold">Sociální sítě</h2>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-6 w-6 text-purple-600"
@@ -156,16 +156,16 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
+              d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"
             />
           </svg>
         </div>
-        <p class="text-gray-600">Správa novinek a aktualit</p>
+        <p class="text-gray-600">Správa sociálních sítí</p>
         <div class="mt-4 flex items-center">
           <span
             class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
           >
-            Spravovat
+            {{ socialMedia?.length || 0 }} odkazů
           </span>
         </div>
       </NuxtLink>
@@ -215,4 +215,5 @@ import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 const { concerts } = useConcerts();
 const testimonials = useTestimonials()?.testimonials || [];
 const galleryImages = useGallery()?.galleryImages || [];
+const { socialMedia } = useSocialMedia();
 </script>

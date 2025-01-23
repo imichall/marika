@@ -1,0 +1,365 @@
+<template>
+  <div class="container mx-auto px-4 mt-[100px]">
+    <AdminBreadcrumbs />
+
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold">Správa sociálních sítí</h1>
+        <p class="text-gray-600 mt-2">Spravujte odkazy na sociální sítě</p>
+      </div>
+      <button
+        @click="resetForm"
+        class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+        </svg>
+        Přidat sociální síť
+      </button>
+    </div>
+
+    <!-- Seznam sociálních sítí -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+      <div
+        v-for="item in socialMedia"
+        :key="item.id"
+        class="bg-white rounded-lg p-6 shadow-md hover:shadow-xl border border-gray-100 transition-all duration-300 relative group"
+      >
+        <div
+          class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2"
+        >
+          <button
+            @click="editItem(item)"
+            class="p-2 text-gray-600 hover:text-primary bg-white rounded-full hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow-md"
+            title="Upravit"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              />
+            </svg>
+          </button>
+          <button
+            @click="deleteItem(item)"
+            class="p-2 text-gray-600 hover:text-red-600 bg-white rounded-full hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow-md"
+            title="Smazat"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4 mb-4">
+          <div class="p-3 bg-white rounded-full shadow-md">
+            <svg
+              class="w-6 h-6"
+              :class="getIconColor(item.platform)"
+              viewBox="0 0 24 24"
+            >
+              <path
+                v-if="item.platform === 'facebook'"
+                fill="currentColor"
+                d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"
+              />
+              <path
+                v-else-if="item.platform === 'instagram'"
+                fill="currentColor"
+                d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8A1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5a5 5 0 0 1-5 5a5 5 0 0 1-5-5a5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3Z"
+              />
+              <path
+                v-else-if="item.platform === 'youtube'"
+                fill="currentColor"
+                d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9c.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83c-.25.9-.83 1.48-1.73 1.73c-.47.13-1.33.22-2.65.28c-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44c-.9-.25-1.48-.83-1.73-1.73c-.13-.47-.22-1.1-.28-1.9c-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83c.25-.9.83-1.48 1.73-1.73c.47-.13 1.33-.22 2.65-.28c1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44c.9.25 1.48.83 1.73 1.73Z"
+              />
+              <path
+                v-else-if="item.platform === 'spotify'"
+                fill="currentColor"
+                d="M17.9 10.9C14.7 9 9.35 8.8 6.3 9.75c-.5.15-1-.15-1.15-.6c-.15-.5.15-1 .6-1.15c3.55-1.05 9.4-.85 13.1 1.35c.45.25.6.85.35 1.3c-.25.35-.85.5-1.3.25m-.1 2.8c-.25.35-.7.5-1.05.25c-2.7-1.65-6.8-2.15-9.95-1.15c-.4.1-.85-.1-.95-.5c-.1-.4.1-.85.5-.95c3.65-1.1 8.15-.55 11.25 1.35c.35.15.4.55.25.85M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2Z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg text-gray-900">
+              {{ item.platform }}
+            </h3>
+            <a
+              :href="item.url"
+              target="_blank"
+              class="text-sm text-primary hover:text-primary-dark transition-colors duration-200 hover:underline font-medium"
+            >
+              {{ item.url }}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prázdný stav -->
+      <div
+        v-if="!socialMedia.length"
+        class="col-span-full bg-white rounded-lg p-8 text-center shadow-md border border-gray-100"
+      >
+        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" viewBox="0 0 24 24">
+          <path
+            fill="currentColor"
+            d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"
+          />
+        </svg>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          Žádné sociální sítě
+        </h3>
+        <p class="text-gray-500">
+          Zatím nejsou přidány žádné sociální sítě. Začněte kliknutím na
+          tlačítko "Přidat sociální síť".
+        </p>
+      </div>
+    </div>
+
+    <!-- Formulář -->
+    <div
+      v-if="editingId || isAdding"
+      class="bg-white rounded-lg shadow-lg p-6 border border-gray-100"
+    >
+      <form @submit.prevent="handleSubmit">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="space-y-4">
+            <h3 class="text-xl font-bold mb-4">
+              {{
+                editingId ? "Upravit sociální síť" : "Přidat novou sociální síť"
+              }}
+            </h3>
+
+            <!-- Platform -->
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Platforma
+              </label>
+              <select
+                v-model="form.platform"
+                class="w-full rounded-lg border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                required
+              >
+                <option value="" disabled>Vyberte platformu</option>
+                <option
+                  v-for="platform in platforms"
+                  :key="platform.value"
+                  :value="platform.value"
+                >
+                  {{ platform.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- URL -->
+            <div class="form-group">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                URL
+              </label>
+              <input
+                v-model="form.url"
+                type="url"
+                class="w-full rounded-lg border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                placeholder="https://..."
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Ikony -->
+          <div class="space-y-4">
+            <h4 class="text-sm font-medium text-gray-700">Vyberte ikonu</h4>
+            <div class="grid grid-cols-2 gap-4">
+              <label
+                v-for="icon in icons"
+                :key="icon.value"
+                class="relative flex items-center p-4 cursor-pointer bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <input
+                  type="radio"
+                  :value="icon.value"
+                  v-model="form.icon"
+                  class="hidden"
+                  required
+                />
+                <div class="flex items-center gap-3">
+                  <svg
+                    class="w-6 h-6"
+                    :class="getIconColor(icon.label)"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      v-if="icon.label === 'Facebook'"
+                      fill="currentColor"
+                      d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"
+                    />
+                    <path
+                      v-else-if="icon.label === 'Instagram'"
+                      fill="currentColor"
+                      d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8A1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5a5 5 0 0 1-5 5a5 5 0 0 1-5-5a5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3Z"
+                    />
+                    <path
+                      v-else-if="icon.label === 'YouTube'"
+                      fill="currentColor"
+                      d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9c.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83c-.25.9-.83 1.48-1.73 1.73c-.47.13-1.33.22-2.65.28c-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44c-.9-.25-1.48-.83-1.73-1.73c-.13-.47-.22-1.1-.28-1.9c-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83c.25-.9.83-1.48 1.73-1.73c.47-.13 1.33-.22 2.65-.28c1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44c.9.25 1.48.83 1.73 1.73Z"
+                    />
+                    <path
+                      v-else-if="icon.label === 'Spotify'"
+                      fill="currentColor"
+                      d="M17.9 10.9C14.7 9 9.35 8.8 6.3 9.75c-.5.15-1-.15-1.15-.6c-.15-.5.15-1 .6-1.15c3.55-1.05 9.4-.85 13.1 1.35c.45.25.6.85.35 1.3c-.25.35-.85.5-1.3.25m-.1 2.8c-.25.35-.7.5-1.05.25c-2.7-1.65-6.8-2.15-9.95-1.15c-.4.1-.85-.1-.95-.5c-.1-.4.1-.85.5-.95c3.65-1.1 8.15-.55 11.25 1.35c.35.15.4.55.25.85M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2Z"
+                    />
+                  </svg>
+                  <span class="text-sm font-medium">
+                    {{ icon.label }}
+                  </span>
+                </div>
+                <div
+                  class="absolute inset-0 rounded-lg ring-2 ring-primary ring-opacity-0 transition-opacity"
+                  :class="{ 'ring-opacity-100': form.icon === icon.value }"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tlačítka -->
+        <div class="flex justify-end gap-3">
+          <button
+            type="button"
+            @click="cancelEdit"
+            class="px-6 py-2.5 text-sm font-medium text-red-700 bg-white border-2 border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors duration-200 shadow-sm hover:shadow-md"
+          >
+            Zrušit
+          </button>
+          <button
+            type="submit"
+            class="px-6 py-2.5 text-sm font-medium text-white border-2 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            :class="
+              editingId
+                ? 'bg-blue-600 hover:bg-blue-700 border-blue-600'
+                : 'bg-green-600 hover:bg-green-700 border-green-600'
+            "
+            :disabled="loading"
+          >
+            {{ editingId ? "Upravit" : "Přidat" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "#imports";
+import { useSocialMedia } from "~/composables/useSocialMedia";
+import { useToast } from "~/composables/useToast";
+
+definePageMeta({
+  layout: "admin",
+  middleware: ["auth"],
+});
+
+const {
+  socialMedia,
+  loading,
+  fetchSocialMedia,
+  addSocialMedia,
+  updateSocialMedia,
+  deleteSocialMedia,
+} = useSocialMedia();
+
+const toast = useToast();
+
+const platforms = [
+  { value: "facebook", label: "Facebook" },
+  { value: "instagram", label: "Instagram" },
+  { value: "youtube", label: "YouTube" },
+  { value: "spotify", label: "Spotify" },
+];
+
+const icons = [
+  { value: "mdi:facebook", label: "Facebook" },
+  { value: "mdi:instagram", label: "Instagram" },
+  { value: "mdi:youtube", label: "YouTube" },
+  { value: "mdi:spotify", label: "Spotify" },
+];
+
+const form = ref({
+  platform: "",
+  url: "",
+  icon: "",
+});
+
+const editingId = ref<string | null>(null);
+const isAdding = ref(false);
+
+const getIconColor = (platform: string) => {
+  const colors: Record<string, string> = {
+    facebook: "text-[#1877F2]",
+    instagram: "text-[#E4405F]",
+    youtube: "text-[#FF0000]",
+    spotify: "text-[#1DB954]",
+  };
+  return colors[platform.toLowerCase()] || "";
+};
+
+const resetForm = () => {
+  form.value = {
+    platform: "",
+    url: "",
+    icon: "",
+  };
+  editingId.value = null;
+  isAdding.value = true;
+};
+
+const cancelEdit = () => {
+  form.value = {
+    platform: "",
+    url: "",
+    icon: "",
+  };
+  editingId.value = null;
+  isAdding.value = false;
+};
+
+const handleSubmit = async () => {
+  try {
+    if (editingId.value) {
+      await updateSocialMedia(editingId.value, form.value);
+      toast.success("Sociální síť byla úspěšně upravena");
+    } else {
+      await addSocialMedia(form.value);
+      toast.success("Sociální síť byla úspěšně přidána");
+    }
+    cancelEdit();
+  } catch (error: any) {
+    toast.error(`Chyba při ukládání: ${error?.message || "Neznámá chyba"}`);
+  }
+};
+
+const editItem = (item: any) => {
+  form.value = { ...item };
+  editingId.value = item.id;
+  isAdding.value = false;
+};
+
+const deleteItem = async (item: any) => {
+  if (confirm("Opravdu chcete smazat tuto sociální síť?")) {
+    try {
+      await deleteSocialMedia(item.id);
+      toast.success("Sociální síť byla úspěšně smazána");
+    } catch (error: any) {
+      toast.error(`Chyba při mazání: ${error?.message || "Neznámá chyba"}`);
+    }
+  }
+};
+
+// Načteme data při mounted
+onMounted(() => {
+  fetchSocialMedia();
+});
+</script>
