@@ -424,10 +424,35 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
+    // Připravíme data pro odeslání - prázdné řetězce převedeme na null
+    const formData = {
+      group_name: form.group_name.trim(),
+      address: form.address.trim() || null,
+      ico: form.ico.trim() || null,
+      dic: form.dic.trim() || null,
+      email: form.email.trim() || null,
+    };
+
+    // Validace emailu
+    if (formData.email && !formData.email.includes("@")) {
+      alert("Prosím zadejte platnou emailovou adresu");
+      return;
+    }
+
     if (editingContact.value) {
-      await updateContact(editingContact.value.id, form);
+      // Při editaci posíláme jen změněná pole
+      const changedFields = {};
+      Object.keys(formData).forEach((key) => {
+        if (formData[key] !== editingContact.value[key]) {
+          changedFields[key] = formData[key];
+        }
+      });
+
+      if (Object.keys(changedFields).length > 0) {
+        await updateContact(editingContact.value.id, changedFields);
+      }
     } else {
-      await addContact(form);
+      await addContact(formData);
     }
     closeModal();
   } catch (err) {

@@ -23,14 +23,25 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
+      console.log('Fetching contacts...')
       const { data, error: err } = await supabase
         .from('contacts')
-        .select('*')
+        .select('id, group_name, address, ico, dic, email, created_at, updated_at')
         .order('group_name')
 
       if (err) throw err
 
-      contacts.value = data
+      console.log('Fetched contacts:', data)
+      contacts.value = data?.map(item => ({
+        id: String(item.id),
+        group_name: String(item.group_name),
+        address: item.address ? String(item.address) : null,
+        ico: item.ico ? String(item.ico) : null,
+        dic: item.dic ? String(item.dic) : null,
+        email: item.email ? String(item.email) : null,
+        created_at: String(item.created_at),
+        updated_at: String(item.updated_at)
+      })) || []
     } catch (err: any) {
       console.error('Error fetching contacts:', err)
       error.value = err.message
@@ -41,14 +52,24 @@ export const useContacts = () => {
 
   const updateContact = async (id: string, data: Partial<Contact>) => {
     try {
+      loading.value = true
+      error.value = null
+
+      console.log('Updating contact with ID:', id)
+      console.log('Update data:', data)
+
       const { data: updatedContact, error: err } = await supabase
         .from('contacts')
         .update(data)
-        .eq('id', id)
+        .match({ id })
         .select()
         .single()
 
       if (err) throw err
+
+      if (!updatedContact) {
+        throw new Error('Kontakt nebyl nalezen')
+      }
 
       // Aktualizujeme lokální stav
       const index = contacts.value.findIndex(c => c.id === id)
@@ -59,30 +80,67 @@ export const useContacts = () => {
       return updatedContact
     } catch (err: any) {
       console.error('Error updating contact:', err)
+      error.value = err.message
       throw err
+    } finally {
+      loading.value = false
     }
   }
 
   const addContact = async (data: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data: newContact, error: err } = await supabase
+      loading.value = true
+      error.value = null
+
+      const now = new Date().toISOString()
+      const contactData = {
+        ...data,
+        created_at: now,
+        updated_at: now
+      }
+
+      console.log('Adding contact:', contactData)
+      const { data: newData, error: err } = await supabase
         .from('contacts')
-        .insert([data])
+        .insert([contactData])
         .select()
         .single()
 
       if (err) throw err
 
-      contacts.value.push(newContact)
-      return newContact
+      if (!newData) {
+        throw new Error('Kontakt nebyl vytvořen')
+      }
+
+      const contact: Contact = {
+        id: String(newData.id),
+        group_name: String(newData.group_name),
+        address: newData.address ? String(newData.address) : null,
+        ico: newData.ico ? String(newData.ico) : null,
+        dic: newData.dic ? String(newData.dic) : null,
+        email: newData.email ? String(newData.email) : null,
+        created_at: String(newData.created_at),
+        updated_at: String(newData.updated_at)
+      }
+
+      console.log('Added contact:', contact)
+      contacts.value.push(contact)
+      return contact
     } catch (err: any) {
       console.error('Error adding contact:', err)
+      error.value = err.message
       throw err
+    } finally {
+      loading.value = false
     }
   }
 
   const deleteContact = async (id: string) => {
     try {
+      loading.value = true
+      error.value = null
+
+      console.log('Deleting contact:', id)
       const { error: err } = await supabase
         .from('contacts')
         .delete()
@@ -90,11 +148,14 @@ export const useContacts = () => {
 
       if (err) throw err
 
-      // Aktualizujeme lokální stav
+      console.log('Contact deleted:', id)
       contacts.value = contacts.value.filter(c => c.id !== id)
     } catch (err: any) {
       console.error('Error deleting contact:', err)
+      error.value = err.message
       throw err
+    } finally {
+      loading.value = false
     }
   }
 

@@ -25,7 +25,11 @@ export const useCategories = () => {
 
       if (err) throw err
 
-      categories.value = data
+      categories.value = data?.map(item => ({
+        id: String(item.id),
+        name: String(item.name),
+        created_at: String(item.created_at)
+      })) || []
     } catch (err: any) {
       console.error('Error fetching categories:', err)
       error.value = err.message
@@ -36,7 +40,10 @@ export const useCategories = () => {
 
   const addCategory = async (name: string) => {
     try {
-      const { data, error: err } = await supabase
+      loading.value = true
+      error.value = null
+
+      const { data: newData, error: err } = await supabase
         .from('categories')
         .insert([{ name }])
         .select()
@@ -44,13 +51,24 @@ export const useCategories = () => {
 
       if (err) throw err
 
-      if (data) {
-        categories.value.push(data)
+      if (!newData) {
+        throw new Error('Kategorie nebyla vytvořena')
       }
-      return data
+
+      const category: Category = {
+        id: String(newData.id),
+        name: String(newData.name),
+        created_at: String(newData.created_at)
+      }
+
+      categories.value.push(category)
+      return category
     } catch (err: any) {
       console.error('Error adding category:', err)
+      error.value = err.message
       throw err
+    } finally {
+      loading.value = false
     }
   }
 
