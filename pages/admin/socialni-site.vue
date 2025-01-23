@@ -84,9 +84,26 @@
             </svg>
           </div>
           <div>
-            <h3 class="font-semibold text-lg text-gray-900">
-              {{ item.platform }}
-            </h3>
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-lg text-gray-900">
+                {{ item.platform }}
+              </h3>
+              <span
+                v-if="item.choir_group_id"
+                class="px-2 py-1 text-xs font-medium rounded-full"
+                :class="getBadgeColor(item.choir_group_id)"
+              >
+                {{
+                  groups?.find((g) => g.id === item.choir_group_id)?.name || ""
+                }}
+              </span>
+              <span
+                v-else
+                class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full"
+              >
+                Globální
+              </span>
+            </div>
             <a
               :href="item.url"
               target="_blank"
@@ -149,7 +166,6 @@
                     v-for="platform in platforms"
                     :key="platform.value"
                     :value="platform.value"
-                    class="flex items-center gap-2"
                   >
                     {{ platform.label }}
                   </option>
@@ -217,6 +233,62 @@
               />
             </div>
           </div>
+
+          <!-- Výběr tělesa -->
+          <div class="space-y-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-4">
+              Přiřadit k tělesu
+            </h4>
+            <div
+              v-if="!groups?.length"
+              class="text-sm text-gray-500 p-3 bg-gray-50 rounded-lg"
+            >
+              Načítání těles...
+            </div>
+            <div v-else class="space-y-2">
+              <!-- Globální možnost -->
+              <label
+                class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+              >
+                <input
+                  type="radio"
+                  v-model="form.choir_group_id"
+                  value="global"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                />
+                <div class="ml-3">
+                  <span class="text-sm font-medium text-gray-900"
+                    >Globální</span
+                  >
+                  <p class="text-xs text-gray-500">
+                    Sociální síť bude viditelná ve všech sekcích
+                  </p>
+                </div>
+              </label>
+
+              <!-- Jednotlivá tělesa -->
+              <label
+                v-for="group in groups"
+                :key="group.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+              >
+                <input
+                  type="radio"
+                  v-model="form.choir_group_id"
+                  :value="group.id"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                />
+                <div class="ml-3">
+                  <span class="text-sm font-medium text-gray-900">{{
+                    group.name
+                  }}</span>
+                  <p class="text-xs text-gray-500">
+                    Sociální síť bude viditelná pouze v sekci {{ group.name }}
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Tlačítka -->
@@ -243,6 +315,102 @@
         </div>
       </form>
     </div>
+
+    <!-- Delete Modal -->
+    <TransitionRoot appear :show="showDeleteModal" as="template">
+      <Dialog as="div" @close="cancelDelete" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/25" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-lg font-medium leading-6 text-gray-900 mb-4 flex items-center gap-3"
+                >
+                  <div class="p-2 bg-gray-50 rounded-full">
+                    <svg
+                      class="w-6 h-6"
+                      :class="getIconColor(itemToDelete?.platform)"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        v-if="itemToDelete?.platform === 'facebook'"
+                        fill="currentColor"
+                        d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"
+                      />
+                      <path
+                        v-else-if="itemToDelete?.platform === 'instagram'"
+                        fill="currentColor"
+                        d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 0 1 1.25 1.25A1.25 1.25 0 0 1 17.25 8A1.25 1.25 0 0 1 16 6.75a1.25 1.25 0 0 1 1.25-1.25M12 7a5 5 0 0 1 5 5a5 5 0 0 1-5 5a5 5 0 0 1-5-5a5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3a3 3 0 0 0 3 3a3 3 0 0 0 3-3a3 3 0 0 0-3-3Z"
+                      />
+                      <path
+                        v-else-if="itemToDelete?.platform === 'youtube'"
+                        fill="currentColor"
+                        d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9c.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83c-.25.9-.83 1.48-1.73 1.73c-.47.13-1.33.22-2.65.28c-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44c-.9-.25-1.48-.83-1.73-1.73c-.13-.47-.22-1.1-.28-1.9c-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83c.25-.9.83-1.48 1.73-1.73c.47-.13 1.33-.22 2.65-.28c1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44c.9.25 1.48.83 1.73 1.73Z"
+                      />
+                      <path
+                        v-else-if="itemToDelete?.platform === 'spotify'"
+                        fill="currentColor"
+                        d="M17.9 10.9C14.7 9 9.35 8.8 6.3 9.75c-.5.15-1-.15-1.15-.6c-.15-.5.15-1 .6-1.15c3.55-1.05 9.4-.85 13.1 1.35c.45.25.6.85.35 1.3c-.25.35-.85.5-1.3.25m-.1 2.8c-.25.35-.7.5-1.05.25c-2.7-1.65-6.8-2.15-9.95-1.15c-.4.1-.85-.1-.95-.5c-.1-.4.1-.85.5-.95c3.65-1.1 8.15-.55 11.25 1.35c.35.15.4.55.25.85M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2Z"
+                      />
+                    </svg>
+                  </div>
+                  Potvrzení smazání
+                </DialogTitle>
+
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500">
+                    Opravdu chcete smazat tuto sociální síť?
+                    <span class="block mt-2 font-medium text-gray-700">
+                      {{ itemToDelete?.platform }} - {{ itemToDelete?.url }}
+                    </span>
+                  </p>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
+                    @click="cancelDelete"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                    @click="confirmDelete"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -250,6 +418,33 @@
 import { ref, computed, onMounted } from "#imports";
 import { useSocialMedia } from "~/composables/useSocialMedia";
 import { useToast } from "~/composables/useToast";
+import { useChoirGroups } from "~/composables/useChoirGroups";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
+
+interface SocialMedia {
+  id: string;
+  platform: string;
+  url: string;
+  icon: string;
+  choir_group_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ChoirGroup {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  created_at: string;
+  updated_at: string;
+}
 
 definePageMeta({
   layout: "admin",
@@ -266,6 +461,7 @@ const {
 } = useSocialMedia();
 
 const toast = useToast();
+const { groups, fetchGroups } = useChoirGroups();
 
 const platforms = [
   { value: "facebook", label: "Facebook" },
@@ -277,10 +473,14 @@ const platforms = [
 const form = ref({
   platform: "",
   url: "",
+  choir_group_id: "global",
 });
 
 const editingId = ref<string | null>(null);
 const isAdding = ref(false);
+
+const showDeleteModal = ref(false);
+const itemToDelete = ref<any>(null);
 
 const getIconColor = (platform: string) => {
   const colors: Record<string, string> = {
@@ -292,10 +492,23 @@ const getIconColor = (platform: string) => {
   return colors[platform.toLowerCase()] || "";
 };
 
+const getBadgeColor = (groupId: string) => {
+  if (!groups.value) return "bg-gray-100 text-gray-800";
+
+  const colorMap = new Map<string, string>([
+    [groups.value[0]?.id, "bg-blue-100 text-blue-800"], // Marika Singers
+    [groups.value[1]?.id, "bg-pink-100 text-pink-800"], // Five
+    [groups.value[2]?.id, "bg-purple-100 text-purple-800"], // Voices
+  ]);
+
+  return colorMap.get(groupId) || "bg-gray-100 text-gray-800";
+};
+
 const resetForm = () => {
   form.value = {
     platform: "",
     url: "",
+    choir_group_id: "global",
   };
   editingId.value = null;
   isAdding.value = true;
@@ -305,6 +518,7 @@ const cancelEdit = () => {
   form.value = {
     platform: "",
     url: "",
+    choir_group_id: "global",
   };
   editingId.value = null;
   isAdding.value = false;
@@ -316,6 +530,10 @@ const handleSubmit = async () => {
       platform: form.value.platform,
       url: form.value.url,
       icon: form.value.platform,
+      choir_group_id:
+        form.value.choir_group_id === "global"
+          ? null
+          : form.value.choir_group_id,
     };
 
     if (editingId.value) {
@@ -335,24 +553,37 @@ const editItem = (item: any) => {
   form.value = {
     platform: item.platform,
     url: item.url,
+    choir_group_id: item.choir_group_id || "global",
   };
   editingId.value = item.id;
   isAdding.value = false;
 };
 
-const deleteItem = async (item: any) => {
-  if (confirm("Opravdu chcete smazat tuto sociální síť?")) {
-    try {
-      await deleteSocialMedia(item.id);
-      toast.success("Sociální síť byla úspěšně smazána");
-    } catch (error: any) {
-      toast.error(`Chyba při mazání: ${error?.message || "Neznámá chyba"}`);
-    }
+const deleteItem = (item: any) => {
+  itemToDelete.value = item;
+  showDeleteModal.value = true;
+};
+
+const confirmDelete = async () => {
+  if (!itemToDelete.value) return;
+
+  try {
+    await deleteSocialMedia(itemToDelete.value.id);
+    toast.success("Sociální síť byla úspěšně smazána");
+    showDeleteModal.value = false;
+    itemToDelete.value = null;
+  } catch (error: any) {
+    toast.error(`Chyba při mazání: ${error?.message || "Neznámá chyba"}`);
   }
 };
 
+const cancelDelete = () => {
+  showDeleteModal.value = false;
+  itemToDelete.value = null;
+};
+
 // Načteme data při mounted
-onMounted(() => {
-  fetchSocialMedia();
+onMounted(async () => {
+  await Promise.all([fetchSocialMedia(), fetchGroups()]);
 });
 </script>
