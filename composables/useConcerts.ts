@@ -12,6 +12,7 @@ interface Concert {
   variable_symbol: string | null;
   qr_session: string | null;
   account_number: string | null;
+  bank_code: string | null;
 }
 
 export const useConcerts = () => {
@@ -27,6 +28,7 @@ export const useConcerts = () => {
       price: concert.price,
       vs: concert.variable_symbol,
       account: concert.account_number,
+      bank_code: concert.bank_code,
       timestamp: Date.now()
     };
     return btoa(JSON.stringify(data));
@@ -56,7 +58,8 @@ export const useConcerts = () => {
         image: concert.image ? String(concert.image) : null,
         variable_symbol: concert.variable_symbol ? String(concert.variable_symbol) : null,
         qr_session: concert.qr_session ? String(concert.qr_session) : null,
-        account_number: concert.account_number ? String(concert.account_number) : null
+        account_number: concert.account_number ? String(concert.account_number) : null,
+        bank_code: concert.bank_code ? String(concert.bank_code) : null
       })) || [];
 
       console.log('Mapped concerts:', concerts.value);
@@ -84,6 +87,7 @@ export const useConcerts = () => {
         image: data.image,
         variable_symbol: data.variable_symbol,
         account_number: data.account_number,
+        bank_code: data.bank_code,
         qr_session
       };
 
@@ -110,7 +114,8 @@ export const useConcerts = () => {
         image: newData.image ? String(newData.image) : null,
         variable_symbol: newData.variable_symbol ? String(newData.variable_symbol) : null,
         qr_session: newData.qr_session ? String(newData.qr_session) : null,
-        account_number: newData.account_number ? String(newData.account_number) : null
+        account_number: newData.account_number ? String(newData.account_number) : null,
+        bank_code: newData.bank_code ? String(newData.bank_code) : null
       };
 
       console.log('Added concert:', concert);
@@ -136,7 +141,8 @@ export const useConcerts = () => {
       const qr_session = generateQRSession({
         ...data,
         variable_symbol: data.variable_symbol || undefined,
-        account_number: data.account_number || undefined
+        account_number: data.account_number || undefined,
+        bank_code: data.bank_code || undefined
       });
 
       const updateData = {
@@ -148,6 +154,7 @@ export const useConcerts = () => {
         image: data.image,
         variable_symbol: data.variable_symbol || null,
         account_number: data.account_number || null,
+        bank_code: data.bank_code || null,
         qr_session
       };
 
@@ -174,7 +181,8 @@ export const useConcerts = () => {
         image: updatedConcert.image ? String(updatedConcert.image) : null,
         variable_symbol: updatedConcert.variable_symbol ? String(updatedConcert.variable_symbol) : null,
         qr_session: updatedConcert.qr_session ? String(updatedConcert.qr_session) : null,
-        account_number: updatedConcert.account_number ? String(updatedConcert.account_number) : null
+        account_number: updatedConcert.account_number ? String(updatedConcert.account_number) : null,
+        bank_code: updatedConcert.bank_code ? String(updatedConcert.bank_code) : null
       };
 
       // Aktualizujeme lokální stav

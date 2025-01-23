@@ -202,6 +202,7 @@
                       :price="Number(form.price)"
                       v-model="form.variable_symbol"
                       v-model:account-number="form.account_number"
+                      v-model:bank-code="form.bank_code"
                     />
                   </div>
 
@@ -382,7 +383,8 @@ const form = ref({
   price: 0,
   image: "",
   variable_symbol: "",
-  account_number: "123456789/0100",
+  account_number: "123456789",
+  bank_code: "0100",
 });
 
 const getFullImageUrl = (path) => {
@@ -461,7 +463,8 @@ const resetForm = () => {
     price: 0,
     image: "",
     variable_symbol: "",
-    account_number: "123456789/0100",
+    account_number: "123456789",
+    bank_code: "0100",
   };
   imagePreview.value = null;
   editingConcert.value = null;
@@ -506,7 +509,8 @@ const editConcert = (concert) => {
     price: concert.price,
     image: concert.image,
     variable_symbol: concert.variable_symbol || "",
-    account_number: concert.account_number || "123456789/0100",
+    account_number: concert.account_number || "123456789",
+    bank_code: concert.bank_code || "0100",
   };
   showAddModal.value = true;
 };
