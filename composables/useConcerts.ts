@@ -9,7 +9,9 @@ interface Concert {
   group: string;
   price: number;
   image: string | null;
-  qr_code: string | null;
+  variable_symbol: string | null;
+  qr_session: string | null;
+  account_number: string | null;
 }
 
 export const useConcerts = () => {
@@ -17,6 +19,18 @@ export const useConcerts = () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const supabase = useSupabaseClient();
+
+  const generateQRSession = (concert: Partial<Concert>) => {
+    const data = {
+      title: concert.title,
+      date: concert.date,
+      price: concert.price,
+      vs: concert.variable_symbol,
+      account: concert.account_number,
+      timestamp: Date.now()
+    };
+    return btoa(JSON.stringify(data));
+  };
 
   const fetchConcerts = async () => {
     try {
@@ -40,7 +54,9 @@ export const useConcerts = () => {
         group: String(concert.group_name),
         price: Number(concert.price),
         image: concert.image ? String(concert.image) : null,
-        qr_code: concert.qr_code ? String(concert.qr_code) : null
+        variable_symbol: concert.variable_symbol ? String(concert.variable_symbol) : null,
+        qr_session: concert.qr_session ? String(concert.qr_session) : null,
+        account_number: concert.account_number ? String(concert.account_number) : null
       })) || [];
 
       console.log('Mapped concerts:', concerts.value);
@@ -57,6 +73,8 @@ export const useConcerts = () => {
       loading.value = true;
       error.value = null;
 
+      const qr_session = generateQRSession(data);
+
       const concertData = {
         title: data.title,
         date: data.date,
@@ -64,7 +82,9 @@ export const useConcerts = () => {
         group_name: data.group,
         price: Number(data.price),
         image: data.image,
-        qr_code: data.qr_code
+        variable_symbol: data.variable_symbol,
+        account_number: data.account_number,
+        qr_session
       };
 
       console.log('Adding concert:', concertData);
@@ -88,7 +108,9 @@ export const useConcerts = () => {
         group: String(newData.group_name),
         price: Number(newData.price),
         image: newData.image ? String(newData.image) : null,
-        qr_code: newData.qr_code ? String(newData.qr_code) : null
+        variable_symbol: newData.variable_symbol ? String(newData.variable_symbol) : null,
+        qr_session: newData.qr_session ? String(newData.qr_session) : null,
+        account_number: newData.account_number ? String(newData.account_number) : null
       };
 
       console.log('Added concert:', concert);
@@ -111,53 +133,56 @@ export const useConcerts = () => {
       console.log('Updating concert with ID:', id);
       console.log('Update data:', data);
 
-      const concertData = {
+      const qr_session = generateQRSession({
+        ...data,
+        variable_symbol: data.variable_symbol || undefined,
+        account_number: data.account_number || undefined
+      });
+
+      const updateData = {
         title: data.title,
         date: data.date,
         description: data.desc,
         group_name: data.group,
         price: data.price !== undefined ? Number(data.price) : undefined,
         image: data.image,
-        qr_code: data.qr_code
+        variable_symbol: data.variable_symbol || null,
+        account_number: data.account_number || null,
+        qr_session
       };
 
-      const { data: updatedData, error: updateError } = await supabase
+      const { data: updatedConcert, error: err } = await supabase
         .from('concerts')
-        .update(concertData)
-        .eq('id', id)
+        .update(updateData)
+        .match({ id })
         .select()
         .single();
 
-      console.log('Update result:', { updatedData, updateError });
+      if (err) throw err;
 
-      if (updateError) {
-        console.error('Error updating concert:', updateError);
-        throw updateError;
-      }
-
-      if (!updatedData) {
-        throw new Error('Koncert nebyl aktualizován');
+      if (!updatedConcert) {
+        throw new Error('Koncert nebyl nalezen');
       }
 
       const concert: Concert = {
-        id: String(updatedData.id),
-        title: String(updatedData.title),
-        date: String(updatedData.date),
-        desc: updatedData.description ? String(updatedData.description) : null,
-        group: String(updatedData.group_name),
-        price: Number(updatedData.price),
-        image: updatedData.image ? String(updatedData.image) : null,
-        qr_code: updatedData.qr_code ? String(updatedData.qr_code) : null
+        id: String(updatedConcert.id),
+        title: String(updatedConcert.title),
+        date: String(updatedConcert.date),
+        desc: updatedConcert.description ? String(updatedConcert.description) : null,
+        group: String(updatedConcert.group_name),
+        price: Number(updatedConcert.price),
+        image: updatedConcert.image ? String(updatedConcert.image) : null,
+        variable_symbol: updatedConcert.variable_symbol ? String(updatedConcert.variable_symbol) : null,
+        qr_session: updatedConcert.qr_session ? String(updatedConcert.qr_session) : null,
+        account_number: updatedConcert.account_number ? String(updatedConcert.account_number) : null
       };
 
-      console.log('Updated concert:', concert);
-
+      // Aktualizujeme lokální stav
       const index = concerts.value.findIndex(c => c.id === id);
       if (index !== -1) {
         concerts.value[index] = concert;
       }
 
-      console.log('Local state updated:', concerts.value);
       return concert;
     } catch (err: any) {
       console.error("Error updating concert:", err);
@@ -177,7 +202,7 @@ export const useConcerts = () => {
       const { error: err } = await supabase
         .from("concerts")
         .delete()
-        .eq("id", id);
+        .match({ id });
 
       if (err) throw err;
 

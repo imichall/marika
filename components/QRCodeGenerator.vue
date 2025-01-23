@@ -63,11 +63,27 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  modelValue: {
+    type: String,
+    default: "",
+  },
+  accountNumber: {
+    type: String,
+    default: "123456789/0100",
+  },
 });
 
-const accountNumber = ref("123456789/0100");
+const emit = defineEmits(["update:modelValue", "update:accountNumber"]);
+
+const accountNumber = computed({
+  get: () => props.accountNumber,
+  set: (value) => emit("update:accountNumber", value),
+});
 const amount = ref(props.price);
-const variableSymbol = ref("");
+const variableSymbol = computed({
+  get: () => props.modelValue,
+  set: (value) => emit("update:modelValue", value),
+});
 const message = ref(props.concertTitle);
 const qrCodeData = ref("");
 

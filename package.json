@@ -21,6 +21,7 @@
     "@types/pdfkit": "^0.13.8",
     "formidable": "^3.5.2",
     "pdfkit": "^0.16.0",
-    "qrcode": "^1.5.3"
+    "qrcode": "^1.5.3",
+    "qrcode-vue3": "^1.7.1"
   }
 }

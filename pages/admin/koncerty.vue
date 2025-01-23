@@ -74,6 +74,10 @@
           </p>
           <p class="text-gray-500 mb-6 line-clamp-3">{{ concert.desc }}</p>
 
+          <div v-if="concert.qr_session" class="mb-6">
+            <ConcertQRCode :qr-session="concert.qr_session" class="mx-auto" />
+          </div>
+
           <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               @click="editConcert(concert)"
@@ -192,6 +196,15 @@
                     ></textarea>
                   </div>
 
+                  <div>
+                    <QRCodeGenerator
+                      :concert-title="form.title"
+                      :price="Number(form.price)"
+                      v-model="form.variable_symbol"
+                      v-model:account-number="form.account_number"
+                    />
+                  </div>
+
                   <!-- Nahrávání obrázku -->
                   <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">
@@ -249,13 +262,6 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- QR kód generátor -->
-                  <QRCodeGenerator
-                    ref="qrGenerator"
-                    :concert-title="form.title"
-                    :price="form.price"
-                  />
 
                   <div class="flex justify-end space-x-4 mt-6">
                     <button
@@ -347,8 +353,17 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import ConcertQRCode from "~/components/ConcertQRCode.vue";
 
-const { concerts, loading, error, fetchConcerts, addConcert, updateConcert, deleteConcert } = useConcerts();
+const {
+  concerts,
+  loading,
+  error,
+  fetchConcerts,
+  addConcert,
+  updateConcert,
+  deleteConcert,
+} = useConcerts();
 
 const showAddModal = ref(false);
 const editingConcert = ref(null);
@@ -366,6 +381,8 @@ const form = ref({
   desc: "",
   price: 0,
   image: "",
+  variable_symbol: "",
+  account_number: "123456789/0100",
 });
 
 const getFullImageUrl = (path) => {
@@ -443,6 +460,8 @@ const resetForm = () => {
     desc: "",
     price: 0,
     image: "",
+    variable_symbol: "",
+    account_number: "123456789/0100",
   };
   imagePreview.value = null;
   editingConcert.value = null;
@@ -455,12 +474,8 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
-    // Získáme data QR kódu
-    const qrData = qrGenerator.value?.getQRData();
-
     const concertData = {
       ...form.value,
-      qrCode: qrData,
     };
 
     console.log("Submitting concert data:", concertData);
@@ -483,7 +498,16 @@ const handleSubmit = async () => {
 
 const editConcert = (concert) => {
   editingConcert.value = concert;
-  form.value = { ...concert };
+  form.value = {
+    title: concert.title,
+    group: concert.group,
+    date: concert.date,
+    desc: concert.desc,
+    price: concert.price,
+    image: concert.image,
+    variable_symbol: concert.variable_symbol || "",
+    account_number: concert.account_number || "123456789/0100",
+  };
   showAddModal.value = true;
 };
 
