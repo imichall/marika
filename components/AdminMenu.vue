@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed top-0 right-0 p-4 z-50 admin-menu">
+  <div v-if="isAuthenticated" class="fixed top-0 right-0 p-4 z-50 admin-menu">
     <div class="relative">
       <!-- Admin menu dropdown -->
       <div
@@ -42,8 +42,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
+import { useAuth } from "~/composables/useAuth";
 
+const { isAuthenticated } = useAuth();
 const isOpen = ref(false);
 
 // Zavřít menu při kliknutí mimo

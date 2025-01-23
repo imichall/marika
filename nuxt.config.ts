@@ -81,9 +81,5 @@ export default defineNuxtConfig({
 
   generate: {
     dir: 'dist'
-  },
-
-  router: {
-    middleware: ['auth']
   }
 })

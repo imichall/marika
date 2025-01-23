@@ -52,6 +52,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: "default",
+});
+
 const email = ref("");
 const password = ref("");
 const error = ref("");

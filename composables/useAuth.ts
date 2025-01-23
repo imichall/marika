@@ -1,36 +1,29 @@
 import { ref, computed } from 'vue'
 import { useSupabaseClient } from '~/utils/supabase'
+import type { User } from '@supabase/supabase-js'
 
 export const useAuth = () => {
   const supabase = useSupabaseClient()
-  const user = ref(null)
-  const isAuthenticated = computed(() => {
-    // Zde implementujte vaši logiku pro kontrolu přihlášení
-    // Například:
-    return !!localStorage.getItem('auth_token')
-  })
+  const user = ref<User | null>(null)
+  const isAuthenticated = computed(() => !!user.value)
   const loading = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
-  // Kontrola aktuální session
+  // Check current session
   const checkUser = async () => {
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) throw sessionError
 
-      if (session?.user) {
-        user.value = session.user
-        localStorage.setItem('auth_token', session.user.id)
-      } else {
-        localStorage.removeItem('auth_token')
-      }
-    } catch (err) {
+      user.value = session?.user ?? null
+    } catch (err: any) {
       console.error('Error checking auth status:', err)
       error.value = err.message
+      user.value = null
     }
   }
 
-  // Přihlášení
+  // Login
   const login = async (email: string, password: string) => {
     try {
       loading.value = true
@@ -45,9 +38,8 @@ export const useAuth = () => {
       if (signInError) throw signInError
 
       user.value = authUser
-      localStorage.setItem('auth_token', authUser.id)
       return true
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error logging in:', err)
       error.value = err.message
       return false
@@ -56,7 +48,7 @@ export const useAuth = () => {
     }
   }
 
-  // Odhlášení
+  // Logout
   const logout = async () => {
     try {
       loading.value = true
@@ -64,8 +56,7 @@ export const useAuth = () => {
       if (signOutError) throw signOutError
 
       user.value = null
-      localStorage.removeItem('auth_token')
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error logging out:', err)
       error.value = err.message
     } finally {
@@ -73,19 +64,13 @@ export const useAuth = () => {
     }
   }
 
-  // Kontrola při inicializaci
+  // Initialize auth state
   if (process.client) {
     checkUser()
 
-    // Sledování změn v autentizaci
+    // Watch for auth state changes
     supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        user.value = session.user
-        localStorage.setItem('auth_token', session.user.id)
-      } else {
-        user.value = null
-        localStorage.removeItem('auth_token')
-      }
+      user.value = session?.user ?? null
     })
   }
 

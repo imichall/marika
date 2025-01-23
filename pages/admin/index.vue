@@ -206,6 +206,11 @@
 </template>
 
 <script setup>
+definePageMeta({
+  layout: "admin",
+  middleware: ["auth"],
+});
+
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 const { concerts } = useConcerts();
 const testimonials = useTestimonials()?.testimonials || [];

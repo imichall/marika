@@ -159,7 +159,11 @@
         <!-- Logo a název -->
         <div class="flex items-center space-x-4">
           <NuxtLink to="/admin" class="flex items-center space-x-3">
-            <img src="/images/logo.png" alt="Logo" class="h-8" />
+            <img
+              src="/images/svg/marika-singers-logo.svg"
+              alt="Logo"
+              class="h-8"
+            />
             <span class="text-xl font-semibold text-gray-900"
               >Administrace</span
             >
