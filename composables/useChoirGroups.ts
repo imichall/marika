@@ -28,7 +28,16 @@ export const useChoirGroups = () => {
 
       if (err) throw err
 
-      groups.value = data
+      if (data) {
+        groups.value = data.map(item => ({
+          id: String(item.id),
+          name: String(item.name),
+          description: String(item.description),
+          image: String(item.image),
+          created_at: String(item.created_at),
+          updated_at: String(item.updated_at)
+        }))
+      }
     } catch (err: any) {
       console.error('Error fetching choir groups:', err)
       error.value = err.message
@@ -71,8 +80,18 @@ export const useChoirGroups = () => {
 
       if (err) throw err
 
-      groups.value.push(newGroup)
-      return newGroup
+      if (newGroup) {
+        const mappedGroup = {
+          id: String(newGroup.id),
+          name: String(newGroup.name),
+          description: String(newGroup.description),
+          image: String(newGroup.image),
+          created_at: String(newGroup.created_at),
+          updated_at: String(newGroup.updated_at)
+        }
+        groups.value.push(mappedGroup)
+        return mappedGroup
+      }
     } catch (err: any) {
       console.error('Error adding choir group:', err)
       throw err

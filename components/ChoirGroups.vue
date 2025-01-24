@@ -6,7 +6,15 @@
         <span class="flex-shrink mx-4 text-black uppercase">O nás</span>
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
-      <div class="grid grid-cols-1 gap-12">
+      <div v-if="loading" class="text-center py-8">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"
+        ></div>
+      </div>
+      <div v-else-if="error" class="text-center text-red-600 py-8">
+        {{ error }}
+      </div>
+      <div v-else class="grid grid-cols-1 gap-12">
         <div
           v-for="group in groups"
           :key="group.id"
@@ -50,26 +58,12 @@
 </template>
 
 <script setup>
-const groups = [
-  {
-    id: 1,
-    name: "Marika Singers",
-    description:
-      "Vokální seskupení, které můžete již více jak 15 let vídat na podiích jak u nás, tak v mnoha evropských zemích. Žánrová pestrost, vynikající přednes, skvělý hudební doprovod, efektní střídání sborových a sólových partů proložené vystoupením pánského i dámského kvinteta, ... to jsou vystoupení, která vás pohltí svojí energií, kde všichni zpívají a hrají jako o život a kde dirigenta více tančí, nežli diriguje. Kromě koncertních podií je lze slyšet i v pořadech České televize, Českého rozhlasu, TV Noe. Přijďte se přesvědčit  a sdílejte tuto atmosféru společně s námi.",
-    image: "/images/about-1.png",
-  },
-  {
-    id: 2,
-    name: "Voices",
-    description: "Mužské vokální uskupení v doprovodu skvělých muzikantů.",
-    image: "/images/about-2.png",
-  },
-  {
-    id: 3,
-    name: "Five",
-    description: "Ženské vokální uskupení v doprovodu skvělých muzikantů.",
-    image: "/images/about-3.png",
-  },
-  // ... další skupiny
-];
+import { onMounted } from "vue";
+import { useChoirGroups } from "~/composables/useChoirGroups";
+
+const { groups, loading, error, fetchGroups } = useChoirGroups();
+
+onMounted(async () => {
+  await fetchGroups();
+});
 </script>
