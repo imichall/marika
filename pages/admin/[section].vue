@@ -1,4 +1,4 @@
-<template>
+<template v-if="">
   <div class="container mx-auto px-4 mt-[100px]">
     <AdminBreadcrumbs />
 

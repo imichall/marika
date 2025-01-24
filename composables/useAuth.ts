@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
-import { useSupabaseClient } from '~/utils/supabase'
+import { useSupabaseClient } from '#imports'
+import { useSupabaseUser } from '#imports'
 import type { User } from '@supabase/supabase-js'
 
 export const useAuth = () => {
@@ -74,6 +75,28 @@ export const useAuth = () => {
     })
   }
 
+  const isAdmin = async () => {
+    if (!user.value?.email) return false
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', user.value.email)
+        .single()
+
+      if (error) {
+        console.error('Error checking admin status:', error)
+        return false
+      }
+
+      return !!data
+    } catch (err) {
+      console.error('Error in isAdmin check:', err)
+      return false
+    }
+  }
+
   return {
     user,
     isAuthenticated,
@@ -82,5 +105,6 @@ export const useAuth = () => {
     login,
     logout,
     checkUser,
+    isAdmin
   }
 }

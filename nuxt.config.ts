@@ -48,6 +48,22 @@ export default defineNuxtConfig({
       login: '/admin/login',
       callback: '/admin/login',
       exclude: ['/', '/koncerty/*', '/clenove']
+    },
+    cookieOptions: {
+      name: 'sb-auth',
+      lifetime: 60 * 60 * 8,
+      domain: '',
+      path: '/',
+      sameSite: 'lax'
+    },
+    clientOptions: {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
+      },
+      headers: {
+        'Accept': 'application/json'
+      }
     }
   },
 
