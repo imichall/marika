@@ -48,22 +48,6 @@ export default defineNuxtConfig({
       login: '/admin/login',
       callback: '/admin/login',
       exclude: ['/', '/koncerty/*', '/clenove']
-    },
-    cookieOptions: {
-      name: 'sb-auth',
-      lifetime: 60 * 60 * 8,
-      domain: '',
-      path: '/',
-      sameSite: 'lax'
-    },
-    clientOptions: {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true
-      },
-      headers: {
-        'Accept': 'application/json'
-      }
     }
   },
 
@@ -90,11 +74,7 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'netlify',
-    prerender: {
-      crawlLinks: false,
-      routes: ['/']
-    }
+    preset: 'netlify'
   },
 
   routeRules: {
@@ -107,7 +87,5 @@ export default defineNuxtConfig({
     transpile: ['vue-toastification']
   },
 
-  ssr: false,
-
-  compatibilityDate: '2025-01-24'
+  ssr: false
 })
