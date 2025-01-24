@@ -50,7 +50,7 @@
             <span
               class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
             >
-              {{ concert.group }}
+              {{ concert.group_name }}
             </span>
             <span
               class="px-3 py-1 text-sm font-medium bg-blue-50 text-blue-600 rounded-full"
@@ -72,7 +72,9 @@
               })
             }}
           </p>
-          <p class="text-gray-500 mb-6 line-clamp-3">{{ concert.desc }}</p>
+          <p class="text-gray-500 mb-6 line-clamp-3">
+            {{ concert.description }}
+          </p>
 
           <div v-if="concert.qr_session" class="mb-6">
             <ConcertQRCode :qr-session="concert.qr_session" class="mx-auto" />
@@ -148,7 +150,7 @@
                         Sekce
                       </label>
                       <select
-                        v-model="form.group"
+                        v-model="form.group_name"
                         required
                         class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
@@ -189,7 +191,7 @@
                       Informace o koncertu
                     </label>
                     <textarea
-                      v-model="form.desc"
+                      v-model="form.description"
                       required
                       rows="4"
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -380,14 +382,15 @@ const imagePreview = ref(null);
 
 const form = ref({
   title: "",
-  group: "",
+  group_name: "",
   date: "",
-  desc: "",
+  description: "",
   price: 0,
   image: "",
   variable_symbol: "",
   account_number: "123456789",
   bank_code: "0100",
+  qr_session: "",
 });
 
 const getFullImageUrl = (path) => {
@@ -460,14 +463,15 @@ const removeImage = () => {
 const resetForm = () => {
   form.value = {
     title: "",
-    group: "",
+    group_name: "",
     date: "",
-    desc: "",
+    description: "",
     price: 0,
     image: "",
     variable_symbol: "",
     account_number: "123456789",
     bank_code: "0100",
+    qr_session: "",
   };
   imagePreview.value = null;
   editingConcert.value = null;
@@ -504,14 +508,15 @@ const editConcert = (concert) => {
   editingConcert.value = concert;
   form.value = {
     title: concert.title,
-    group: concert.group,
+    group_name: concert.group_name || "",
     date: concert.date,
-    desc: concert.desc,
+    description: concert.description,
     price: concert.price,
     image: concert.image,
     variable_symbol: concert.variable_symbol || "",
     account_number: concert.account_number || "123456789",
     bank_code: concert.bank_code || "0100",
+    qr_session: concert.qr_session || "",
   };
   showAddModal.value = true;
 };
