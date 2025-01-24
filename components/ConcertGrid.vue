@@ -28,6 +28,7 @@
                 Informace
               </NuxtLink>
               <button
+                @click="openTicketModal(concert)"
                 class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
               >
                 Vstupenky
@@ -67,11 +68,33 @@
       </div>
     </div>
   </section>
+  <TicketPurchaseModal
+    :is-open="isTicketModalOpen"
+    :concert="selectedConcert"
+    @close="isTicketModalOpen = false"
+    @purchase="handlePurchase"
+  />
 </template>
 
 <script setup>
 import { useConcerts } from "~/composables/useConcerts";
+import { ref } from "vue";
+import TicketPurchaseModal from "~/components/TicketPurchaseModal.vue";
 
 const { concerts } = useConcerts();
 const displayedConcerts = computed(() => concerts.value.slice(0, 3));
+
+const selectedConcert = ref(null);
+const isTicketModalOpen = ref(false);
+
+const openTicketModal = (concert) => {
+  selectedConcert.value = concert;
+  isTicketModalOpen.value = true;
+};
+
+const handlePurchase = (purchaseDetails) => {
+  console.log("Purchase details:", purchaseDetails);
+  // Zde bude logika pro zpracování nákupu
+  isTicketModalOpen.value = false;
+};
 </script>
