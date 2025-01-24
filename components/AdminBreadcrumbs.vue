@@ -33,16 +33,21 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 
+interface Breadcrumb {
+  name: string;
+  path: string;
+}
+
 const route = useRoute();
 
-const breadcrumbs = computed(() => {
+const breadcrumbs = computed<Breadcrumb[]>(() => {
   const path = route.path;
   const parts = path.split("/").filter((part) => part);
-  const crumbs = [];
+  const crumbs: Breadcrumb[] = [];
   let currentPath = "";
 
   parts.forEach((part) => {
@@ -52,13 +57,14 @@ const breadcrumbs = computed(() => {
 
     let name = part.charAt(0).toUpperCase() + part.slice(1);
 
-    const nameMap = {
+    const nameMap: Record<string, string> = {
       koncerty: "Koncerty",
       skupiny: "Skupiny",
       galerie: "Galerie",
       reference: "Reference",
       novinky: "Novinky",
       kontakty: "Kontakty",
+      objednavky: "Objednávky",
       new: "Nový záznam",
       edit: "Upravit",
     };

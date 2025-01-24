@@ -1,10 +1,6 @@
 <template>
   <div class="container mx-auto px-4 space-y-8 mt-[100px]">
-    <AdminBreadcrumbs
-      :breadcrumbs="[
-        { name: 'Objednávky vstupenek', path: '/admin/objednavky' },
-      ]"
-    />
+    <AdminBreadcrumbs />
 
     <!-- Nadpis -->
     <div class="flex justify-between items-center">
@@ -119,7 +115,7 @@
                 </div>
               </div>
 
-              <!-- Graf počtu vstupenek -->
+              <!-- Graf prodaných vstupenek -->
               <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-xl font-bold mb-4">Prodané vstupenky</h2>
                 <div class="h-[400px]">
@@ -138,7 +134,7 @@
                 </div>
               </div>
 
-              <!-- Graf rozložení nákupů během dne -->
+              <!-- Graf rozložení nákupů -->
               <div class="bg-white p-6 rounded-lg shadow">
                 <h2 class="text-xl font-bold mb-4">
                   Rozložení nákupů během dne
@@ -483,17 +479,16 @@
 </template>
 
 <script setup lang="ts">
+// Definice stránky
+definePageMeta({
+  layout: "admin",
+  middleware: ["auth"],
+});
+
+// Vue importy
 import { ref, onMounted, computed } from "vue";
-import { useTicketOrders } from "~/composables/useTicketOrders";
-import { useConcerts } from "~/composables/useConcerts";
-import { useToast } from "~/composables/useToast";
-import {
-  Bar as BarChart,
-  Line as LineChart,
-  Doughnut as DoughnutChart,
-} from "vue-chartjs";
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/vue";
+
+// Chart.js importy
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -505,28 +500,20 @@ import {
   Title,
   Tooltip,
   Legend,
+  type ChartOptions,
 } from "chart.js";
-import type { ChartOptions } from "chart.js";
 
-// Definice typů
-interface Order {
-  id: number;
-  customer_name: string;
-  customer_email: string;
-  concert_id: number;
-  ticket_count: number;
-  total_price: number;
-  payment_status: "pending" | "completed" | "cancelled";
-  variable_symbol: string;
-  created_at: string;
-}
+import {
+  Bar as BarChart,
+  Line as LineChart,
+  Doughnut as DoughnutChart,
+} from "vue-chartjs";
 
-interface Concert {
-  id: number;
-  title: string;
-}
+// UI komponenty
+import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
+import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/vue";
 
-// Registrace komponent Chart.js
+// Registrace Chart.js komponent
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -539,9 +526,41 @@ ChartJS.register(
   Legend
 );
 
+// Composables
 const { orders, getAllOrders, updateOrderStatus } = useTicketOrders();
 const { concerts, fetchConcerts } = useConcerts();
 const toast = useToast();
+
+// Definice typů
+interface Order {
+  id: number;
+  concert_id: number;
+  customer_name: string;
+  customer_email: string;
+  ticket_count: number;
+  total_price: number;
+  payment_status: "pending" | "completed" | "cancelled";
+  variable_symbol?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Concert {
+  id: number;
+  title: string;
+}
+
+interface Panel {
+  id: string;
+  title: string;
+  visible: boolean;
+  minimized: boolean;
+}
+
+interface MonthData {
+  label: string;
+  date: Date;
+}
 
 // Načtení dat
 onMounted(async () => {
