@@ -1,4 +1,18 @@
 {
   // https://nuxt.com/docs/guide/concepts/typescript
-  "extends": "./.nuxt/tsconfig.json"
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "types": [
+      "chart.js"
+    ],
+    "paths": {
+      "vue-chartjs": [
+        "./node_modules/vue-chartjs"
+      ],
+      "@headlessui/vue": [
+        "./node_modules/@headlessui/vue"
+      ]
+    }
+  }
 }

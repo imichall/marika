@@ -170,6 +170,90 @@
         </div>
       </NuxtLink>
 
+      <!-- Objednávky vstupenek -->
+      <NuxtLink
+        to="/admin/objednavky"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Objednávky</h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-teal-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-600">Správa objednávek vstupenek</p>
+        <div class="mt-4 flex items-center gap-1.5">
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {{ pendingOrders }} čeká
+          </span>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700 border border-green-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {{ completedOrders }} zaplaceno
+          </span>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700 border border-red-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {{ cancelledOrders }} zrušeno
+          </span>
+        </div>
+      </NuxtLink>
+
       <!-- Kontakty -->
       <NuxtLink
         to="/admin/kontakty"
@@ -216,4 +300,29 @@ const { concerts } = useConcerts();
 const testimonials = useTestimonials()?.testimonials || [];
 const galleryImages = useGallery()?.galleryImages || [];
 const { socialMedia } = useSocialMedia();
+const { orders, getAllOrders } = useTicketOrders();
+
+// Načtení dat při mounted
+onMounted(async () => {
+  await getAllOrders();
+});
+
+// Přidám computed properties pro počty objednávek
+const pendingOrders = computed(
+  () =>
+    orders.value?.filter((order) => order.payment_status === "pending")
+      .length || 0
+);
+
+const completedOrders = computed(
+  () =>
+    orders.value?.filter((order) => order.payment_status === "completed")
+      .length || 0
+);
+
+const cancelledOrders = computed(
+  () =>
+    orders.value?.filter((order) => order.payment_status === "cancelled")
+      .length || 0
+);
 </script>

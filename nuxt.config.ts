@@ -84,7 +84,7 @@ export default defineNuxtConfig({
   },
 
   build: {
-    transpile: ['vue-toastification']
+    transpile: ['vue-toastification', 'vue-chartjs', 'chart.js']
   },
 
   ssr: false
