@@ -1,23 +1,19 @@
 <template>
-  <div>
-    <slot v-if="isAuthenticated">
-      <Navigation />
+  <div class="min-h-screen">
+    <AdminNavigation v-if="isAuthenticated" />
+    <main v-if="isAuthenticated">
       <div class="container mx-auto px-4 mt-[100px]">
-        <!-- Breadcrumbs nad obsahem -->
-        <AdminBreadcrumbs />
-
-        <!-- Slot pro obsah podsekcí -->
         <slot />
       </div>
-    </slot>
-    <div v-else>
+    </main>
+    <!-- <div v-else>
       <p>Přesměrování na přihlášení...</p>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup>
-import Navigation from "~/components/Navigation.vue";
+import AdminNavigation from "~/components/AdminNavigation.vue";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";

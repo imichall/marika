@@ -3,24 +3,37 @@ import { useSupabaseClient } from '#imports'
 import { useSupabaseUser } from '#imports'
 import type { User } from '@supabase/supabase-js'
 
+export interface User {
+  email: string;
+  id: string;
+}
+
 export const useAuth = () => {
   const supabase = useSupabaseClient()
   const user = ref<User | null>(null)
-  const isAuthenticated = computed(() => !!user.value)
+  const isAuthenticated = ref(false)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
   // Check current session
   const checkUser = async () => {
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) throw sessionError
+      const { data: { user: authUser }, error: sessionError } = await supabase.auth.getUser()
+      if (sessionError || !authUser) {
+        user.value = null
+        isAuthenticated.value = false
+        return null
+      }
 
-      user.value = session?.user ?? null
+      user.value = authUser
+      isAuthenticated.value = true
+      return authUser
     } catch (err: any) {
       console.error('Error checking auth status:', err)
       error.value = err.message
       user.value = null
+      isAuthenticated.value = false
+      return null
     }
   }
 
@@ -39,10 +52,13 @@ export const useAuth = () => {
       if (signInError) throw signInError
 
       user.value = authUser
+      isAuthenticated.value = true
       return true
     } catch (err: any) {
       console.error('Error logging in:', err)
       error.value = err.message
+      user.value = null
+      isAuthenticated.value = false
       return false
     } finally {
       loading.value = false
@@ -57,6 +73,7 @@ export const useAuth = () => {
       if (signOutError) throw signOutError
 
       user.value = null
+      isAuthenticated.value = false
     } catch (err: any) {
       console.error('Error logging out:', err)
       error.value = err.message

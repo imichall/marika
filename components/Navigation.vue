@@ -177,80 +177,6 @@
     </Transition>
   </nav>
 
-  <!-- Admin Navigation -->
-  <nav
-    v-else-if="user"
-    class="fixed top-0 w-full bg-white z-50 shadow-lg border-b"
-  >
-    <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center h-16">
-        <!-- Logo a název -->
-        <div class="flex items-center space-x-4">
-          <NuxtLink to="/admin" class="flex items-center space-x-3">
-            <img
-              src="/images/svg/marika-singers-logo.svg"
-              alt="Logo"
-              class="h-8"
-            />
-            <span class="text-xl font-semibold text-gray-900"
-              >Administrace</span
-            >
-          </NuxtLink>
-        </div>
-
-        <!-- Pravá část menu -->
-        <div class="flex items-center space-x-6">
-          <!-- Odkaz na frontend -->
-          <NuxtLink
-            to="/"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              />
-            </svg>
-            <span>Zpět na web</span>
-          </NuxtLink>
-
-          <!-- Oddělovač -->
-          <div class="h-6 w-px bg-gray-200"></div>
-
-          <!-- Logout tlačítko -->
-          <button
-            @click="handleLogout"
-            class="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            <span>Odhlásit se</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
   <!-- Login Modal -->
   <Teleport to="body">
     <div
@@ -299,31 +225,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted } from "#imports";
+import {
+  ref,
+  watch,
+  computed,
+  onMounted,
+  onUnmounted,
+  defineComponent,
+} from "#imports";
 import { useRouter, useRoute } from "#imports";
 import { useAuth } from "~/composables/useAuth";
 import { useSocialMedia } from "~/composables/useSocialMedia";
-import type { SocialMedia } from "~/types";
-
-interface MenuItem {
-  id: string;
-  text: string;
-  requiresAuth: boolean;
-}
-
-interface Breadcrumb {
-  name: string;
-  path: string;
-}
+import { useScroll } from "~/composables/useScroll";
+import type { SocialMedia, MenuItem } from "~/types";
 
 const router = useRouter();
 const route = useRoute();
-const { user, logout } = useAuth();
+const { user } = useAuth();
 const { socialMedia, fetchSocialMedia, onSocialMediaUpdate } = useSocialMedia();
 const isMenuOpen = ref(false);
 const showLoginModal = ref(false);
 const { scrollToSection } = useScroll();
-const pollingInterval = ref<NodeJS.Timeout | null>(null);
+
+const isAdminRoute = computed(() => {
+  return route.path.startsWith("/admin");
+});
 
 // Initial data fetch and event listener setup
 onMounted(async () => {
@@ -336,10 +262,6 @@ onMounted(async () => {
   onUnmounted(() => {
     cleanup();
   });
-});
-
-const isAdminRoute = computed(() => {
-  return route.path.startsWith("/admin");
 });
 
 const globalSocialMedia = computed(() => {
@@ -415,51 +337,8 @@ const handleLogin = () => {
   window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
 };
 
-const handleLogout = async () => {
-  try {
-    await logout();
-    await router.push("/");
-  } catch (error) {
-    console.error("Chyba při odhlášení:", error);
-  }
-};
-
-// Breadcrumbs logika
-const breadcrumbs = computed<Breadcrumb[]>(() => {
-  const path = route.path;
-  const parts = path.split("/").filter((part: string) => part);
-  const crumbs: Breadcrumb[] = [];
-  let currentPath = "";
-
-  parts.forEach((part: string) => {
-    currentPath += `/${part}`;
-
-    if (part === "admin") return;
-
-    let name = part.charAt(0).toUpperCase() + part.slice(1);
-
-    const nameMap: Record<string, string> = {
-      koncerty: "Koncerty",
-      skupiny: "Skupiny",
-      galerie: "Galerie",
-      reference: "Reference",
-      novinky: "Novinky",
-      kontakty: "Kontakty",
-      new: "Nový záznam",
-      edit: "Upravit",
-    };
-
-    if (nameMap[part]) {
-      name = nameMap[part];
-    }
-
-    crumbs.push({
-      name,
-      path: currentPath,
-    });
-  });
-
-  return crumbs;
+defineComponent({
+  name: "Navigation",
 });
 </script>
 

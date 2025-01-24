@@ -23,8 +23,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Popis vašeho webu' }
       ],
-    },
-    pageTransition: { name: 'page', mode: 'out-in' }
+    }
   },
 
   devtools: { enabled: true },
@@ -80,10 +79,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/': { ssr: false },
-    '/admin/**': {
-      ssr: false,
-      middleware: ['auth']
-    },
+    '/admin/**': { ssr: false },
     '/**': { ssr: false }
   },
 

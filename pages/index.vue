@@ -12,5 +12,7 @@
 </template>
 
 <script setup>
-// Není potřeba žádná logika
+definePageMeta({
+  layout: false,
+});
 </script>
