@@ -21,7 +21,53 @@
 
     <!-- Full-width background section -->
     <div class="bg-pink-50 py-12">
-      <div v-if="concert" class="container mx-auto px-4">
+      <!-- Skeleton loading -->
+      <div v-if="loading" class="container mx-auto px-4">
+        <div class="mx-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Image skeleton -->
+            <div class="h-[400px] bg-gray-200 rounded-lg animate-pulse"></div>
+
+            <!-- Content skeleton -->
+            <div class="flex flex-col justify-between space-y-6 bg-white p-10">
+              <div class="space-y-6">
+                <!-- Title skeleton -->
+                <div class="h-10 bg-gray-200 rounded animate-pulse"></div>
+
+                <!-- Date skeleton -->
+                <div class="space-y-2">
+                  <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  <div class="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+
+                <!-- Price skeleton -->
+                <div class="space-y-2">
+                  <div class="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                  <div class="h-8 w-36 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+
+              <!-- Buttons skeleton -->
+              <div class="mt-auto flex flex-col gap-4">
+                <div class="h-12 bg-gray-200 rounded animate-pulse"></div>
+                <div class="h-12 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Description skeleton -->
+          <div class="flex flex-col gap-4 mt-10">
+            <div class="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-4 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual content -->
+      <div v-else-if="concert" class="container mx-auto px-4">
         <div class="mx-auto">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Image Column -->
@@ -152,3 +198,19 @@ const otherConcerts = computed(() => {
   return concerts.value.filter((c) => c.id !== id);
 });
 </script>
+
+<style>
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
