@@ -6,7 +6,45 @@
         <span class="flex-shrink mx-4 text-black uppercase">Napsali o nás</span>
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <!-- Debug info -->
+      <div v-if="error" class="text-red-600 mb-4">
+        Chyba při načítání: {{ error }}
+      </div>
+
+      <!-- Skeleton loading -->
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="text-center p-6 border border-gray-200"
+        >
+          <div class="space-y-4">
+            <!-- Text skeleton -->
+            <div class="space-y-2">
+              <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+              <div
+                class="h-4 w-2/3 mx-auto bg-gray-200 rounded animate-pulse"
+              ></div>
+            </div>
+            <!-- Author skeleton -->
+            <div
+              class="h-5 w-32 mx-auto bg-gray-200 rounded animate-pulse"
+            ></div>
+            <!-- Source skeleton -->
+            <div
+              class="h-4 w-24 mx-auto bg-gray-200 rounded animate-pulse"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual content -->
+      <div
+        v-else-if="testimonials?.length"
+        class="grid grid-cols-1 md:grid-cols-3 gap-8"
+      >
         <div
           v-for="testimonial in testimonials"
           :key="testimonial.id"
@@ -19,47 +57,41 @@
           </p>
         </div>
       </div>
+
+      <!-- No data message -->
+      <div v-else class="text-center text-gray-500">
+        Zatím zde nejsou žádné reference.
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
-const testimonials = [
-  {
-    id: 1,
-    text: "Marika Singers jsou kulturním zážitkem. Chodím na ně pravidelně už 10 let a vždy mě něčím novým příjemně překvapí.",
-    author: "Milan",
-    source: false,
-  },
-  {
-    id: 2,
-    text: "To, co vás pohltí na koncertě tohoto tělesa je neskutečná, strhující energie. Profesionální podání od amaterů",
-    author: "Český rozhlas",
-    source: false,
-  },
-  {
-    id: 3,
-    text: "Řekl bych, že se jedná o jediný sbor v ČR, který nabízí velkou škálu žánrů od klasiky až po modernu. Rozhodně doporučuji.",
-    author: "Česká televize",
-    source: "Události v kultuře",
-  },
-  {
-    id: 4,
-    text: "Marika Singers jsou kulturním zážitkem. Chodím na ně pravidelně už 10 let a vždy mě něčím novým příjemně překvapí.",
-    author: "MTV",
-    source: false,
-  },
-  {
-    id: 5,
-    text: "To, co vás pohltí na koncertě tohoto tělesa je neskutečná, strhující energie. Profesionální podání od amaterů",
-    author: "Óčko TV",
-    source: false,
-  },
-  {
-    id: 6,
-    text: "To, co vás pohltí na koncertě tohoto tělesa je neskutečná, strhující energie. Profesionální podání od amaterů",
-    author: "Óčko TV",
-    source: false,
-  },
-];
+const { testimonials, loading, error } = useTestimonials();
+
+// Debug log
+watchEffect(() => {
+  console.log("Component state:", {
+    loading: loading.value,
+    error: error.value,
+    testimonialsCount: testimonials.value?.length,
+    testimonials: testimonials.value,
+  });
+});
 </script>
+
+<style>
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>
