@@ -1,6 +1,7 @@
 {
   "name": "marika",
   "private": true,
+  "packageManager": "pnpm@8.15.1",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -28,8 +29,10 @@
     "qrcode-vue3": "^1.7.1",
     "vue-toastification": "^2.0.0-rc.5"
   },
-  "overrides": {
-    "rollup": "^4.9.6"
+  "pnpm": {
+    "overrides": {
+      "rollup": "^4.9.6"
+    }
   },
   "engines": {
     "node": "20.x"
