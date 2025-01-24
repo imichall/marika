@@ -40,7 +40,7 @@
                 ({{ concert.group }})
               </span>
             </h3>
-            <p class="text-gray-600 font-thin">{{ concert.desc }}</p>
+            <p class="text-gray-600 font-thin">{{ concert.description }}</p>
           </div>
         </div>
       </div>
