@@ -501,6 +501,7 @@ const toast = useToast();
 
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
 onMounted(async () => {

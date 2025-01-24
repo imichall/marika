@@ -19,6 +19,11 @@ import { useRoute } from "vue-router";
 const toast = useToast();
 const route = useRoute();
 
+definePageMeta({
+  layout: "admin",
+  middleware: ["auth"],
+});
+
 const pageTitle = computed(() => {
   switch (route.params.section) {
     case "galerie":

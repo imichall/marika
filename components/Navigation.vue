@@ -178,7 +178,10 @@
   </nav>
 
   <!-- Admin Navigation -->
-  <nav v-else class="fixed top-0 w-full bg-white z-50 shadow-lg border-b">
+  <nav
+    v-else-if="user"
+    class="fixed top-0 w-full bg-white z-50 shadow-lg border-b"
+  >
     <div class="container mx-auto px-4">
       <div class="flex justify-between items-center h-16">
         <!-- Logo a název -->

@@ -120,6 +120,7 @@ import { useTestimonials } from "~/composables/useTestimonials";
 
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 
 const toast = useToast();

@@ -551,5 +551,6 @@ watch(concerts, (newConcerts) => {
 
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 </script>

@@ -476,5 +476,6 @@ const confirmDelete = async () => {
 
 definePageMeta({
   layout: "admin",
+  middleware: ["auth"],
 });
 </script>

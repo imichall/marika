@@ -34,4 +34,26 @@ export default defineNuxtRouteMiddleware(async (to) => {
     console.error('Uživatel není administrátor:', user.value.email)
     return navigateTo('/admin/login')
   }
+
+  // Seznam povolených admin sekcí
+  const validAdminRoutes = [
+    '/admin',
+    '/admin/index',
+    '/admin/koncerty',
+    '/admin/galerie',
+    '/admin/reference',
+    '/admin/objednavky',
+    '/admin/socialni-site',
+    '/admin/kontakty',
+    '/admin/skupiny',
+    '/admin/login'
+  ]
+
+  // Normalizace cesty - odstranění trailing slash
+  const normalizedPath = to.path.replace(/\/$/, '')
+
+  // Pokud cesta není v seznamu povolených, přesměruj na 404
+  if (!validAdminRoutes.includes(normalizedPath)) {
+    return navigateTo('/404')
+  }
 })
