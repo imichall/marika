@@ -38,8 +38,18 @@ export default defineNuxtConfig({
 
   modules: [
     'nuxt-icon',
-    '@nuxtjs/color-mode'
+    '@nuxtjs/color-mode',
+    '@nuxtjs/supabase'
   ],
+
+  supabase: {
+    redirect: false,
+    redirectOptions: {
+      login: '/admin/login',
+      callback: '/admin/login',
+      exclude: ['/', '/koncerty/*', '/clenove']
+    }
+  },
 
   components: {
     dirs: ['~/components']
@@ -72,10 +82,16 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { ssr: true },
+    '/': { ssr: false },
     '/admin/**': { ssr: false },
-    '/**': { ssr: true }
+    '/**': { ssr: false }
   },
+
+  build: {
+    transpile: ['vue-toastification']
+  },
+
+  ssr: false,
 
   compatibilityDate: '2025-01-24'
 })
