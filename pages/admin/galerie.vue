@@ -5,27 +5,35 @@
 
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa galerie</h1>
-      <button
-        @click="zobrazitModalNahraniFotek = true"
-        class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
-        :disabled="nacitani"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <div class="flex gap-4">
+        <button
+          @click="handleClearCache"
+          class="inline-flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-all duration-300 shadow-sm hover:shadow-md"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-        Nahrát fotografie
-      </button>
+          Obnovit
+        </button>
+        <button
+          @click="zobrazitModalNahraniFotek = true"
+          class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
+          :disabled="nacitani"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          Nahrát fotografie
+        </button>
+      </div>
     </div>
 
     <div v-if="nacitani" class="text-center py-8">
@@ -37,204 +45,226 @@
     </div>
 
     <!-- Grid galerie -->
-    <div v-else class="grid grid-cols-7 grid-rows-3 gap-2">
-      <!-- Pozice 1: 2x2 -->
-      <div class="col-span-2 row-span-2 relative group">
+    <div
+      v-else
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-12"
+    >
+      <div
+        v-for="(image, index) in images"
+        :key="image.id"
+        class="relative group aspect-square"
+      >
         <div class="relative overflow-hidden rounded-xl h-full">
           <img
-            :src="getImageUrl(images[9])"
-            alt="Gallery image 10"
+            :src="image.image_url"
+            :alt="image.title"
             class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(9)"
+            @click="openLightbox(index)"
           />
           <div
             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
           >
-            <button
-              @click.stop="handleDelete(images[9])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            <div class="absolute top-2 right-2 flex gap-2">
+              <button
+                @click.stop="handleDelete(image)"
+                class="bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
+                title="Smazat fotografii"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+            <label
+              class="inline-flex items-center cursor-pointer bg-white/90 backdrop-blur-sm px-2 py-1.5 rounded-full shadow-lg"
+              title="Zobrazit/skrýt fotografii"
             >
-              <span class="material-icons-outlined">delete</span>
-            </button>
+              <input
+                type="checkbox"
+                :checked="image.is_visible"
+                @change="handleVisibilityToggle(image)"
+                class="sr-only peer"
+              />
+              <div
+                class="relative w-8 h-4 bg-gray-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-green-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-500"
+              ></div>
+            </label>
+            <div
+              class="flex-1 bg-white/90 backdrop-blur-sm rounded-full shadow-lg px-2 py-1.5 flex items-center gap-2"
+            >
+              <input
+                type="number"
+                min="1"
+                max="9"
+                :value="image.position"
+                @input="handlePositionChange($event, image)"
+                @blur="handlePositionChange($event, image)"
+                class="w-full bg-transparent text-center"
+                placeholder="Pozice (1-9)"
+              />
+              <button
+                v-if="image.position"
+                @click="handlePositionChange({ target: { value: '' } }, image)"
+                class="text-gray-500 hover:text-red-500 transition-colors duration-200"
+                title="Odstranit pozici"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Pozice 2: 2x1 -->
-      <div class="col-span-2 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[5])"
-            alt="Gallery image 6"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(5)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
-          >
-            <button
-              @click.stop="handleDelete(images[5])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
-        </div>
-      </div>
+    <!-- Stránkování -->
+    <div v-if="totalPages > 1" class="flex justify-center mb-12 gap-2">
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        @click="changePage(page)"
+        class="px-4 py-2 rounded-lg transition-colors duration-200"
+        :class="{
+          'bg-red-500 text-white': currentPage === page,
+          'bg-gray-200 hover:bg-gray-300': currentPage !== page,
+        }"
+      >
+        {{ page }}
+      </button>
+    </div>
 
-      <!-- Pozice 3: 2x2 -->
-      <div class="col-span-2 row-span-2 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[3])"
-            alt="Gallery image 4"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(3)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+    <!-- Grid Layout Visualization -->
+    <div class="container mx-auto px-4 mt-8 mb-12">
+      <h2 class="text-xl font-semibold mb-4">Rozložení fotografií na webu</h2>
+      <div
+        class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3] bg-gray-50 p-4 rounded-xl"
+      >
+        <!-- Velký obrázek vlevo nahoře -->
+        <div
+          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >1</span
           >
-            <button
-              @click.stop="handleDelete(images[3])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">2×2</span>
         </div>
-      </div>
 
-      <!-- Pozice 4: 1x2 -->
-      <div class="col-span-1 row-span-2 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[1])"
-            alt="Gallery image 2"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(1)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Široký obrázek nahoře uprostřed -->
+        <div
+          class="col-span-2 row-span-1 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >2</span
           >
-            <button
-              @click.stop="handleDelete(images[1])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">2×1</span>
         </div>
-      </div>
 
-      <!-- Pozice 5: 1x1 -->
-      <div class="relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[7])"
-            alt="Gallery image 8"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(7)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Velký obrázek vpravo nahoře -->
+        <div
+          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >3</span
           >
-            <button
-              @click.stop="handleDelete(images[7])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">2×2</span>
         </div>
-      </div>
 
-      <!-- Pozice 6: 1x2 -->
-      <div class="row-span-2 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[4])"
-            alt="Gallery image 5"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(4)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Úzký vysoký obrázek vpravo -->
+        <div
+          class="col-span-1 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >4</span
           >
-            <button
-              @click.stop="handleDelete(images[4])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">1×2</span>
         </div>
-      </div>
 
-      <!-- Pozice 7: 3x1 -->
-      <div class="col-span-3 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[6])"
-            alt="Gallery image 7"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(6)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Malý čtvercový obrázek -->
+        <div
+          class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >5</span
           >
-            <button
-              @click.stop="handleDelete(images[6])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">1×1</span>
         </div>
-      </div>
 
-      <!-- Pozice 8: 2x1 -->
-      <div class="col-span-2 relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[2])"
-            alt="Gallery image 3"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(2)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Úzký vysoký obrázek -->
+        <div
+          class="row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >6</span
           >
-            <button
-              @click.stop="handleDelete(images[2])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">1×2</span>
         </div>
-      </div>
 
-      <!-- Pozice 9: 1x1 -->
-      <div class="relative group">
-        <div class="relative overflow-hidden rounded-xl h-full">
-          <img
-            :src="getImageUrl(images[0])"
-            alt="Gallery image 1"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(0)"
-          />
-          <div
-            class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
+        <!-- Široký obrázek dole -->
+        <div
+          class="col-span-3 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >7</span
           >
-            <button
-              @click.stop="handleDelete(images[0])"
-              class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            >
-              <span class="material-icons-outlined">delete</span>
-            </button>
-          </div>
+          <span class="text-gray-500">3×1</span>
+        </div>
+
+        <!-- Široký obrázek dole -->
+        <div
+          class="col-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >8</span
+          >
+          <span class="text-gray-500">2×1</span>
+        </div>
+
+        <!-- Malý čtvercový obrázek dole -->
+        <div
+          class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative"
+        >
+          <span
+            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            >9</span
+          >
+          <span class="text-gray-500">1×1</span>
         </div>
       </div>
+      <p class="text-sm text-gray-500 mt-2">
+        Toto schéma zobrazuje rozložení fotografií na webu. Čísla představují
+        poměr velikostí (šířka×výška).
+      </p>
     </div>
 
     <!-- Modal pro nahrávání -->
@@ -459,7 +489,7 @@
                 </button>
 
                 <img
-                  :src="getImageUrl(images[currentImageIndex])"
+                  :src="images[currentImageIndex]?.image_url"
                   :alt="`Gallery image ${currentImageIndex + 1}`"
                   class="w-full h-auto max-h-[80vh] object-contain mx-auto"
                 />
@@ -472,8 +502,9 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from "vue";
+<script setup lang="ts">
+import { ref, onMounted } from "#imports";
+import { useGallery } from "~/composables/useGallery";
 import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
@@ -483,9 +514,25 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 
-const images = ref([]);
-const nacitani = ref(false);
-const error = ref(null);
+definePageMeta({
+  layout: "admin",
+  middleware: ["auth"],
+});
+
+const {
+  images,
+  loading: nacitani,
+  error,
+  currentPage,
+  totalPages,
+  fetchImages,
+  deleteImage,
+  clearCache,
+  toggleVisibility,
+  changePage,
+  updatePosition,
+} = useGallery();
+const { showToast } = useToast();
 
 const zobrazitModalNahraniFotek = ref(false);
 const showDeleteModal = ref(false);
@@ -496,40 +543,41 @@ const previewUrls = ref([]);
 const uploading = ref(false);
 const imageToDelete = ref(null);
 const currentImageIndex = ref(0);
+const selectedImageIndex = ref<number | null>(null);
+const usedPositions = ref(new Set());
 
-const toast = useToast();
-
-definePageMeta({
-  layout: "admin",
-  middleware: ["auth"],
+onMounted(() => {
+  fetchImages();
+  updateUsedPositions();
 });
 
-onMounted(async () => {
-  await fetchImages();
-});
+const handleDelete = async (image: any) => {
+  if (!confirm("Opravdu chcete smazat tuto fotografii?")) return;
 
-const fetchImages = async () => {
-  try {
-    nacitani.value = true;
-    error.value = null;
+  const imageUrl = image.image_url;
+  const filename = imageUrl.split("/").pop();
 
-    const response = await fetch("/api/gallery");
-    if (!response.ok) throw new Error("Načítání fotografií selhalo");
+  const { success, error } = await deleteImage(filename);
 
-    const data = await response.json();
-    images.value = data.images;
-  } catch (err) {
-    console.error("Error fetching images:", err);
-    error.value = err.message;
-  } finally {
-    nacitani.value = false;
+  if (success) {
+    showToast.success("Fotografie byla úspěšně smazána");
+  } else {
+    showToast.error(error || "Nepodařilo se smazat fotografii");
   }
 };
 
-const getImageUrl = (path) => {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return `/images/mansory/${path}`;
+const openLightbox = (index: number) => {
+  selectedImageIndex.value = index;
+};
+
+const closeLightbox = () => {
+  selectedImageIndex.value = null;
+};
+
+const handleUploadSuccess = () => {
+  zobrazitModalNahraniFotek.value = false;
+  fetchImages();
+  showToast.success("Fotografie byly úspěšně nahrány");
 };
 
 const handleFileSelect = (event) => {
@@ -548,7 +596,7 @@ const handleDrop = (event) => {
 const processFiles = (files) => {
   files.forEach((file) => {
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(
+      showToast.error(
         `Soubor ${file.name} je příliš velký. Maximální velikost je 5MB.`
       );
       return;
@@ -591,10 +639,10 @@ const uploadFiles = async () => {
 
     await fetchImages();
     closeUploadModal();
-    toast.success("Fotografie byly úspěšně nahrány");
+    showToast.success("Fotografie byly úspěšně nahrány");
   } catch (err) {
     console.error("Error uploading files:", err);
-    toast.error("Chyba při nahrávání: " + err.message);
+    showToast.error("Chyba při nahrávání: " + err.message);
   } finally {
     uploading.value = false;
   }
@@ -605,11 +653,6 @@ const closeUploadModal = () => {
   selectedFiles.value = [];
   previewUrls.value = [];
   isDragging.value = false;
-};
-
-const handleDelete = (image) => {
-  imageToDelete.value = image;
-  showDeleteModal.value = true;
 };
 
 const confirmDelete = async () => {
@@ -623,20 +666,11 @@ const confirmDelete = async () => {
     await fetchImages();
     showDeleteModal.value = false;
     imageToDelete.value = null;
-    toast.success("Fotografie byla úspěšně smazána");
+    showToast.success("Fotografie byla úspěšně smazána");
   } catch (err) {
     console.error("Error deleting image:", err);
-    toast.error("Chyba při mazání: " + err.message);
+    showToast.error("Chyba při mazání: " + err.message);
   }
-};
-
-const openLightbox = (index) => {
-  currentImageIndex.value = index;
-  showLightbox.value = true;
-};
-
-const closeLightbox = () => {
-  showLightbox.value = false;
 };
 
 const previousImage = () => {
@@ -646,6 +680,96 @@ const previousImage = () => {
 
 const nextImage = () => {
   currentImageIndex.value = (currentImageIndex.value + 1) % images.value.length;
+};
+
+const handleClearCache = async () => {
+  clearCache();
+  await fetchImages();
+  showToast.success("Cache byla vymazána");
+};
+
+const handleVisibilityToggle = async (image: any) => {
+  try {
+    const newVisibility = !image.is_visible;
+    const result = await toggleVisibility(image.id, newVisibility);
+
+    if (result?.success) {
+      image.is_visible = newVisibility;
+      showToast.success(
+        `Fotografie byla ${newVisibility ? "zviditelněna" : "skryta"}`
+      );
+    } else {
+      showToast.error(
+        result?.error || "Nepodařilo se změnit viditelnost fotografie"
+      );
+    }
+  } catch (err) {
+    console.error("Error toggling visibility:", err);
+    showToast.error("Nepodařilo se změnit viditelnost fotografie");
+  }
+};
+
+const handlePositionChange = async (event: Event, image: any) => {
+  const input = event.target as HTMLInputElement;
+  const newPosition = input.value ? parseInt(input.value) : null;
+  const toast = useToast();
+
+  // Pokud je hodnota prázdná, odstraníme pozici
+  if (newPosition === null) {
+    const result = await updatePosition(image.id, null);
+    if (result.success) {
+      image.position = null;
+      updateUsedPositions();
+      toast.success("Pozice byla úspěšně odstraněna");
+      await fetchImages();
+      return;
+    } else {
+      input.value = image.position?.toString() || "";
+      toast.error(result.error || "Nepodařilo se odstranit pozici");
+      return;
+    }
+  }
+
+  // Validace hodnoty
+  if (isNaN(newPosition) || newPosition < 1 || newPosition > 9) {
+    input.value = image.position?.toString() || "";
+    toast.error("Zadejte číslo od 1 do 9");
+    return;
+  }
+
+  // Kontrola duplicity
+  if (
+    images.value.some(
+      (img) => img.id !== image.id && img.position === newPosition
+    )
+  ) {
+    toast.error("Tato pozice je již obsazena jiným obrázkem");
+    input.value = image.position?.toString() || "";
+    return;
+  }
+
+  // Aktualizace pozice pomocí composable
+  const result = await updatePosition(image.id, newPosition);
+  if (result.success) {
+    // Aktualizace lokálního stavu
+    image.position = newPosition;
+    updateUsedPositions();
+    toast.success("Pozice byla úspěšně uložena");
+
+    // Obnovíme data ze serveru pro jistotu
+    await fetchImages();
+  } else {
+    input.value = image.position?.toString() || "";
+    toast.error(result.error || "Nepodařilo se uložit pozici");
+  }
+};
+
+const updateUsedPositions = () => {
+  usedPositions.value = new Set(
+    images.value
+      .map((img) => img.position)
+      .filter((pos) => pos !== null && pos !== undefined)
+  );
 };
 </script>
 

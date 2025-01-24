@@ -1,7 +1,7 @@
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import formidable from 'formidable'
 import type { Fields, Files, File } from 'formidable'
+import { serverSupabaseClient } from '#supabase/server'
+import { readFile } from 'fs/promises'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -21,23 +21,61 @@ export default defineEventHandler(async (event) => {
       })
     })
 
-    const uploadDir = join(process.cwd(), 'public', 'images', 'mansory')
-    await mkdir(uploadDir, { recursive: true })
-
     const uploadedFiles = Array.isArray(files.images) ? files.images : [files.images]
     const savedFiles = []
+
+    const client = await serverSupabaseClient(event)
 
     for (const file of uploadedFiles) {
       if (!file) continue
 
-      const buffer = await readFileAsBuffer(file)
       const fileName = file.originalFilename || 'image.jpg'
       const timestamp = Date.now()
       const newFileName = `mansory-${timestamp}-${fileName.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`
-      const filePath = join(uploadDir, newFileName)
 
-      await writeFile(filePath, buffer)
-      savedFiles.push(newFileName)
+      // Přečtení obsahu souboru z dočasného umístění
+      const fileContent = await readFile(file.filepath)
+
+      // Upload do Supabase Storage
+      const { data: storageData, error: storageError } = await client
+        .storage
+        .from('gallery')
+        .upload(newFileName, fileContent, {
+          contentType: file.mimetype || 'image/jpeg',
+          cacheControl: '3600'
+        })
+
+      if (storageError) {
+        console.error('Storage error:', storageError)
+        throw storageError
+      }
+
+      // Získání veřejné URL
+      const { data: publicURL } = client
+        .storage
+        .from('gallery')
+        .getPublicUrl(newFileName)
+
+      // Uložení záznamu do databáze
+      const { data: dbData, error: dbError } = await client
+        .from('gallery')
+        .insert([{
+          image_url: publicURL.publicUrl,
+          title: fileName.split('.')[0], // Použijeme název souboru jako titulek
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single()
+
+      if (dbError) {
+        console.error('Database error:', dbError)
+        throw dbError
+      }
+
+      savedFiles.push({
+        image_url: publicURL.publicUrl,
+        title: fileName.split('.')[0]
+      })
     }
 
     return {
@@ -52,14 +90,3 @@ export default defineEventHandler(async (event) => {
     }
   }
 })
-
-async function readFileAsBuffer(file: File): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = []
-    const stream = file.createReadStream()
-
-    stream.on('data', chunk => chunks.push(chunk))
-    stream.on('end', () => resolve(Buffer.concat(chunks)))
-    stream.on('error', reject)
-  })
-}

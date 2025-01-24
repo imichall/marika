@@ -4,6 +4,7 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <Footer v-if="!isAdminRoute" />
   </div>
 </template>
 
@@ -12,6 +13,7 @@ import { useAuth } from "~/composables/useAuth";
 import { useRoute } from "#imports";
 import { computed } from "vue";
 import Navigation from "~/components/Navigation.vue";
+import Footer from "~/components/Footer.vue";
 
 const { isAuthenticated } = useAuth();
 const route = useRoute();

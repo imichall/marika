@@ -1,27 +1,22 @@
-import { readdir } from 'fs/promises'
-import { join } from 'path'
+import { serverSupabaseClient } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
   try {
-    const publicPath = join(process.cwd(), 'public', 'images', 'mansory')
-    const files = await readdir(publicPath)
+    const client = await serverSupabaseClient(event)
 
-    // Filtrujeme jen obrazové soubory a seřadíme podle názvu
-    const images = files
-      .filter(file => /\.(jpg|jpeg|png|webp)$/i.test(file))
-      .sort((a, b) => {
-        // Extrahujeme čísla z názvů souborů pro správné řazení
-        const numA = parseInt(a.match(/\d+/)?.[0] || '0')
-        const numB = parseInt(b.match(/\d+/)?.[0] || '0')
-        return numA - numB
-      })
+    const { data, error } = await client
+      .from('gallery')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
 
     return {
       success: true,
-      images
+      images: data
     }
   } catch (err: any) {
-    console.error('Error reading gallery directory:', err)
+    console.error('Error fetching gallery:', err)
     return {
       success: false,
       error: 'Nepodařilo se načíst galerii'

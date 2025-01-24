@@ -1,5 +1,5 @@
 <template>
-  <footer v-if="!isAdminRoute" id="contact" class="bg-gray-100 pt-12">
+  <footer id="contact" class="bg-gray-100 pt-12">
     <div class="container mx-auto px-4">
       <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
@@ -53,17 +53,10 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted } from "#imports";
 import { useContacts } from "~/composables/useContacts";
 
-const route = useRoute();
 const { contacts, loading, error, fetchContacts } = useContacts();
-
-// Přidána kontrola, zda jsme v admin sekci
-const isAdminRoute = computed(() => {
-  return route.path.startsWith("/admin");
-});
 
 onMounted(() => {
   fetchContacts();
