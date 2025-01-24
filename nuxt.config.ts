@@ -25,6 +25,7 @@ export default defineNuxtConfig({
       ],
     }
   },
+
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
 
@@ -33,56 +34,6 @@ export default defineNuxtConfig({
       tailwindcss: {},
       autoprefixer: {},
     },
-  },
-
-  compatibilityDate: '2024-12-19',
-
-  experimental: {
-    payloadExtraction: false
-  },
-
-  nitro: {
-    preset: 'netlify',
-    prerender: {
-      crawlLinks: false,
-      routes: ['/']
-    },
-    routeRules: {
-      '/**': { cors: true }
-    }
-  },
-
-  routeRules: {
-    '/': {
-      ssr: true,
-      prerender: true
-    },
-    '/admin/**': {
-      ssr: false,
-      experimentalNoScripts: false
-    },
-    '/**': {
-      ssr: true
-    },
-    '/dev-sw.js': process.env.NODE_ENV === 'development' ? { redirect: '/' } : undefined
-  },
-
-  runtimeConfig: {
-    public: {
-      supabaseUrl: '',
-      supabaseKey: ''
-    }
-  },
-
-  appConfig: {
-    supabase: {
-      url: process.env.NUXT_PUBLIC_SUPABASE_URL,
-      key: process.env.NUXT_PUBLIC_SUPABASE_KEY
-    }
-  },
-
-  typescript: {
-    strict: true
   },
 
   modules: [
@@ -103,5 +54,28 @@ export default defineNuxtConfig({
     fallback: 'light',
     classPrefix: '',
     classSuffix: '',
-  }
+  },
+
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
+    }
+  },
+
+  nitro: {
+    preset: 'netlify',
+    prerender: {
+      crawlLinks: false,
+      routes: ['/']
+    }
+  },
+
+  routeRules: {
+    '/': { ssr: true },
+    '/admin/**': { ssr: false },
+    '/**': { ssr: true }
+  },
+
+  compatibilityDate: '2025-01-24'
 })
