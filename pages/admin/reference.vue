@@ -16,7 +16,7 @@
     <!-- Seznam referencí -->
     <div class="grid gap-6">
       <div
-        v-for="testimonial in testimonials"
+        v-for="testimonial in sortedTestimonials"
         :key="testimonial.id"
         class="bg-white p-6 rounded-lg shadow-md"
       >
@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useTestimonials } from "~/composables/useTestimonials";
 
@@ -123,7 +123,17 @@ definePageMeta({
 });
 
 const toast = useToast();
-const { testimonials } = useTestimonials();
+const {
+  testimonials,
+  addTestimonial,
+  updateTestimonial,
+  deleteTestimonial: removeTestimonial,
+} = useTestimonials();
+
+const sortedTestimonials = computed(() =>
+  [...testimonials.value].sort((a, b) => b.id - a.id)
+);
+
 const showAddModal = ref(false);
 const editingTestimonial = ref(null);
 
@@ -147,30 +157,30 @@ const closeModal = () => {
   resetForm();
 };
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   try {
     if (editingTestimonial.value) {
       // Aktualizace existující reference
-      const index = testimonials.value.findIndex(
-        (t) => t.id === editingTestimonial.value.id
+      const result = await updateTestimonial(
+        editingTestimonial.value.id,
+        form.value
       );
-      if (index !== -1) {
-        testimonials.value[index] = {
-          ...testimonials.value[index],
-          ...form.value,
-        };
+      if (result.success) {
         toast.success("Reference byla úspěšně upravena");
+        closeModal();
+      } else {
+        toast.error("Chyba při úpravě reference: " + result.error);
       }
     } else {
       // Přidání nové reference
-      const newTestimonial = {
-        id: Date.now(),
-        ...form.value,
-      };
-      testimonials.value.push(newTestimonial);
-      toast.success("Reference byla úspěšně přidána");
+      const result = await addTestimonial(form.value);
+      if (result.success) {
+        toast.success("Reference byla úspěšně přidána");
+        closeModal();
+      } else {
+        toast.error("Chyba při přidání reference: " + result.error);
+      }
     }
-    closeModal();
   } catch (err) {
     toast.error("Chyba při ukládání reference: " + err.message);
   }
@@ -186,13 +196,14 @@ const editTestimonial = (testimonial) => {
   showAddModal.value = true;
 };
 
-const deleteTestimonial = (id) => {
+const deleteTestimonial = async (id) => {
   try {
     if (confirm("Opravdu chcete smazat tuto referenci?")) {
-      const index = testimonials.value.findIndex((t) => t.id === id);
-      if (index !== -1) {
-        testimonials.value.splice(index, 1);
+      const result = await removeTestimonial(id);
+      if (result.success) {
         toast.success("Reference byla úspěšně smazána");
+      } else {
+        toast.error("Chyba při mazání reference: " + result.error);
       }
     }
   } catch (err) {

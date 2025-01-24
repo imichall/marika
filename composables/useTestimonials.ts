@@ -23,7 +23,7 @@ export const useTestimonials = () => {
       const { data, error: err } = await supabase
         .from('testimonials')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
 
       console.log('Data z databáze:', data)
       console.log('Chyba z databáze:', err)
@@ -50,6 +50,88 @@ export const useTestimonials = () => {
     }
   }
 
+  const addTestimonial = async (testimonial: Omit<Testimonial, 'id' | 'created_at'>) => {
+    try {
+      loading.value = true
+      const { data, error: err } = await supabase
+        .from('testimonials')
+        .insert([testimonial])
+        .select()
+        .single()
+
+      if (err) throw err
+
+      if (data) {
+        testimonials.value.unshift({
+          id: Number(data.id),
+          text: String(data.text),
+          author: String(data.author),
+          source: data.source ? String(data.source) : null,
+          created_at: String(data.created_at)
+        })
+      }
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateTestimonial = async (id: number, updates: Partial<Omit<Testimonial, 'id' | 'created_at'>>) => {
+    try {
+      loading.value = true
+      const { data, error: err } = await supabase
+        .from('testimonials')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (err) throw err
+
+      if (data) {
+        const index = testimonials.value.findIndex(t => t.id === id)
+        if (index !== -1) {
+          testimonials.value[index] = {
+            id: Number(data.id),
+            text: String(data.text),
+            author: String(data.author),
+            source: data.source ? String(data.source) : null,
+            created_at: String(data.created_at)
+          }
+        }
+      }
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deleteTestimonial = async (id: number) => {
+    try {
+      loading.value = true
+      const { error: err } = await supabase
+        .from('testimonials')
+        .delete()
+        .eq('id', id)
+
+      if (err) throw err
+
+      testimonials.value = testimonials.value.filter(t => t.id !== id)
+      return { success: true }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
   onMounted(async () => {
     await fetchTestimonials()
   })
@@ -57,6 +139,10 @@ export const useTestimonials = () => {
   return {
     testimonials,
     loading,
-    error
+    error,
+    addTestimonial,
+    updateTestimonial,
+    deleteTestimonial,
+    fetchTestimonials
   }
 }
