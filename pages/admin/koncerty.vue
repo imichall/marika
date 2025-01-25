@@ -1403,10 +1403,25 @@ const handleSubmit = async () => {
     // Očistíme variabilní symbol před uložením
     const cleanVS = validateVariableSymbol(form.value.variable_symbol);
 
+    // Pokud není vybraná vstupenka, vygenerujeme QR session data
+    let qrSessionData = "";
+    if (!form.value.ticket_id) {
+      qrSessionData = JSON.stringify({
+        title: form.value.title,
+        date: form.value.date,
+        price: form.value.price,
+        vs: cleanVS,
+        account: form.value.account_number,
+        bank_code: form.value.bank_code,
+        timestamp: Date.now(),
+      });
+    }
+
     // Připravíme data koncertu
     const concertData = {
       ...form.value,
       variable_symbol: cleanVS,
+      qr_session: qrSessionData,
       // Zajistíme, že ticket_id bude null místo prázdného stringu
       ticket_id: form.value.ticket_id || null,
     };

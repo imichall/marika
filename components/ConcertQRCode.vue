@@ -47,6 +47,24 @@ const qrData = ref(null);
 // Načtení bankovních údajů
 const loadBankDetails = async () => {
   try {
+    // Nejdřív zkusíme načíst data z qr_session koncertu
+    if (props.concert.qr_session) {
+      try {
+        const sessionData = JSON.parse(props.concert.qr_session);
+        if (sessionData) {
+          bankDetails.value = {
+            accountNumber: sessionData.account,
+            bankCode: sessionData.bank_code,
+          };
+          generateQRCode();
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing qr_session:", e);
+      }
+    }
+
+    // Pokud nemáme qr_session nebo se nepodařilo načíst, načteme z nastavení
     const response = await fetch("/api/settings");
     if (!response.ok) {
       throw new Error("Nepodařilo se načíst bankovní údaje");

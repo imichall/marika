@@ -348,6 +348,23 @@ const bankDetails = ref({
 // Načtení bankovních údajů pro danou skupinu
 const loadBankDetails = async () => {
   try {
+    // Nejdřív zkusíme načíst data z qr_session koncertu
+    if (props.concert.qr_session) {
+      try {
+        const sessionData = JSON.parse(props.concert.qr_session);
+        if (sessionData) {
+          bankDetails.value = {
+            accountNumber: sessionData.account,
+            bankCode: sessionData.bank_code,
+          };
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing qr_session:", e);
+      }
+    }
+
+    // Pokud nemáme qr_session nebo se nepodařilo načíst, načteme z nastavení
     const response = await fetch("/api/settings");
     if (!response.ok) {
       throw new Error("Nepodařilo se načíst bankovní údaje");
@@ -397,6 +414,20 @@ const formatAccountNumber = (accountNumber, bankCode) => {
 
 // Přidáme computed pro formátovaný variabilní symbol
 const formattedVariableSymbol = computed(() => {
+  // Nejdřív zkusíme načíst VS z qr_session
+  if (props.concert.qr_session) {
+    try {
+      const sessionData = JSON.parse(props.concert.qr_session);
+      if (sessionData && sessionData.vs) {
+        const cleanVS = sessionData.vs.replace(/\D/g, "").replace(/^0+/, "");
+        return cleanVS || "";
+      }
+    } catch (e) {
+      console.error("Error parsing qr_session for VS:", e);
+    }
+  }
+
+  // Pokud nemáme VS v qr_session, použijeme z koncertu
   if (!props.concert.variable_symbol) return "";
   const cleanVS = props.concert.variable_symbol
     .replace(/\D/g, "")
