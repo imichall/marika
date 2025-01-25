@@ -2,9 +2,54 @@
   <section class="pb-16 mt-[100px]">
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold mb-8 text-center">Všechny koncerty</h1>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <!-- Filtry a vyhledávání -->
+      <div class="mb-8 space-y-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <!-- Vyhledávání -->
+          <div class="flex-1">
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Vyhledat koncert..."
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Filtr podle tělesa -->
+          <div class="md:w-48">
+            <select
+              v-model="selectedGroup"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            >
+              <option value="">Všechna tělesa</option>
+              <option value="Marika Singers">Marika Singers</option>
+              <option value="Five">Five</option>
+              <option value="Voices">Voices</option>
+            </select>
+          </div>
+
+          <!-- Filtr podle vstupenek -->
+          <div class="md:w-48">
+            <select
+              v-model="ticketFilter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            >
+              <option value="">Všechny koncerty</option>
+              <option value="withTickets">S online vstupenkami</option>
+              <option value="withoutTickets">Bez online vstupenek</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seznam koncertů -->
+      <div
+        v-if="filteredConcerts.length"
+        class="grid grid-cols-1 md:grid-cols-3 gap-8"
+      >
         <div
-          v-for="concert in concerts"
+          v-for="concert in filteredConcerts"
           :key="concert.id"
           class="concert-card grid gap-4"
         >
@@ -46,6 +91,13 @@
             <p class="text-gray-600 font-thin">{{ concert.description }}</p>
           </div>
         </div>
+      </div>
+
+      <!-- Žádné výsledky -->
+      <div v-else class="text-center py-12">
+        <p class="text-gray-500 text-lg">
+          Nebyly nalezeny žádné koncerty odpovídající zadaným kritériím.
+        </p>
       </div>
     </div>
   </section>
@@ -155,7 +207,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useConcerts } from "~/composables/useConcerts";
 import { useSupabaseClient } from "#imports";
 import { slugify } from "~/utils/string";
@@ -174,6 +226,38 @@ const { concerts } = useConcerts();
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
+
+// Filtry a vyhledávání
+const searchQuery = ref("");
+const selectedGroup = ref("");
+const ticketFilter = ref("");
+
+// Filtrované koncerty
+const filteredConcerts = computed(() => {
+  return concerts.value.filter((concert) => {
+    // Filtr podle vyhledávání
+    const searchMatch = searchQuery.value
+      ? concert.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        concert.description
+          .toLowerCase()
+          .includes(searchQuery.value.toLowerCase())
+      : true;
+
+    // Filtr podle tělesa
+    const groupMatch = selectedGroup.value
+      ? concert.group === selectedGroup.value
+      : true;
+
+    // Filtr podle vstupenek
+    const ticketMatch = ticketFilter.value
+      ? ticketFilter.value === "withTickets"
+        ? concert.ticket_id
+        : !concert.ticket_id
+      : true;
+
+    return searchMatch && groupMatch && ticketMatch;
+  });
+});
 
 const openTicketModal = (concert) => {
   selectedConcert.value = concert;
@@ -211,4 +295,14 @@ const handlePurchase = (purchaseDetails) => {
   isTicketModalOpen.value = false;
 };
 </script>
-No newline at end of file
+
+<style scoped>
+/* Přidáme animaci pro přechody při filtrování */
+.grid {
+  transition: all 0.3s ease-in-out;
+}
+
+.concert-card {
+  transition: all 0.3s ease-in-out;
+}
+</style>

@@ -55,6 +55,46 @@
       </div>
     </div>
 
+    <!-- Filtry a vyhledávání -->
+    <div class="mb-8 space-y-4">
+      <div class="flex flex-col md:flex-row gap-4">
+        <!-- Vyhledávání -->
+        <div class="flex-1">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Vyhledat koncert..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Filtr podle tělesa -->
+        <div class="md:w-48">
+          <select
+            v-model="selectedGroup"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+          >
+            <option value="">Všechna tělesa</option>
+            <option value="Marika Singers">Marika Singers</option>
+            <option value="Five">Five</option>
+            <option value="Voices">Voices</option>
+          </select>
+        </div>
+
+        <!-- Filtr podle vstupenek -->
+        <div class="md:w-48">
+          <select
+            v-model="ticketFilter"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+          >
+            <option value="">Všechny koncerty</option>
+            <option value="withTickets">S online vstupenkami</option>
+            <option value="withoutTickets">Bez online vstupenek</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div
         class="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"
@@ -97,11 +137,11 @@
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-100">
+          <tbody class="bg-white divide-y divide-gray-200">
             <tr
-              v-for="concert in sortedConcerts"
+              v-for="concert in paginatedConcerts"
               :key="concert.id"
-              class="hover:bg-gray-50"
+              class="hover:bg-gray-50 transition-colors duration-200"
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -226,6 +266,47 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-500">
+            Zobrazeno {{ paginationStart + 1 }} - {{ paginationEnd }} z
+            {{ filteredConcerts.length }} koncertů
+          </div>
+          <div class="flex gap-2">
+            <button
+              @click="currentPage--"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+            >
+              Předchozí
+            </button>
+            <div class="flex items-center gap-1">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                @click="currentPage = page"
+                :class="[
+                  'px-4 py-2 text-sm rounded-lg border transition-colors duration-200',
+                  currentPage === page
+                    ? 'bg-red-800 text-white border-red-800'
+                    : 'border-gray-300 hover:bg-gray-50',
+                ]"
+              >
+                {{ page }}
+              </button>
+            </div>
+            <button
+              @click="currentPage++"
+              :disabled="currentPage === totalPages"
+              class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+            >
+              Další
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Po existující tabulce koncertů přidáme tabulku vstupenek -->
@@ -261,7 +342,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-100">
               <tr
-                v-for="ticket in concertTickets"
+                v-for="ticket in paginatedTickets"
                 :key="ticket.id"
                 class="hover:bg-gray-50/50 transition-colors duration-150"
               >
@@ -380,6 +461,49 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination pro vstupenky -->
+        <div
+          class="bg-gray-50 px-6 py-4 mt-4 rounded-lg border border-gray-200"
+        >
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+              Zobrazeno {{ ticketPaginationStart + 1 }} -
+              {{ ticketPaginationEnd }} z {{ concertTickets.length }} vstupenek
+            </div>
+            <div class="flex gap-2">
+              <button
+                @click="ticketCurrentPage--"
+                :disabled="ticketCurrentPage === 1"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+              >
+                Předchozí
+              </button>
+              <div class="flex items-center gap-1">
+                <button
+                  v-for="page in ticketTotalPages"
+                  :key="page"
+                  @click="ticketCurrentPage = page"
+                  :class="[
+                    'px-4 py-2 text-sm rounded-lg border transition-colors duration-200',
+                    ticketCurrentPage === page
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-300 hover:bg-gray-50',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </div>
+              <button
+                @click="ticketCurrentPage++"
+                :disabled="ticketCurrentPage === ticketTotalPages"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+              >
+                Další
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -671,104 +795,267 @@
 
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
+            <DialogPanel
+              class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-2xl">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
-                  {{ editingTicket ? "Upravit" : "Přidat" }} odkaz na vstupenky
-                </DialogTitle>
+              <DialogTitle as="h2" class="text-xl font-bold mb-4">
+                {{ editingTicket ? "Upravit" : "Přidat" }} odkaz na vstupenky
+              </DialogTitle>
 
-                <form @submit.prevent="handleTicketSubmit" class="space-y-4">
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Název koncertu
-                    </label>
-                    <input
-                      v-model="ticketForm.title"
-                      type="text"
-                      required
-                      placeholder="Např. Vánoční koncert 2024"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
+              <form @submit.prevent="handleTicketSubmit" class="space-y-4">
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Název koncertu
+                  </label>
+                  <input
+                    v-model="ticketForm.title"
+                    type="text"
+                    required
+                    placeholder="Např. Vánoční koncert 2024"
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Těleso
+                  </label>
+                  <select
+                    v-model="ticketForm.group_id"
+                    required
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">Vyberte těleso</option>
+                    <option value="9001cdb8-80fd-4923-8aa9-8dedc9a30c77">
+                      Marika Singers
+                    </option>
+                    <option value="af581892-2252-462f-88f2-e73218b4e785">
+                      Five
+                    </option>
+                    <option value="ba4f5374-5d60-4354-a2ce-e83e130bba83">
+                      Voices
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Poskytovatel vstupenek
+                  </label>
+                  <select
+                    v-model="ticketForm.provider"
+                    required
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">Vyberte poskytovatele</option>
+                    <option value="GoOut">GoOut</option>
+                    <option value="Ticketmaster">Ticketmaster</option>
+                    <option value="Ticketportal">Ticketportal</option>
+                    <option value="Jiné">Jiné</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Odkaz na vstupenky
+                  </label>
+                  <input
+                    v-model="ticketForm.ticket_url"
+                    type="url"
+                    required
+                    placeholder="https://"
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+
+                <div class="flex justify-end space-x-4 mt-6">
+                  <button
+                    type="button"
+                    @click="closeTicketModal"
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="submit"
+                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200"
+                  >
+                    Uložit
+                  </button>
+                </div>
+              </form>
+
+              <!-- Seznam vstupenek -->
+              <div class="mt-6">
+                <div class="overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                      <tr>
+                        <th
+                          class="px-6 py-4 text-left text-xs font-bold text-gray-500"
+                        >
+                          <div class="flex items-center justify-center">
+                            Název koncertu
+                          </div>
+                        </th>
+                        <th
+                          class="px-6 py-4 text-left text-xs font-bold text-gray-500"
+                        >
+                          <div class="flex items-center justify-center">
+                            Těleso
+                          </div>
+                        </th>
+                        <th
+                          class="px-6 py-4 text-left text-xs font-bold text-gray-500"
+                        >
+                          <div class="flex items-center justify-center">
+                            Poskytovatel
+                          </div>
+                        </th>
+                        <th
+                          class="px-6 py-4 text-left text-xs font-bold text-gray-500"
+                        >
+                          <div class="flex items-center justify-center">
+                            Odkaz
+                          </div>
+                        </th>
+                        <th
+                          class="px-6 py-4 text-left text-xs font-bold text-gray-500"
+                        >
+                          <div class="flex items-center justify-center">
+                            Akce
+                          </div>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                      <tr
+                        v-for="ticket in paginatedTickets"
+                        :key="ticket.id"
+                        class="hover:bg-gray-50 transition-colors duration-200"
+                      >
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <div class="text-sm font-medium text-gray-900">
+                            {{ ticket.title }}
+                          </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <span
+                            class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
+                          >
+                            {{ getGroupName(ticket.group_id) }}
+                          </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <span
+                            class="px-3 py-1 text-sm font-medium bg-blue-50 text-blue-600 rounded-full"
+                          >
+                            {{ ticket.provider }}
+                          </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                          <a
+                            :href="ticket.ticket_url"
+                            target="_blank"
+                            class="text-blue-600 hover:text-blue-800 text-sm underline"
+                          >
+                            Odkaz na vstupenky
+                          </a>
+                        </td>
+                        <td
+                          class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                        >
+                          <div class="flex justify-end space-x-2">
+                            <button
+                              @click="editTicket(ticket)"
+                              class="inline-flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors duration-150"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="w-4 h-4"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              @click="handleDeleteTicket(ticket.id)"
+                              class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="w-4 h-4"
+                              >
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Pagination pro vstupenky -->
+              <div
+                class="bg-gray-50 px-6 py-4 mt-4 rounded-lg border border-gray-200"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="text-sm text-gray-500">
+                    Zobrazeno {{ ticketPaginationStart + 1 }} -
+                    {{ ticketPaginationEnd }} z
+                    {{ concertTickets.length }} vstupenek
                   </div>
-
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Těleso
-                    </label>
-                    <select
-                      v-model="ticketForm.group_id"
-                      required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="">Vyberte těleso</option>
-                      <option value="9001cdb8-80fd-4923-8aa9-8dedc9a30c77">
-                        Marika Singers
-                      </option>
-                      <option value="af581892-2252-462f-88f2-e73218b4e785">
-                        Five
-                      </option>
-                      <option value="ba4f5374-5d60-4354-a2ce-e83e130bba83">
-                        Voices
-                      </option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Poskytovatel vstupenek
-                    </label>
-                    <select
-                      v-model="ticketForm.provider"
-                      required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    >
-                      <option value="">Vyberte poskytovatele</option>
-                      <option value="GoOut">GoOut</option>
-                      <option value="Ticketmaster">Ticketmaster</option>
-                      <option value="Ticketportal">Ticketportal</option>
-                      <option value="Jiné">Jiné</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Odkaz na vstupenky
-                    </label>
-                    <input
-                      v-model="ticketForm.ticket_url"
-                      type="url"
-                      required
-                      placeholder="https://"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    />
-                  </div>
-
-                  <div class="flex justify-end space-x-4 mt-6">
+                  <div class="flex gap-2">
                     <button
-                      type="button"
-                      @click="closeTicketModal"
-                      class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                      @click="ticketCurrentPage--"
+                      :disabled="ticketCurrentPage === 1"
+                      class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
                     >
-                      Zrušit
+                      Předchozí
                     </button>
+                    <div class="flex items-center gap-1">
+                      <button
+                        v-for="page in ticketTotalPages"
+                        :key="page"
+                        @click="ticketCurrentPage = page"
+                        :class="[
+                          'px-4 py-2 text-sm rounded-lg border transition-colors duration-200',
+                          ticketCurrentPage === page
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'border-gray-300 hover:bg-gray-50',
+                        ]"
+                      >
+                        {{ page }}
+                      </button>
+                    </div>
                     <button
-                      type="submit"
-                      class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200"
+                      @click="ticketCurrentPage++"
+                      :disabled="ticketCurrentPage === ticketTotalPages"
+                      class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
                     >
-                      Uložit
+                      Další
                     </button>
                   </div>
-                </form>
-              </DialogPanel>
-            </TransitionChild>
+                </div>
+              </div>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>
@@ -893,6 +1180,45 @@ const ticketForm = ref({
   group_id: "",
   provider: "",
   ticket_url: "",
+});
+
+// Přidáme nové refs pro filtry
+const searchQuery = ref("");
+const selectedGroup = ref("");
+const ticketFilter = ref("");
+
+// Přidáme konstantu pro počet položek na stránku
+const ITEMS_PER_PAGE = 10;
+
+// Přidáme ref pro aktuální stránku
+const currentPage = ref(1);
+
+// Computed properties pro stránkování
+const totalPages = computed(() =>
+  Math.ceil(filteredConcerts.value.length / ITEMS_PER_PAGE)
+);
+
+const paginationStart = computed(
+  () => (currentPage.value - 1) * ITEMS_PER_PAGE
+);
+
+const paginationEnd = computed(() =>
+  Math.min(
+    paginationStart.value + ITEMS_PER_PAGE,
+    filteredConcerts.value.length
+  )
+);
+
+const paginatedConcerts = computed(() => {
+  return filteredConcerts.value.slice(
+    paginationStart.value,
+    paginationEnd.value
+  );
+});
+
+// Resetujeme stránku při změně filtrů
+watch([searchQuery, selectedGroup, ticketFilter], () => {
+  currentPage.value = 1;
 });
 
 // Funkce pro odstranění diakritiky
@@ -1190,6 +1516,7 @@ const closeTicketModal = () => {
     provider: "",
     ticket_url: "",
   };
+  ticketCurrentPage.value = 1;
   fetchConcertTickets();
 };
 
@@ -1253,6 +1580,64 @@ watch(
     console.log("current form state:", form.value);
   }
 );
+
+// Upravíme existující computed property pro filtrované koncerty
+const filteredConcerts = computed(() => {
+  return concerts.value.filter((concert) => {
+    const searchMatch = searchQuery.value
+      ? concert.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+        concert.description
+          .toLowerCase()
+          .includes(searchQuery.value.toLowerCase())
+      : true;
+
+    const groupMatch = selectedGroup.value
+      ? concert.group_name === selectedGroup.value
+      : true;
+
+    const ticketMatch = ticketFilter.value
+      ? ticketFilter.value === "withTickets"
+        ? concert.ticket_id
+        : !concert.ticket_id
+      : true;
+
+    return searchMatch && groupMatch && ticketMatch;
+  });
+});
+
+// Konstanty pro stránkování vstupenek
+const TICKETS_PER_PAGE = 10;
+const ticketCurrentPage = ref(1);
+
+// Computed properties pro stránkování vstupenek
+const ticketTotalPages = computed(() =>
+  Math.ceil(concertTickets.value.length / TICKETS_PER_PAGE)
+);
+
+const ticketPaginationStart = computed(
+  () => (ticketCurrentPage.value - 1) * TICKETS_PER_PAGE
+);
+
+const ticketPaginationEnd = computed(() =>
+  Math.min(
+    ticketPaginationStart.value + TICKETS_PER_PAGE,
+    concertTickets.value.length
+  )
+);
+
+const paginatedTickets = computed(() => {
+  return concertTickets.value.slice(
+    ticketPaginationStart.value,
+    ticketPaginationEnd.value
+  );
+});
+
+// Reset stránkování vstupenek při otevření modalu
+watch(showTicketModal, (newValue) => {
+  if (newValue) {
+    ticketCurrentPage.value = 1;
+  }
+});
 
 definePageMeta({
   layout: "admin",
