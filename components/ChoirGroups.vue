@@ -30,7 +30,14 @@
           <div class="grid grid-rows-[100px_auto_auto] justify-items-start">
             <h3 class="text-[36px] font-regular mb-2">{{ group.name }}</h3>
             <p class="text-gray-600 mb-4 text-left">{{ group.description }}</p>
-            <button
+            <a
+              v-if="
+                group.button_link &&
+                group.button_link !== 'null' &&
+                group.button_link !== null
+              "
+              :href="group.button_link"
+              target="_blank"
               class="border border-black px-6 py-2 self-end uppercase inline-flex items-center gap-2 group hover:bg-black hover:text-white transition-all duration-300"
             >
               Poslechnout
@@ -49,7 +56,7 @@
                 <path d="M5 12h14" />
                 <path d="m12 5 7 7-7 7" />
               </svg>
-            </button>
+            </a>
           </div>
         </div>
       </div>

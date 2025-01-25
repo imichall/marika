@@ -218,6 +218,44 @@ export const useSocialMedia = () => {
     }
   };
 
+  // Přidáme metodu pro uložení vazeb mezi skupinou a sociálními sítěmi
+  const updateGroupSocialMediaLinks = async (groupId: string, socialMediaIds: string[]) => {
+    try {
+      loading.value = true;
+
+      // Nejdřív smažeme všechny existující vazby pro tuto skupinu
+      const { error: deleteError } = await supabase
+        .from('group_social_media')
+        .delete()
+        .eq('group_id', groupId);
+
+      if (deleteError) throw deleteError;
+
+      // Pokud máme nové vazby, vytvoříme je
+      if (socialMediaIds.length > 0) {
+        const newLinks = socialMediaIds.map(socialMediaId => ({
+          group_id: groupId,
+          social_media_id: socialMediaId
+        }));
+
+        const { error: insertError } = await supabase
+          .from('group_social_media')
+          .insert(newLinks);
+
+        if (insertError) throw insertError;
+      }
+
+      // Aktualizujeme lokální stav
+      await fetchSocialMedia();
+      notifyUpdate();
+    } catch (err) {
+      console.error('Error updating group social media links:', err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   onMounted(async () => {
     await fetchSocialMedia()
   })
@@ -235,6 +273,7 @@ export const useSocialMedia = () => {
       return () => socialMediaUpdateEvent.removeEventListener(SOCIAL_MEDIA_UPDATED, callback);
     },
     getGroupSocialMedia,
-    getAvailableSocialMedia
+    getAvailableSocialMedia,
+    updateGroupSocialMediaLinks
   }
 }

@@ -8,6 +8,7 @@ interface ChoirGroup {
   image: string
   created_at: string
   updated_at: string
+  button_link: string
 }
 
 export const useChoirGroups = () => {
@@ -23,8 +24,8 @@ export const useChoirGroups = () => {
 
       const { data, error: err } = await supabase
         .from('choir_groups')
-        .select('*')
-        .order('name')
+        .select('id, name, description, image, button_link')
+        .order('created_at', { ascending: true })
 
       if (err) throw err
 
@@ -35,7 +36,8 @@ export const useChoirGroups = () => {
           description: String(item.description),
           image: String(item.image),
           created_at: String(item.created_at),
-          updated_at: String(item.updated_at)
+          updated_at: String(item.updated_at),
+          button_link: String(item.button_link)
         }))
       }
     } catch (err: any) {
@@ -87,7 +89,8 @@ export const useChoirGroups = () => {
           description: String(newGroup.description),
           image: String(newGroup.image),
           created_at: String(newGroup.created_at),
-          updated_at: String(newGroup.updated_at)
+          updated_at: String(newGroup.updated_at),
+          button_link: String(newGroup.button_link)
         }
         groups.value.push(mappedGroup)
         return mappedGroup
