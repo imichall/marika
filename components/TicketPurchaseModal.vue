@@ -1,6 +1,6 @@
 <template>
   <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog as="div" @close="closeModal" class="relative z-50">
+    <Dialog as="div" @close="handleClose" class="relative z-50">
       <TransitionChild
         as="template"
         enter="duration-300 ease-out"
@@ -173,8 +173,8 @@
 
                   <div class="flex justify-center">
                     <ConcertQRCode
-                      v-if="concert.qr_session"
-                      :qr-session="concert.qr_session"
+                      :concert="concert"
+                      :ticket-count="ticketCount"
                       class="w-48 h-48"
                     />
                   </div>
@@ -198,7 +198,7 @@
                   </button>
                   <button
                     v-if="currentStep === 0"
-                    @click="closeModal"
+                    @click="handleClose"
                     class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
                   >
                     Zrušit
@@ -212,7 +212,7 @@
                   </button>
                   <button
                     v-if="currentStep === steps.length - 1"
-                    @click="closeModal"
+                    @click="handleClose"
                     class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
                   >
                     Dokončit
@@ -323,10 +323,23 @@ const decrementTickets = () => {
 const { createOrder } = useTicketOrders();
 const toast = useToast();
 
+const handleClose = () => {
+  if (currentStep.value === steps.length - 1) {
+    return;
+  }
+  currentStep.value = 0;
+  ticketCount.value = 1;
+  contactInfo.value = {
+    name: "",
+    email: "",
+  };
+  errors.value = {};
+  emit("close");
+};
+
 const closeModal = async () => {
   if (currentStep.value === steps.length - 1) {
     try {
-      // Uložení objednávky do databáze
       await createOrder({
         concert_id: props.concert.id,
         customer_name: contactInfo.value.name,
@@ -337,20 +350,21 @@ const closeModal = async () => {
       });
 
       toast.success("Objednávka byla úspěšně vytvořena");
+
+      currentStep.value = 0;
+      ticketCount.value = 1;
+      contactInfo.value = {
+        name: "",
+        email: "",
+      };
+      errors.value = {};
+      emit("close");
     } catch (err) {
       console.error("Error saving order:", err);
       toast.error("Nepodařilo se vytvořit objednávku");
     }
+  } else {
+    handleClose();
   }
-
-  // Reset formuláře
-  currentStep.value = 0;
-  ticketCount.value = 1;
-  contactInfo.value = {
-    name: "",
-    email: "",
-  };
-  errors.value = {};
-  emit("close");
 };
 </script>
