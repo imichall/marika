@@ -7,6 +7,7 @@ interface ConcertRow {
   description: string | null;
   desc: string | null;
   date: string;
+  time: string | null;
   price: string;
   image: string | null;
   group: string | null;
@@ -32,6 +33,7 @@ interface Concert {
   title: string;
   description: string;
   date: string;
+  time: string;
   price: string;
   image: string;
   group_name?: string;
@@ -46,6 +48,11 @@ interface Concert {
   created_at: string;
   updated_at: string;
 }
+
+const formatTime = (time: string | null): string => {
+  if (!time) return '19:00';
+  return time.substring(0, 5);
+};
 
 export const useConcerts = () => {
   const supabase = useSupabaseClient<{ concerts: ConcertRow }>();
@@ -78,6 +85,7 @@ export const useConcerts = () => {
           description: String(item.description || ''),
           desc: String(item.desc || ''),
           date: String(item.date),
+          time: formatTime(item.time),
           price: String(item.price),
           image: String(item.image || ''),
           group: String(item.group || ''),
@@ -195,6 +203,7 @@ export const useConcerts = () => {
           description: String(data.description || ''),
           desc: String(data.desc || ''),
           date: String(data.date),
+          time: formatTime(data.time),
           price: String(data.price),
           image: String(data.image || ''),
           group: String(data.group || ''),

@@ -27,6 +27,7 @@
     "@supabase/supabase-js": "^2.47.16",
     "@types/pdfkit": "^0.13.8",
     "chart.js": "^4.4.7",
+    "date-fns": "^4.1.0",
     "formidable": "^3.5.2",
     "pdfkit": "^0.16.0",
     "qrcode": "^1.5.3",
