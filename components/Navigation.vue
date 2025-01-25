@@ -151,6 +151,16 @@
 
         <!-- Mobilní menu obsah -->
         <div class="flex flex-col h-full pt-20 px-6">
+          <!-- Logo v mobilním menu -->
+          <div class="absolute top-5 left-5 mb-8 bg-white">
+            <NuxtLink to="/" @click="isMenuOpen = false">
+              <img
+                src="/images/svg/marika-singers-logo.svg"
+                alt="Logo"
+                class="w-40"
+              />
+            </NuxtLink>
+          </div>
           <div class="text-[40px] text-white space-y-6">
             <button
               v-for="item in visibleMenuItems"
@@ -160,17 +170,6 @@
             >
               {{ item.text }}
             </button>
-          </div>
-
-          <!-- Logo v mobilním menu -->
-          <div class="mt-auto mb-8">
-            <NuxtLink to="/" @click="isMenuOpen = false">
-              <img
-                src="/images/svg/logo-marikasingers.svg"
-                alt="Logo"
-                class="w-10"
-              />
-            </NuxtLink>
           </div>
         </div>
       </div>
