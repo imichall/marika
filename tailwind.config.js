@@ -16,6 +16,15 @@ module.exports = {
       colors: {
         'custom-gray': '#454545',
       },
+      animation: {
+        'float-slow': 'float 3s ease-in-out infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        },
+      },
     },
   },
   plugins: [],
