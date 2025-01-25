@@ -411,4 +411,12 @@ defineExpose({
     qrCodeData: qrCodeData.value,
   }),
 });
+
+watch(
+  () => props.concertTitle,
+  (newTitle) => {
+    message.value = removeDiacritics(newTitle).toUpperCase();
+  },
+  { immediate: true }
+);
 </script>

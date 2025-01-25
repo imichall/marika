@@ -84,7 +84,7 @@ import TicketPurchaseModal from "~/components/TicketPurchaseModal.vue";
 const { concerts } = useConcerts();
 const displayedConcerts = computed(() => concerts.value.slice(0, 3));
 
-const selectedConcert = ref(null);
+const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 
 const openTicketModal = (concert) => {

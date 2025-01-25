@@ -58,10 +58,10 @@
           <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
             <tr>
               <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Datum</div>
+                <div class="flex items-center justify-center">Název</div>
               </th>
               <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Název</div>
+                <div class="flex items-center justify-center">Datum</div>
               </th>
               <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
                 <div class="flex items-center justify-center">Těleso</div>
@@ -82,6 +82,11 @@
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-gray-900">
+                  {{ concert.title }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
                   {{
                     new Date(concert.date).toLocaleDateString("cs-CZ", {
                       weekday: "long",
@@ -92,11 +97,7 @@
                   }}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
-                  {{ concert.title }}
-                </div>
-              </td>
+
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
@@ -473,6 +474,29 @@ const form = ref({
   bank_code: "0100",
   qr_session: "",
 });
+
+// Funkce pro odstranění diakritiky
+const removeDiacritics = (str) => {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
+
+// Watch pro okamžitou aktualizaci variable_symbol
+watch(
+  () => form.value.title,
+  (newTitle) => {
+    // Vezmeme první písmena slov a přidáme rok
+    const words = removeDiacritics(newTitle).split(" ");
+    const currentYear = new Date().getFullYear().toString();
+    const initials = words
+      .map((word) => word.charAt(0))
+      .join("")
+      .toUpperCase();
+
+    // Kombinujeme iniciály s rokem a zajistíme max. délku 10 znaků
+    form.value.variable_symbol = (initials + currentYear).slice(0, 10);
+  },
+  { immediate: true }
+);
 
 const sortedConcerts = computed(() => {
   if (!concerts.value) return [];
