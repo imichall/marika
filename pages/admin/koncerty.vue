@@ -4,101 +4,180 @@
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Správa koncertů</h1>
+      <h1
+        class="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent"
+      >
+        Správa koncertů
+      </h1>
       <button
         @click="showAddModal = true"
-        class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200"
+        class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center gap-2"
         :disabled="loading"
       >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-5 h-5"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 4.5v15m7.5-7.5h-15"
+          />
+        </svg>
         Přidat koncert
       </button>
     </div>
 
-    <div v-if="loading" class="text-center py-8">
-      <p>Načítání...</p>
-    </div>
-
-    <div v-else-if="error" class="text-center py-8 text-red-600">
-      <p>{{ error }}</p>
-    </div>
-
-    <!-- Seznam koncertů -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+    <div v-if="loading" class="flex justify-center items-center py-12">
       <div
-        v-for="concert in concerts"
-        :key="concert.id"
-        class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
-      >
-        <div class="relative">
-          <img
-            v-if="concert.image"
-            :src="getFullImageUrl(concert.image)"
-            :alt="concert.title"
-            class="w-full h-48 object-cover"
-          />
-          <div
-            v-else
-            class="w-full h-48 bg-gray-100 flex items-center justify-center"
-          >
-            <span class="material-icons-outlined text-4xl text-gray-300">
-              image
-            </span>
-          </div>
-        </div>
-        <div class="p-6">
-          <div class="flex items-center space-x-2 mb-4">
-            <span
-              class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
-            >
-              {{ concert.group_name }}
-            </span>
-            <span
-              class="px-3 py-1 text-sm font-medium bg-blue-50 text-blue-600 rounded-full"
-            >
-              {{ concert.price }} Kč
-            </span>
-          </div>
+        class="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"
+      ></div>
+    </div>
 
-          <h3 class="font-bold text-xl mb-2 text-gray-900">
-            {{ concert.title }}
-          </h3>
-          <p class="text-gray-600 font-medium mb-3">
-            {{
-              new Date(concert.date).toLocaleDateString("cs-CZ", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })
-            }}
-          </p>
-          <p class="text-gray-500 mb-6 line-clamp-3">
-            {{ concert.description }}
-          </p>
+    <div
+      v-else-if="error"
+      class="bg-red-50 text-red-600 p-4 rounded-xl shadow-sm mb-6"
+    >
+      <p class="flex items-center gap-2">
+        <span class="material-icons-outlined">error_outline</span>
+        {{ error }}
+      </p>
+    </div>
 
-          <div v-if="concert.qr_session" class="mb-6">
-            <ConcertQRCode :qr-session="concert.qr_session" class="mx-auto" />
-          </div>
-
-          <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <button
-              @click="editConcert(concert)"
-              class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+    <!-- Tabulka koncertů -->
+    <div
+      v-else
+      class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+    >
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <div class="flex items-center justify-center">Datum</div>
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <div class="flex items-center justify-center">Název</div>
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <div class="flex items-center justify-center">Těleso</div>
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <div class="flex items-center justify-center">Vstupné</div>
+              </th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <div class="flex items-center justify-center">Akce</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-100">
+            <tr
+              v-for="concert in concerts"
+              :key="concert.id"
+              class="hover:bg-gray-50/50 transition-colors duration-150"
             >
-              Upravit
-            </button>
-            <button
-              @click="handleDelete(concert.id)"
-              class="inline-flex items-center px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-200"
-            >
-              Smazat
-            </button>
-          </div>
-        </div>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  {{
+                    new Date(concert.date).toLocaleDateString("cs-CZ", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">
+                  {{ concert.title }}
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
+                >
+                  {{ concert.group_name }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-3 py-1 text-sm font-medium bg-green-50 text-green-600 rounded-full"
+                >
+                  {{ concert.price }} Kč
+                </span>
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1"
+              >
+                <button
+                  @click="editConcert(concert)"
+                  class="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-150"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-4 h-4"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                    />
+                  </svg>
+                </button>
+                <button
+                  @click="handleDelete(concert.id)"
+                  class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-4 h-4"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr v-if="concerts.length === 0">
+              <td colspan="5" class="px-6 py-12 text-center">
+                <div
+                  class="flex flex-col items-center justify-center text-gray-500"
+                >
+                  <span class="material-icons-outlined text-4xl mb-2"
+                    >event_busy</span
+                  >
+                  <p class="text-lg">Zatím nejsou přidány žádné koncerty</p>
+                  <button
+                    @click="showAddModal = true"
+                    class="mt-4 text-red-600 hover:text-red-700 font-medium transition-colors duration-150"
+                  >
+                    Přidat první koncert
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Modal pro přidání/úpravu koncertu -->
+    <!-- Modal pro přidání/editaci koncertu -->
     <TransitionRoot appear :show="showAddModal" as="template">
       <Dialog as="div" @close="closeModal" class="relative z-50">
         <!-- Backdrop -->
@@ -147,14 +226,14 @@
 
                     <div>
                       <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Sekce
+                        Těleso
                       </label>
                       <select
                         v-model="form.group_name"
                         required
                         class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       >
-                        <option value="">Vyberte sekci</option>
+                        <option value="">Vyberte těleso</option>
                         <option value="Marika Singers">Marika Singers</option>
                         <option value="Voices">Voices</option>
                         <option value="Five">Five</option>
@@ -256,7 +335,8 @@
                           class="max-h-48 mx-auto rounded-lg"
                         />
                         <button
-                          @click.prevent="removeImage"
+                          @click.prevent.stop="removeImage"
+                          type="button"
                           class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
                           title="Odstranit obrázek"
                         >
@@ -393,6 +473,22 @@ const form = ref({
   qr_session: "",
 });
 
+const sortedConcerts = computed(() => {
+  if (!concerts.value) return [];
+  return [...concerts.value].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
+});
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("cs-CZ", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 const getFullImageUrl = (path) => {
   if (!path) return "";
   if (path.startsWith("http")) return path;
@@ -455,7 +551,9 @@ const processFile = async (file) => {
   }
 };
 
-const removeImage = () => {
+const removeImage = (e) => {
+  e?.preventDefault();
+  e?.stopPropagation();
   form.value.image = "";
   imagePreview.value = null;
 };
@@ -554,3 +652,9 @@ definePageMeta({
   middleware: ["auth"],
 });
 </script>
+
+<style scoped>
+.material-icons-outlined {
+  font-size: 20px;
+}
+</style>
