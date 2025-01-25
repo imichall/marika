@@ -347,15 +347,6 @@ const calculateIBANCheckDigits = (bankCode, accountNumber) => {
     // 4. Vypočítáme kontrolní číslice
     const checkDigits = String(98 - remainder).padStart(2, "0");
 
-    console.log("IBAN calculation:", {
-      bankCode,
-      accountPadded,
-      base,
-      remainder,
-      checkDigits,
-      fullIBAN: `CZ${checkDigits}${bankCode}${accountPadded}`,
-    });
-
     return checkDigits;
   } catch (err) {
     console.error("Error calculating IBAN check digits:", err);

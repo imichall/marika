@@ -18,15 +18,11 @@ export const useTestimonials = () => {
   const fetchTestimonials = async () => {
     try {
       loading.value = true
-      console.log('Začínám načítat testimonials...')
 
       const { data, error: err } = await supabase
         .from('testimonials')
         .select('*')
         .order('id', { ascending: false })
-
-      console.log('Data z databáze:', data)
-      console.log('Chyba z databáze:', err)
 
       if (err) throw err
 
@@ -38,7 +34,6 @@ export const useTestimonials = () => {
           source: item.source ? String(item.source) : null,
           created_at: String(item.created_at)
         }))
-        console.log('Zpracovaná data:', testimonials.value)
       } else {
         console.log('Žádná data nebyla načtena')
       }

@@ -68,16 +68,6 @@
 
 <script setup>
 const { testimonials, loading, error } = useTestimonials();
-
-// Debug log
-watchEffect(() => {
-  console.log("Component state:", {
-    loading: loading.value,
-    error: error.value,
-    testimonialsCount: testimonials.value?.length,
-    testimonials: testimonials.value,
-  });
-});
 </script>
 
 <style>

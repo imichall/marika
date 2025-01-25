@@ -541,13 +541,8 @@ const processFile = async (file) => {
     if (data.success) {
       form.value.image = data.path;
       imagePreview.value = getFullImageUrl(data.path);
-      console.log("Image uploaded successfully:", {
-        relativePath: data.path,
-        fullUrl: imagePreview.value,
-      });
     }
   } catch (err) {
-    console.error("Error uploading image:", err);
     alert("Chyba při nahrávání obrázku: " + err.message);
   }
 };
@@ -586,8 +581,6 @@ const handleSubmit = async () => {
     const concertData = {
       ...form.value,
     };
-
-    console.log("Submitting concert data:", concertData);
 
     if (editingConcert.value) {
       await updateConcert(editingConcert.value.id, concertData);
@@ -639,13 +632,12 @@ const confirmDelete = async () => {
 
 // Znovu načteme data při mounted
 onMounted(() => {
-  console.log("Admin koncerty page mounted");
   fetchConcerts();
 });
 
 // Sledujeme změny v datech
 watch(concerts, (newConcerts) => {
-  console.log("Admin concerts updated:", newConcerts);
+  // console.log("Admin concerts updated:", newConcerts);
 });
 
 definePageMeta({

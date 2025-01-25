@@ -93,8 +93,6 @@ const openTicketModal = (concert) => {
 };
 
 const handlePurchase = (purchaseDetails) => {
-  console.log("Purchase details:", purchaseDetails);
-  // Zde bude logika pro zpracování nákupu
   isTicketModalOpen.value = false;
 };
 </script>

@@ -57,7 +57,6 @@ const qrData = computed(() => {
     // Sestavíme QR kód
     const qrString = `SPD*1.0*ACC:CZ${checkDigits}${props.concert.bank_code}${paddedAccount}*AM:${totalAmount}*CC:CZK*MSG:${cleanMessage}`;
 
-    console.log("Generated QR string:", qrString);
     return qrString;
   } catch (err) {
     console.error("Error generating QR code:", err);

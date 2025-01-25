@@ -23,7 +23,6 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
-      console.log('Fetching contacts...')
       const { data, error: err } = await supabase
         .from('contacts')
         .select('id, group_name, address, ico, dic, email, created_at, updated_at')
@@ -31,7 +30,6 @@ export const useContacts = () => {
 
       if (err) throw err
 
-      console.log('Fetched contacts:', data)
       contacts.value = data?.map(item => ({
         id: String(item.id),
         group_name: String(item.group_name),
@@ -54,9 +52,6 @@ export const useContacts = () => {
     try {
       loading.value = true
       error.value = null
-
-      console.log('Updating contact with ID:', id)
-      console.log('Update data:', data)
 
       const { data: updatedContact, error: err } = await supabase
         .from('contacts')
@@ -99,7 +94,6 @@ export const useContacts = () => {
         updated_at: now
       }
 
-      console.log('Adding contact:', contactData)
       const { data: newData, error: err } = await supabase
         .from('contacts')
         .insert([contactData])
@@ -123,7 +117,6 @@ export const useContacts = () => {
         updated_at: String(newData.updated_at)
       }
 
-      console.log('Added contact:', contact)
       contacts.value.push(contact)
       return contact
     } catch (err: any) {
@@ -140,7 +133,6 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
-      console.log('Deleting contact:', id)
       const { error: err } = await supabase
         .from('contacts')
         .delete()
@@ -148,7 +140,6 @@ export const useContacts = () => {
 
       if (err) throw err
 
-      console.log('Contact deleted:', id)
       contacts.value = contacts.value.filter(c => c.id !== id)
     } catch (err: any) {
       console.error('Error deleting contact:', err)
