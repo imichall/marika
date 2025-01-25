@@ -235,8 +235,8 @@
                       >
                         <option value="">Vyberte těleso</option>
                         <option value="Marika Singers">Marika Singers</option>
-                        <option value="Voices">Voices</option>
                         <option value="Five">Five</option>
+                        <option value="Voices">Voices</option>
                       </select>
                     </div>
 
@@ -281,6 +281,7 @@
                     <QRCodeGenerator
                       :concert-title="form.title"
                       :price="Number(form.price)"
+                      :selected-group="form.group_name"
                       v-model="form.variable_symbol"
                       v-model:account-number="form.account_number"
                       v-model:bank-code="form.bank_code"

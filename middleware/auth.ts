@@ -46,6 +46,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/socialni-site',
     '/admin/kontakty',
     '/admin/skupiny',
+    '/admin/system',
     '/admin/login'
   ]
 
