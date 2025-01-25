@@ -87,9 +87,9 @@
                 </h1>
                 <p class="text-sm">
                   Čas a datum vystoupení<br />
-                  <span class="text-2xl font-bold text-custom-gray">{{
-                    concert.date
-                  }}</span>
+                  <span class="text-2xl font-bold text-custom-gray">
+                    {{ formatDateWithTime(concert.date, concert.time) }}
+                  </span>
                 </p>
                 <p class="text-sm">
                   Cena vstupenky<br />
@@ -220,7 +220,10 @@
                   as="h3"
                   class="text-2xl font-bold mb-2 text-gray-900"
                 >
-                  Vstupenky na koncert
+                  Vstupenky na koncert {{ selectedConcert.title }}
+                  <div class="text-base font-normal text-gray-600 mt-1">
+                    Začátek v {{ selectedConcert.time || "19:00" }}
+                  </div>
                 </DialogTitle>
 
                 <div class="space-y-6">
@@ -292,6 +295,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { formatDateWithTime } from "~/utils/date";
 
 const route = useRoute();
 const { concerts, getConcert } = useConcerts();

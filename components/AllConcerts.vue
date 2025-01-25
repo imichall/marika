@@ -79,7 +79,9 @@
                 Vstupenky
               </button>
             </div>
-            <p class="text-gray-600">{{ concert.date }}</p>
+            <p class="text-gray-600">
+              {{ formatDateWithTime(concert.date, concert.time) }}
+            </p>
             <h3 class="font-bold text-2xl">
               {{ concert.title }}<br />
               <span v-if="concert.group" class="text-gray-600 text-sm">
@@ -100,7 +102,14 @@
     :concert="selectedConcert"
     @close="isTicketModalOpen = false"
     @purchase="handlePurchase"
-  />
+  >
+    <DialogTitle as="h3" class="text-2xl font-bold mb-2 text-gray-900">
+      Vstupenky na koncert {{ selectedConcert.title }}
+      <div class="text-base font-normal text-gray-600 mt-1">
+        Začátek v {{ selectedConcert.time || "19:00" }}
+      </div>
+    </DialogTitle>
+  </TicketPurchaseModal>
 
   <TransitionRoot appear :show="isTicketInfoModalOpen" as="template">
     <!-- ... copy the entire modal from ConcertGrid.vue ... -->
@@ -120,6 +129,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { formatDateWithTime } from "~/utils/date";
 
 const supabase = useSupabaseClient();
 const { concerts } = useConcerts();

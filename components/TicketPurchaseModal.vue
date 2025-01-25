@@ -65,6 +65,13 @@
                   </div>
 
                   <div class="flex justify-between items-center text-gray-600">
+                    <span>Začátek koncertu:</span>
+                    <span class="font-medium"
+                      ><strong>{{ concert.time }}</strong></span
+                    >
+                  </div>
+
+                  <div class="flex justify-between items-center text-gray-600">
                     <span>Cena za vstupenku:</span>
                     <span class="font-medium">{{ concert.price }} Kč</span>
                   </div>

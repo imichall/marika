@@ -42,7 +42,9 @@
                 Vstupenky
               </button>
             </div>
-            <p class="text-gray-600">{{ concert.date }}</p>
+            <p class="text-gray-600">
+              {{ formatDateWithTime(concert.date, concert.time) }}
+            </p>
             <h3 class="font-bold text-2xl">
               {{ concert.title }}<br />
               <span v-if="concert.group" class="text-gray-600 text-sm">
@@ -160,6 +162,9 @@
                   class="text-2xl font-bold mb-2 text-gray-900"
                 >
                   Vstupenky na koncert {{ selectedConcert.title }}
+                  <div class="text-base font-normal text-gray-600 mt-1">
+                    Začátek v {{ selectedConcert.time || "19:00" }}
+                  </div>
                 </DialogTitle>
 
                 <div class="space-y-6">
@@ -232,6 +237,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { formatDateWithTime } from "~/utils/date";
 
 const supabase = useSupabaseClient();
 const { concerts } = useConcerts();
