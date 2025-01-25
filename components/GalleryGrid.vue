@@ -1,5 +1,5 @@
 <template>
-  <section id="gallery" class="py-16 bg-gray-100 font-instrument">
+  <section id="gallery" class="py-16 bg-gray-100">
     <div class="container mx-auto px-4">
       <div class="relative flex py-5 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
@@ -7,91 +7,136 @@
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
     </div>
-    <div class="mx-auto p-4">
-      <div class="grid grid-cols-7 grid-rows-3 gap-2">
-        <div class="col-span-2 row-span-2 overflow-hidden rounded-xl">
+    <div class="mx-auto px-4">
+      <!-- Grid galerie -->
+      <div
+        v-if="images.length > 0"
+        class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3]"
+      >
+        <!-- Velký obrázek vlevo nahoře (2x2) -->
+        <div
+          v-if="getImageByPosition(1)"
+          class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(1))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[9]}`"
-            alt="Gallery image 10"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(9)"
+            :src="getImageByPosition(1).image_url"
+            :alt="getImageByPosition(1).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="overflow-hidden col-span-2 rounded-xl row-span-1">
+        <!-- Široký obrázek nahoře uprostřed (2x1) -->
+        <div
+          v-if="getImageByPosition(2)"
+          class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(2))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[5]}`"
-            alt="Gallery image 6"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(5)"
+            :src="getImageByPosition(2).image_url"
+            :alt="getImageByPosition(2).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="overflow-hidden rounded-xl col-span-2 row-span-2">
+        <!-- Velký obrázek vpravo nahoře (2x2) -->
+        <div
+          v-if="getImageByPosition(3)"
+          class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(3))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[3]}`"
-            alt="Gallery image 4"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(3)"
+            :src="getImageByPosition(3).image_url"
+            :alt="getImageByPosition(3).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="col-span-1 row-span-2 overflow-hidden rounded-xl">
+        <!-- Úzký vysoký obrázek vpravo (1x2) -->
+        <div
+          v-if="getImageByPosition(4)"
+          class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(4))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[1]}`"
-            alt="Gallery image 2"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(1)"
+            :src="getImageByPosition(4).image_url"
+            :alt="getImageByPosition(4).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="overflow-hidden rounded-xl">
+        <!-- Malý čtvercový obrázek (1x1) -->
+        <div
+          v-if="getImageByPosition(5)"
+          class="relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(5))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[7]}`"
-            alt="Gallery image 6"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(7)"
-          />
-        </div>
-        <div class="overflow-hidden rounded-xl row-span-2">
-          <img
-            :src="`/images/mansory/${galleryImages[4]}`"
-            alt="Gallery image 3"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(4)"
+            :src="getImageByPosition(5).image_url"
+            :alt="getImageByPosition(5).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="col-span-3 row-span-1 overflow-hidden rounded-xl">
+        <!-- Úzký vysoký obrázek (1x2) -->
+        <div
+          v-if="getImageByPosition(6)"
+          class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(6))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[6]}`"
-            alt="Gallery image 5"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(6)"
+            :src="getImageByPosition(6).image_url"
+            :alt="getImageByPosition(6).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
 
-        <div class="col-span-2 overflow-hidden rounded-xl">
+        <!-- Široký obrázek dole (3x1) -->
+        <div
+          v-if="getImageByPosition(7)"
+          class="col-span-3 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(7))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[2]}`"
-            alt="Gallery image 1"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(2)"
+            :src="getImageByPosition(7).image_url"
+            :alt="getImageByPosition(7).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
-        <div class="col-span-1 overflow-hidden rounded-xl">
+
+        <!-- Široký obrázek dole (2x1) -->
+        <div
+          v-if="getImageByPosition(8)"
+          class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(8))"
+        >
           <img
-            :src="`/images/mansory/${galleryImages[0]}`"
-            alt="Gallery image 1"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-            @click="openLightbox(0)"
+            :src="getImageByPosition(8).image_url"
+            :alt="getImageByPosition(8).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           />
         </div>
+
+        <!-- Malý čtvercový obrázek dole (1x1) -->
+        <div
+          v-if="getImageByPosition(9)"
+          class="relative overflow-hidden rounded-xl cursor-pointer"
+          @click="openLightbox(getImageByPosition(9))"
+        >
+          <img
+            :src="getImageByPosition(9).image_url"
+            :alt="getImageByPosition(9).title"
+            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      </div>
+      <div v-else class="text-center py-8 text-gray-500">
+        Načítání galerie...
       </div>
     </div>
 
     <!-- Lightbox -->
-    <TransitionRoot appear :show="showLightbox" as="template">
+    <TransitionRoot appear :show="isLightboxOpen" as="template">
       <Dialog as="div" @close="closeLightbox" class="relative z-50">
         <TransitionChild
           as="template"
@@ -102,7 +147,7 @@
           leave-from="opacity-100"
           leave-to="opacity-0"
         >
-          <div class="fixed inset-0 bg-black/90" aria-hidden="true" />
+          <div class="fixed inset-0 bg-black bg-opacity-90" />
         </TransitionChild>
 
         <div class="fixed inset-0 overflow-y-auto">
@@ -116,73 +161,54 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="relative w-full max-w-7xl">
-                <button
-                  @click="closeLightbox"
-                  class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200 z-10 p-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-8 h-8"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-
+              <DialogPanel
+                class="w-full max-w-6xl transform overflow-hidden rounded-2xl bg-transparent p-6 text-left align-middle shadow-xl transition-all"
+              >
                 <button
                   @click="previousImage"
-                  class="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10 p-2"
+                  class="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-12 h-12"
-                    viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                     stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    stroke="currentColor"
+                    class="w-8 h-8"
                   >
-                    <polyline points="15 18 9 12 15 6"></polyline>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M15.75 19.5L8.25 12l7.5-7.5"
+                    />
                   </svg>
                 </button>
 
                 <button
                   @click="nextImage"
-                  class="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 z-10 p-2"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="w-12 h-12"
-                    viewBox="0 0 24 24"
                     fill="none"
-                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                     stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    stroke="currentColor"
+                    class="w-8 h-8"
                   >
-                    <polyline points="9 18 15 12 9 6"></polyline>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
                   </svg>
                 </button>
 
                 <img
-                  :src="`/images/mansory/${galleryImages[currentImageIndex]}`"
-                  :alt="`Gallery image ${currentImageIndex + 1}`"
-                  class="w-full h-auto max-h-[85vh] object-contain mx-auto"
+                  :src="currentImage?.image_url"
+                  :alt="currentImage?.title"
+                  class="w-full h-auto max-h-[80vh] object-contain mx-auto"
                 />
-
-                <div
-                  class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm"
-                >
-                  {{ currentImageIndex + 1 }} / {{ galleryImages.length }}
-                </div>
               </DialogPanel>
             </TransitionChild>
           </div>
@@ -193,64 +219,91 @@
 </template>
 
 <script setup>
+import { useGallery } from "~/composables/useGallery";
+import { computed, onMounted, ref, onUnmounted } from "vue";
 import {
   TransitionRoot,
   TransitionChild,
   Dialog,
   DialogPanel,
 } from "@headlessui/vue";
-import { ref } from "vue";
 
-const galleryImages = [
-  "mansory-00001.png",
-  "mansory-00002.png",
-  "mansory-00003.png",
-  "mansory-00004.png",
-  "mansory-00005.png",
-  "mansory-00006.png",
-  "mansory-00007.png",
-  "mansory-00008.png",
-  "mansory-00009.png",
-  "mansory-00010.png",
-];
-
-const showLightbox = ref(false);
+const { images, fetchAllVisibleImages } = useGallery();
+const isLightboxOpen = ref(false);
 const currentImageIndex = ref(0);
 
-const openLightbox = (index) => {
-  currentImageIndex.value = index;
-  showLightbox.value = true;
+// Načtení obrázků při vytvoření komponenty
+onMounted(async () => {
+  await fetchAllVisibleImages();
+  // Přidání event listeneru pro klávesové šipky
+  window.addEventListener("keydown", handleKeyDown);
+});
+
+// Funkce pro získání obrázku podle pozice
+const getImageByPosition = (position) => {
+  return images.value.find((img) => img.position === position);
+};
+
+// Lightbox funkce
+const currentImage = computed(() => {
+  const visibleImages = images.value.filter((img) => img.position !== null);
+  return visibleImages[currentImageIndex.value];
+});
+
+const openLightbox = (image) => {
+  const visibleImages = images.value.filter((img) => img.position !== null);
+  currentImageIndex.value = visibleImages.findIndex(
+    (img) => img.id === image.id
+  );
+  isLightboxOpen.value = true;
 };
 
 const closeLightbox = () => {
-  showLightbox.value = false;
+  isLightboxOpen.value = false;
 };
 
 const previousImage = () => {
+  const visibleImages = images.value.filter((img) => img.position !== null);
   currentImageIndex.value =
-    (currentImageIndex.value - 1 + galleryImages.length) % galleryImages.length;
+    (currentImageIndex.value - 1 + visibleImages.length) % visibleImages.length;
 };
 
 const nextImage = () => {
+  const visibleImages = images.value.filter((img) => img.position !== null);
   currentImageIndex.value =
-    (currentImageIndex.value + 1) % galleryImages.length;
+    (currentImageIndex.value + 1) % visibleImages.length;
 };
+
+// Přidání ovládání pomocí klávesových šipek
+const handleKeyDown = (event) => {
+  if (!isLightboxOpen.value) return;
+
+  switch (event.key) {
+    case "ArrowLeft":
+      previousImage();
+      break;
+    case "ArrowRight":
+      nextImage();
+      break;
+    case "Escape":
+      closeLightbox();
+      break;
+  }
+};
+
+// Cleanup event listener při zničení komponenty
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+});
 </script>
 
 <style scoped>
-.grid {
-  /* Přidáme smooth transition pro hover efekty */
-  @apply transition-all duration-300 ease-in-out;
-}
-
-/* Přidáme hover efekt pro každý obrázek */
 .grid > div {
-  @apply transition-transform duration-300 hover:z-10;
+  @apply transition-transform duration-300;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-/* .grid > div:hover {
-  transform: scale(1.01);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-} */
+.grid > div img {
+  @apply w-full h-full object-cover;
+}
 </style>

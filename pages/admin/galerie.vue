@@ -110,14 +110,16 @@
                 :value="image.position"
                 @input="handlePositionChange($event, image)"
                 @blur="handlePositionChange($event, image)"
-                class="w-full bg-transparent text-center"
+                class="w-full bg-transparent text-center disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="Pozice (1-9)"
+                :disabled="!image.is_visible"
               />
               <button
                 v-if="image.position"
                 @click="handlePositionChange({ target: { value: '' } }, image)"
                 class="text-gray-500 hover:text-red-500 transition-colors duration-200"
                 title="Odstranit pozici"
+                :disabled="!image.is_visible"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -691,6 +693,18 @@ const handleClearCache = async () => {
 const handleVisibilityToggle = async (image: any) => {
   try {
     const newVisibility = !image.is_visible;
+
+    // Pokud vypínáme viditelnost a obrázek má pozici, nejdřív odstraníme pozici
+    if (!newVisibility && image.position !== null) {
+      const positionResult = await updatePosition(image.id, null);
+      if (!positionResult.success) {
+        showToast.error("Nepodařilo se odstranit pozici fotografie");
+        return;
+      }
+      image.position = null;
+      updateUsedPositions();
+    }
+
     const result = await toggleVisibility(image.id, newVisibility);
 
     if (result?.success) {

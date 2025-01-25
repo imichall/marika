@@ -93,6 +93,38 @@ export const useGallery = () => {
     }
   }
 
+  const fetchAllVisibleImages = async () => {
+    try {
+      loading.value = true
+      error.value = null
+
+      const { data, error: err } = await supabase
+        .from('gallery')
+        .select('*')
+        .eq('is_visible', true)
+        .order('position', { ascending: true })
+
+      if (err) throw err
+
+      if (data) {
+        images.value = data.map((item: any) => ({
+          id: String(item.id),
+          image_url: String(item.image_url),
+          title: String(item.title),
+          is_visible: Boolean(item.is_visible),
+          created_at: String(item.created_at),
+          position: item.position ? Number(item.position) : null
+        }))
+      }
+
+    } catch (err) {
+      console.error('Error fetching gallery images:', err)
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+    } finally {
+      loading.value = false
+    }
+  }
+
   const toggleVisibility = async (imageId: string, isVisible: boolean) => {
     try {
       const { error: err } = await supabase
@@ -249,6 +281,7 @@ export const useGallery = () => {
     totalPages,
     totalImages,
     fetchImages,
+    fetchAllVisibleImages,
     deleteImage,
     clearCache,
     toggleVisibility,
