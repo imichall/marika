@@ -101,6 +101,15 @@
 
               <div class="mt-auto flex flex-col gap-4">
                 <button
+                  v-if="concert.ticket_id"
+                  @click="openTicketInfoModal(concert)"
+                  class="w-full bg-red-800 border border-red-800 text-white px-4 py-3 hover:bg-red-900 transition-colors duration-200"
+                >
+                  Koupit vstupenky
+                </button>
+                <button
+                  v-else
+                  @click="openTicketModal(concert)"
                   class="w-full bg-red-800 border border-red-800 text-white px-4 py-3 hover:bg-red-900 transition-colors duration-200"
                 >
                   Koupit vstupenky
@@ -167,15 +176,132 @@
       </div>
     </div>
   </div>
+
+  <!-- Add modals -->
+  <TicketPurchaseModal
+    v-if="!selectedConcert.ticket_id"
+    :is-open="isTicketModalOpen"
+    :concert="selectedConcert"
+    @close="isTicketModalOpen = false"
+    @purchase="handlePurchase"
+  />
+
+  <!-- Ticket Info Modal -->
+  <TransitionRoot appear :show="isTicketInfoModalOpen" as="template">
+    <Dialog as="div" @close="closeTicketInfoModal" class="relative z-50">
+      <TransitionChild
+        as="div"
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            as="div"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
+          >
+            <DialogPanel
+              class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+            >
+              <div class="relative">
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold mb-2 text-gray-900"
+                >
+                  Vstupenky na koncert
+                </DialogTitle>
+
+                <div class="space-y-6">
+                  <div class="bg-blue-50 p-4 rounded-xl">
+                    <p class="text-blue-800 font-medium mb-1">
+                      Poskytovatel vstupenek
+                    </p>
+                    <p class="text-blue-600 text-lg">
+                      {{ selectedConcert?.ticket?.provider }}
+                    </p>
+                  </div>
+
+                  <div class="bg-gray-50 p-4 rounded-xl">
+                    <p class="text-gray-600">
+                      Pro nákup vstupenek budete přesměrováni na stránky
+                      poskytovatele {{ selectedConcert?.ticket?.provider }}, kde
+                      můžete vstupenky bezpečně zakoupit.
+                    </p>
+                  </div>
+
+                  <div class="flex justify-end space-x-4">
+                    <button
+                      @click="closeTicketInfoModal"
+                      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    >
+                      Zavřít
+                    </button>
+                    <a
+                      :href="selectedConcert?.ticket?.ticket_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="px-6 py-2 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors duration-200 inline-flex items-center gap-2"
+                    >
+                      Přejít k nákupu
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup>
 import { slugify } from "~/utils/string";
+import { useSupabaseClient } from "#imports";
+import TicketPurchaseModal from "~/components/TicketPurchaseModal.vue";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
 
 const route = useRoute();
 const { concerts, getConcert } = useConcerts();
 const concert = ref(null);
 const loading = ref(true);
+const supabase = useSupabaseClient();
+
+const selectedConcert = ref({});
+const isTicketModalOpen = ref(false);
+const isTicketInfoModalOpen = ref(false);
 
 // Extract ID from the slug parameter (format: "id-title-slug")
 const getId = (slug) => {
@@ -197,6 +323,42 @@ const otherConcerts = computed(() => {
   const id = getId(route.params.slug);
   return concerts.value.filter((c) => c.id !== id);
 });
+
+const openTicketModal = (concert) => {
+  selectedConcert.value = concert;
+  isTicketModalOpen.value = true;
+};
+
+const openTicketInfoModal = async (concert) => {
+  try {
+    const { data: ticketData, error } = await supabase
+      .from("concert_tickets")
+      .select("*")
+      .eq("id", concert.ticket_id)
+      .single();
+
+    if (error) throw error;
+
+    if (ticketData) {
+      selectedConcert.value = {
+        ...concert,
+        ticket: ticketData,
+      };
+    }
+
+    isTicketInfoModalOpen.value = true;
+  } catch (err) {
+    console.error("Error loading ticket:", err);
+  }
+};
+
+const closeTicketInfoModal = () => {
+  isTicketInfoModalOpen.value = false;
+};
+
+const handlePurchase = (purchaseDetails) => {
+  isTicketModalOpen.value = false;
+};
 </script>
 
 <style>

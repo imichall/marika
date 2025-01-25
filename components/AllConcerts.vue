@@ -65,6 +65,15 @@
                 Informace
               </NuxtLink>
               <button
+                v-if="concert.ticket_id"
+                @click="openTicketInfoModal(concert)"
+                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+              >
+                Vstupenky
+              </button>
+              <button
+                v-else
+                @click="openTicketModal(concert)"
                 class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
               >
                 Vstupenky
@@ -83,11 +92,75 @@
       </div>
     </div>
   </section>
+
+  <!-- Add modals -->
+  <TicketPurchaseModal
+    v-if="!selectedConcert.ticket_id"
+    :is-open="isTicketModalOpen"
+    :concert="selectedConcert"
+    @close="isTicketModalOpen = false"
+    @purchase="handlePurchase"
+  />
+
+  <TransitionRoot appear :show="isTicketInfoModalOpen" as="template">
+    <!-- ... copy the entire modal from ConcertGrid.vue ... -->
+  </TransitionRoot>
 </template>
 
 <script setup>
+import { ref } from "vue";
 import { useConcerts } from "~/composables/useConcerts";
+import { useSupabaseClient } from "#imports";
 import { slugify } from "~/utils/string";
+import TicketPurchaseModal from "~/components/TicketPurchaseModal.vue";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
 
+const supabase = useSupabaseClient();
 const { concerts } = useConcerts();
+
+const selectedConcert = ref({});
+const isTicketModalOpen = ref(false);
+const isTicketInfoModalOpen = ref(false);
+
+const openTicketModal = (concert) => {
+  selectedConcert.value = concert;
+  isTicketModalOpen.value = true;
+};
+
+const openTicketInfoModal = async (concert) => {
+  try {
+    const { data: ticketData, error } = await supabase
+      .from("concert_tickets")
+      .select("*")
+      .eq("id", concert.ticket_id)
+      .single();
+
+    if (error) throw error;
+
+    if (ticketData) {
+      selectedConcert.value = {
+        ...concert,
+        ticket: ticketData,
+      };
+    }
+
+    isTicketInfoModalOpen.value = true;
+  } catch (err) {
+    console.error("Error loading ticket:", err);
+  }
+};
+
+const closeTicketInfoModal = () => {
+  isTicketInfoModalOpen.value = false;
+};
+
+const handlePurchase = (purchaseDetails) => {
+  isTicketModalOpen.value = false;
+};
 </script>
