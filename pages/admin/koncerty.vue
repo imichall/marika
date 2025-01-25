@@ -99,13 +99,40 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-100">
             <tr
-              v-for="concert in concerts"
+              v-for="concert in sortedConcerts"
               :key="concert.id"
-              class="hover:bg-gray-50/50 transition-colors duration-150"
+              class="hover:bg-gray-50"
             >
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
-                  {{ concert.title }}
+                <div class="flex items-center">
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ concert.title }}
+                      <span
+                        v-if="concert.ticket_id"
+                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          class="w-3 h-3 mr-1"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z"
+                          />
+                        </svg>
+                        Vstupenky
+                      </span>
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ formatDate(concert.date) }}
+                    </div>
+                  </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -443,6 +470,27 @@
                         class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       />
                     </div>
+
+                    <div>
+                      <label class="block text-gray-700 text-sm font-bold mb-2">
+                        Přiřadit vstupenku
+                      </label>
+                      <select
+                        v-model="form.ticket_id"
+                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        <option :value="''">
+                          Bez vstupenky (použít QR platbu)
+                        </option>
+                        <option
+                          v-for="ticket in concertTickets"
+                          :key="ticket.id"
+                          :value="ticket.id.toString()"
+                        >
+                          {{ ticket.title }} ({{ ticket.provider }})
+                        </option>
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -457,7 +505,8 @@
                     ></textarea>
                   </div>
 
-                  <div>
+                  <!-- Podmíněné zobrazení QR generátoru -->
+                  <div v-if="showQRSection">
                     <QRCodeGenerator
                       :concert-title="form.title"
                       :price="Number(form.price)"
@@ -825,15 +874,16 @@ const imagePreview = ref(null);
 
 const form = ref({
   title: "",
-  group_name: "",
   date: "",
   description: "",
+  group_name: "",
   price: 0,
   image: "",
   variable_symbol: "",
+  qr_session: "",
   account_number: "123456789",
   bank_code: "0100",
-  qr_session: "",
+  ticket_id: null,
 });
 
 const showTicketModal = ref(false);
@@ -854,18 +904,42 @@ const removeDiacritics = (str) => {
 watch(
   () => form.value.title,
   (newTitle) => {
-    // Vezmeme první písmena slov a přidáme rok
-    const words = removeDiacritics(newTitle).split(" ");
-    const currentYear = new Date().getFullYear().toString();
-    const initials = words
-      .map((word) => word.charAt(0))
-      .join("")
-      .toUpperCase();
-
-    // Kombinujeme iniciály s rokem a zajistíme max. délku 10 znaků
-    form.value.variable_symbol = (initials + currentYear).slice(0, 10);
+    if (!form.value.ticket_id) {
+      const words = removeDiacritics(newTitle).split(" ");
+      const currentYear = new Date().getFullYear().toString();
+      const initials = words
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase();
+      form.value.variable_symbol = (initials + currentYear).slice(0, 10);
+    }
   },
   { immediate: true }
+);
+
+// Přidáme watch pro ticket_id, aby se vyčistily QR údaje při výběru vstupenky
+watch(
+  () => form.value.ticket_id,
+  (newTicketId) => {
+    if (newTicketId) {
+      form.value.variable_symbol = "";
+      form.value.account_number = "";
+      form.value.bank_code = "";
+      form.value.qr_session = "";
+    } else {
+      // Obnovíme výchozí hodnoty
+      form.value.account_number = "123456789";
+      form.value.bank_code = "0100";
+      // Znovu vygenerujeme variable_symbol
+      const words = removeDiacritics(form.value.title).split(" ");
+      const currentYear = new Date().getFullYear().toString();
+      const initials = words
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase();
+      form.value.variable_symbol = (initials + currentYear).slice(0, 10);
+    }
+  }
 );
 
 const sortedConcerts = computed(() => {
@@ -951,15 +1025,16 @@ const removeImage = (e) => {
 const resetForm = () => {
   form.value = {
     title: "",
-    group_name: "",
     date: "",
     description: "",
+    group_name: "",
     price: 0,
     image: "",
     variable_symbol: "",
+    qr_session: "",
     account_number: "123456789",
     bank_code: "0100",
-    qr_session: "",
+    ticket_id: null,
   };
   imagePreview.value = null;
   editingConcert.value = null;
@@ -973,37 +1048,67 @@ const closeModal = () => {
 const handleSubmit = async () => {
   try {
     const concertData = {
-      ...form.value,
+      title: form.value.title,
+      date: form.value.date,
+      description: form.value.description,
+      group_name: form.value.group_name,
+      price: form.value.price,
+      ticket_id: form.value.ticket_id || null,
     };
 
+    // Přidáme QR data pouze pokud není vybraná vstupenka
+    if (!form.value.ticket_id) {
+      concertData.variable_symbol = form.value.variable_symbol;
+      concertData.account_number = form.value.account_number;
+      concertData.bank_code = form.value.bank_code;
+      concertData.qr_session = form.value.qr_session;
+    }
+
+    // Přidáme image pouze pokud existuje
+    if (form.value.image) {
+      concertData.image = form.value.image;
+    }
+
     if (editingConcert.value) {
-      await updateConcert(editingConcert.value.id, concertData);
+      const { error } = await supabase
+        .from("concerts")
+        .update(concertData)
+        .eq("id", editingConcert.value.id);
+
+      if (error) throw error;
       toast.success("Koncert byl úspěšně upraven");
     } else {
-      await addConcert(concertData);
+      const { error } = await supabase.from("concerts").insert([concertData]);
+
+      if (error) throw error;
       toast.success("Koncert byl úspěšně přidán");
     }
 
     closeModal();
+    fetchConcerts();
   } catch (err) {
     toast.error("Chyba při ukládání koncertu: " + err.message);
   }
 };
 
 const editConcert = (concert) => {
+  console.log("Editing concert with ticket_id:", concert.ticket_id); // Debug log
   editingConcert.value = concert;
+
   form.value = {
     title: concert.title,
-    group_name: concert.group_name || "",
     date: concert.date,
     description: concert.description,
+    group_name: concert.group_name,
     price: concert.price,
     image: concert.image,
+    ticket_id: concert.ticket_id?.toString() || "", // Explicitně převedeme na string
     variable_symbol: concert.variable_symbol || "",
     account_number: concert.account_number || "123456789",
     bank_code: concert.bank_code || "0100",
     qr_session: concert.qr_session || "",
   };
+
   showAddModal.value = true;
 };
 
@@ -1089,9 +1194,8 @@ const closeTicketModal = () => {
 };
 
 // Znovu načteme data při mounted
-onMounted(() => {
-  fetchConcerts();
-  fetchConcertTickets();
+onMounted(async () => {
+  await Promise.all([fetchConcerts(), fetchConcertTickets()]);
 });
 
 // Sledujeme změny v datech
@@ -1137,6 +1241,18 @@ const confirmDeleteTicket = async () => {
     toast.error("Chyba při mazání odkazu: " + err.message);
   }
 };
+
+// Přidáme computed property pro zobrazení/skrytí QR sekce
+const showQRSection = computed(() => !form.value.ticket_id);
+
+// Přidáme watch pro debugování
+watch(
+  () => form.value.ticket_id,
+  (newVal, oldVal) => {
+    console.log("ticket_id changed from", oldVal, "to", newVal);
+    console.log("current form state:", form.value);
+  }
+);
 
 definePageMeta({
   layout: "admin",
