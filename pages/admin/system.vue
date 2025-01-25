@@ -27,6 +27,10 @@
                 <input
                   v-model="settings.marikaSingers.accountPrefix"
                   type="text"
+                  @input="
+                    settings.marikaSingers.accountPrefix =
+                      settings.marikaSingers.accountPrefix.replace(/\D/g, '')
+                  "
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="000000"
                 />
@@ -39,6 +43,12 @@
                 <input
                   v-model="settings.marikaSingers.accountNumber"
                   type="text"
+                  @input="
+                    handleAccountNumberInput(
+                      $event.target.value,
+                      'marikaSingers'
+                    )
+                  "
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="0000000000"
                 />
@@ -79,6 +89,10 @@
                 <input
                   v-model="settings.five.accountPrefix"
                   type="text"
+                  @input="
+                    settings.five.accountPrefix =
+                      settings.five.accountPrefix.replace(/\D/g, '')
+                  "
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="000000"
                 />
@@ -91,6 +105,7 @@
                 <input
                   v-model="settings.five.accountNumber"
                   type="text"
+                  @input="handleAccountNumberInput($event.target.value, 'five')"
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="0000000000"
                 />
@@ -131,6 +146,10 @@
                 <input
                   v-model="settings.voices.accountPrefix"
                   type="text"
+                  @input="
+                    settings.voices.accountPrefix =
+                      settings.voices.accountPrefix.replace(/\D/g, '')
+                  "
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="000000"
                 />
@@ -143,6 +162,9 @@
                 <input
                   v-model="settings.voices.accountNumber"
                   type="text"
+                  @input="
+                    handleAccountNumberInput($event.target.value, 'voices')
+                  "
                   class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                   placeholder="0000000000"
                 />
@@ -211,19 +233,48 @@ const settings = ref({
   },
 });
 
+const handleAccountNumberInput = (value, group) => {
+  // Nejprve odstraníme všechny nečíselné znaky kromě lomítka
+  const cleanValue = value.replace(/[^\d/]/g, "");
+
+  // Kontrola formátu s lomítkem
+  if (cleanValue.includes("/")) {
+    const [number, code] = cleanValue.split("/");
+    // Ověříme, zda je kód banky platný
+    const isValidBankCode = Array.from(
+      document.querySelectorAll("select option")
+    ).some((option) => option.value === code);
+
+    if (isValidBankCode) {
+      // Nastavíme hodnoty
+      settings.value[group].accountNumber = number;
+      settings.value[group].bankCode = code;
+    }
+  } else {
+    settings.value[group].accountNumber = cleanValue;
+  }
+};
+
 const validateSettings = () => {
   const validateAccount = (prefix, number) => {
+    // Pokud jsou obě hodnoty prázdné, je to v pořádku
+    if (!prefix && !number) {
+      return true;
+    }
+
+    // Validace předčíslí (pokud je vyplněno)
     if (prefix && (!/^\d+$/.test(prefix) || prefix.length > 6)) {
       return false;
     }
+
+    // Validace čísla účtu (pouze pokud je vyplněno)
     if (
-      !number ||
-      !/^\d+$/.test(number) ||
-      number.length < 2 ||
-      number.length > 10
+      number &&
+      (!/^\d+$/.test(number) || number.length < 2 || number.length > 10)
     ) {
       return false;
     }
+
     return true;
   };
 

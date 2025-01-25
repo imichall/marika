@@ -11,12 +11,12 @@
           <input
             v-model="accountPrefix"
             type="text"
+            @input="accountPrefix = accountPrefix.replace(/\D/g, '')"
             class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
             :class="{
               'border-red-500': !isAccountLocked && accountPrefixError,
             }"
             placeholder="000000"
-            @input="!isAccountLocked && validateAccountPrefix()"
             :disabled="isAccountLocked"
           />
           <p
@@ -35,12 +35,12 @@
           <input
             v-model="accountNumber"
             type="text"
+            @input="handleAccountNumberInput($event.target.value)"
             class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
             :class="{
               'border-red-500': !isAccountLocked && accountNumberError,
             }"
             placeholder="0000000000"
-            @input="!isAccountLocked && validateAccountNumber()"
             :disabled="isAccountLocked"
           />
           <p
@@ -192,6 +192,10 @@ const validateAccountNumber = () => {
   if (isAccountLocked.value) return true;
 
   const value = accountNumber.value;
+  if (!value) {
+    accountNumberError.value = "";
+    return true;
+  }
   if (!/^\d+$/.test(value)) {
     accountNumberError.value = "Pouze číslice";
     return false;
@@ -202,6 +206,30 @@ const validateAccountNumber = () => {
   }
   accountNumberError.value = "";
   return true;
+};
+
+const handleAccountNumberInput = (value) => {
+  // Nejprve odstraníme všechny nečíselné znaky kromě lomítka
+  const cleanValue = value.replace(/[^\d/]/g, "");
+
+  // Kontrola formátu s lomítkem
+  if (cleanValue.includes("/")) {
+    const [number, code] = cleanValue.split("/");
+    // Ověříme, zda je kód banky platný
+    const isValidBankCode = Array.from(
+      document.querySelectorAll('select[v-model="bankCode"] option')
+    ).some((option) => option.value === code);
+
+    if (isValidBankCode) {
+      // Nastavíme hodnoty
+      accountNumber.value = number;
+      bankCode.value = code;
+      validateAccountNumber();
+    }
+  } else {
+    accountNumber.value = cleanValue;
+    validateAccountNumber();
+  }
 };
 
 // Načtení bankovních údajů pro vybrané těleso
@@ -338,8 +366,14 @@ const calculateIBANCheckDigits = (bankCode, accountNumber) => {
 // Generování QR kódu při změně hodnot
 watch(
   [accountPrefix, accountNumber, bankCode, amount, variableSymbol, message],
-  async () => {
+  async ([newPrefix, newNumber, newBankCode, newAmount, newVS, newMsg]) => {
     try {
+      if (!newNumber || !newBankCode || !newAmount) {
+        qrCodeData.value = "";
+        return;
+      }
+
+      // Validace
       if (
         !validateAccountNumber() ||
         !validateAccountPrefix() ||
@@ -350,37 +384,24 @@ watch(
       }
 
       // Formát pro QR platbu (short payment descriptor)
-      const cleanMessage = removeDiacritics(message.value);
-      const formattedAmount = Number(amount.value).toFixed(2);
+      const cleanMessage = removeDiacritics(newMsg || "");
+      const formattedAmount = Number(newAmount).toFixed(2);
 
       // Sestavíme kompletní číslo účtu
-      const fullAccountNumber = accountPrefix.value
-        ? accountPrefix.value + accountNumber.value
-        : accountNumber.value;
+      const fullAccountNumber = newPrefix ? newPrefix + newNumber : newNumber;
 
       // Vypočítáme kontrolní číslice a sestavíme IBAN
       const paddedAccount = fullAccountNumber.padStart(16, "0");
-      const checkDigits = calculateIBANCheckDigits(
-        bankCode.value,
-        paddedAccount
-      );
-      console.log("Generated IBAN parts:", {
-        countryCode: "CZ",
-        checkDigits,
-        bankCode: bankCode.value,
-        accountNumber: paddedAccount,
-        fullIBAN: `CZ${checkDigits}${bankCode.value}${paddedAccount}`,
-      });
+      const checkDigits = calculateIBANCheckDigits(newBankCode, paddedAccount);
 
-      const qrData = `SPD*1.0*ACC:CZ${checkDigits}${
-        bankCode.value
-      }${paddedAccount}*AM:${formattedAmount}*CC:CZK*MSG:${cleanMessage}${
-        variableSymbol.value ? "*X-VS:" + variableSymbol.value : ""
+      const qrData = `SPD*1.0*ACC:CZ${checkDigits}${newBankCode}${paddedAccount}*AM:${formattedAmount}*CC:CZK*MSG:${cleanMessage}${
+        newVS ? "*X-VS:" + newVS : ""
       }`;
 
       qrCodeData.value = await toDataURL(qrData);
     } catch (err) {
       console.error("Chyba při generování QR kódu:", err);
+      qrCodeData.value = "";
     }
   },
   { immediate: true }
