@@ -8,7 +8,7 @@
     </div>
 
     <div
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6"
     >
       <!-- Koncerty -->
       <NuxtLink
@@ -97,13 +97,6 @@
           </svg>
         </div>
         <p class="text-gray-600">Správa fotografií</p>
-        <div class="mt-4 flex items-center">
-          <span
-            class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm"
-          >
-            {{ galleryImages.length }} fotografií
-          </span>
-        </div>
       </NuxtLink>
 
       <!-- Reference -->
