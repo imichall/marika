@@ -1392,35 +1392,46 @@ const closeModal = () => {
   resetForm();
 };
 
+// Helper funkce pro validaci variabilního symbolu
+const validateVariableSymbol = (vs) => {
+  // Odstraníme všechny nečíselné znaky
+  return vs.replace(/\D/g, "");
+};
+
 const handleSubmit = async () => {
   try {
+    // Očistíme variabilní symbol před uložením
+    const cleanVS = validateVariableSymbol(form.value.variable_symbol);
+
+    // Připravíme data koncertu
     const concertData = {
-      title: form.value.title,
-      date: form.value.date,
-      time: form.value.time || "19:00",
-      description: form.value.description,
-      group_name: form.value.group_name,
-      price: form.value.price,
-      image: form.value.image,
-      variable_symbol: form.value.variable_symbol,
-      qr_session: form.value.qr_session,
-      account_number: form.value.account_number,
-      bank_code: form.value.bank_code,
+      ...form.value,
+      variable_symbol: cleanVS,
+      // Zajistíme, že ticket_id bude null místo prázdného stringu
       ticket_id: form.value.ticket_id || null,
     };
 
+    // Odstraníme prázdné hodnoty, které by mohly způsobit problémy s UUID
+    Object.keys(concertData).forEach((key) => {
+      if (concertData[key] === "") {
+        concertData[key] = null;
+      }
+    });
+
     if (editingConcert.value) {
       await updateConcert(editingConcert.value.id, concertData);
-      toast.success("Koncert byl úspěšně upraven");
     } else {
       await addConcert(concertData);
-      toast.success("Koncert byl úspěšně přidán");
     }
 
-    resetForm();
     showAddModal.value = false;
+    await fetchConcerts();
+    toast.success(
+      editingConcert.value ? "Koncert byl upraven" : "Koncert byl přidán"
+    );
   } catch (err) {
-    toast.error("Chyba při ukládání koncertu: " + err.message);
+    console.error("Error saving concert:", err);
+    toast.error("Chyba při ukládání koncertu");
   }
 };
 

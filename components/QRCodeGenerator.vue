@@ -188,24 +188,29 @@ const validateAccountPrefix = () => {
   return true;
 };
 
-const validateAccountNumber = () => {
-  if (isAccountLocked.value) return true;
+const validateAccountNumber = (value) => {
+  if (!value) return true;
+  // Povolíme čísla a pomlčku, ale musí být ve správném formátu
+  const accountRegex = /^\d{0,6}-?\d{0,10}$/;
+  return accountRegex.test(value.trim());
+};
 
-  const value = accountNumber.value;
-  if (!value) {
-    accountNumberError.value = "";
-    return true;
+const validateBankCode = (value) => {
+  if (!value) return true;
+  // Bankovní kód musí být přesně 4 číslice
+  const bankCodeRegex = /^\d{4}$/;
+  return bankCodeRegex.test(value.trim());
+};
+
+const formatAccountNumber = (value) => {
+  if (!value) return "";
+  // Odstraníme všechny nečíselné znaky
+  const numbers = value.replace(/\D/g, "");
+  // Pokud je délka větší než 6, vložíme pomlčku
+  if (numbers.length > 6) {
+    return `${numbers.slice(0, 6)}-${numbers.slice(6)}`;
   }
-  if (!/^\d+$/.test(value)) {
-    accountNumberError.value = "Pouze číslice";
-    return false;
-  }
-  if (value.length < 2 || value.length > 10) {
-    accountNumberError.value = "2-10 číslic";
-    return false;
-  }
-  accountNumberError.value = "";
-  return true;
+  return numbers;
 };
 
 const handleAccountNumberInput = (value) => {
@@ -224,11 +229,11 @@ const handleAccountNumberInput = (value) => {
       // Nastavíme hodnoty
       accountNumber.value = number;
       bankCode.value = code;
-      validateAccountNumber();
+      validateAccountNumber(number);
     }
   } else {
     accountNumber.value = cleanValue;
-    validateAccountNumber();
+    validateAccountNumber(cleanValue);
   }
 };
 
@@ -243,20 +248,19 @@ const loadBankDetails = async () => {
         groupKey === "marikasingers" ? "marikaSingers" : groupKey;
 
       if (data[mappedKey] && data[mappedKey].accountNumber) {
-        // Rozdělíme číslo účtu na předčíslí a číslo
-        const parts = data[mappedKey].accountNumber.split("-");
-        if (parts.length === 2) {
-          accountPrefix.value = parts[0];
-          accountNumber.value = parts[1];
+        // Zpracování IBAN formátu
+        const accNum = data[mappedKey].accountNumber;
+        // Pokud je číslo v IBAN formátu, extrahujeme samotné číslo účtu
+        if (accNum.startsWith("CZ")) {
+          accountNumber.value = accNum.slice(14); // Přeskočíme 'CZxx' + bank_code
         } else {
-          accountPrefix.value = "";
-          accountNumber.value = data[mappedKey].accountNumber;
+          accountNumber.value = accNum;
         }
         bankCode.value = data[mappedKey].bankCode;
         isAccountLocked.value = true;
       } else {
-        accountPrefix.value = "";
         accountNumber.value = "";
+        bankCode.value = "0100";
         isAccountLocked.value = false;
       }
     }
@@ -270,7 +274,10 @@ watch(() => props.selectedGroup, loadBankDetails, { immediate: true });
 
 // Uložení bankovních údajů do nastavení
 const saveBankDetails = async () => {
-  if (!validateAccountNumber() || !validateAccountPrefix()) {
+  if (
+    !validateAccountNumber(accountNumber.value) ||
+    !validateBankCode(bankCode.value)
+  ) {
     return;
   }
 
@@ -279,14 +286,17 @@ const saveBankDetails = async () => {
     const mappedKey = groupKey === "marikasingers" ? "marikaSingers" : groupKey;
 
     const currentSettings = await fetch("/api/settings").then((r) => r.json());
-    const fullAccountNumber = accountPrefix.value
-      ? `${accountPrefix.value}-${accountNumber.value}`
-      : accountNumber.value;
+
+    // Vytvoření IBAN formátu pro uložení
+    const cleanAccountNumber = accountNumber.value.replace(/\D/g, "");
+    const paddedAccount = cleanAccountNumber.padStart(16, "0");
+    const checkDigits = calculateIBANCheckDigits(bankCode.value, paddedAccount);
+    const ibanFormat = `CZ${checkDigits}${bankCode.value}${paddedAccount}`;
 
     const updatedSettings = {
       ...currentSettings,
       [mappedKey]: {
-        accountNumber: fullAccountNumber,
+        accountNumber: ibanFormat,
         bankCode: bankCode.value,
       },
     };
@@ -366,8 +376,8 @@ watch(
 
       // Validace
       if (
-        !validateAccountNumber() ||
-        !validateAccountPrefix() ||
+        !validateAccountNumber(newNumber) ||
+        !validateBankCode(newBankCode) ||
         !validateVariableSymbol()
       ) {
         qrCodeData.value = "";
@@ -378,18 +388,26 @@ watch(
       const cleanMessage = removeDiacritics(newMsg || "");
       const formattedAmount = Number(newAmount).toFixed(2);
 
-      // Sestavíme kompletní číslo účtu
-      const fullAccountNumber = newPrefix ? newPrefix + newNumber : newNumber;
+      // Sestavíme kompletní číslo účtu a odstraníme nečíselné znaky
+      const fullAccountNumber = (
+        newPrefix ? newPrefix + newNumber : newNumber
+      ).replace(/[^0-9]/g, "");
 
       // Vypočítáme kontrolní číslice a sestavíme IBAN
       const paddedAccount = fullAccountNumber.padStart(16, "0");
       const checkDigits = calculateIBANCheckDigits(newBankCode, paddedAccount);
+      const numericVS = (newVS || "").replace(/\D/g, "").padStart(10, "0");
 
-      const qrData = `SPD*1.0*ACC:CZ${checkDigits}${newBankCode}${paddedAccount}*AM:${formattedAmount}*CC:CZK*MSG:${cleanMessage}${
-        newVS ? "*X-VS:" + newVS : ""
-      }`;
+      const qrData = `SPD*1.0*ACC:CZ${checkDigits}${newBankCode}${paddedAccount}*AM:${formattedAmount}*CC:CZK${
+        numericVS ? "*X-VS:" + numericVS : ""
+      }*MSG:${cleanMessage}`;
 
       qrCodeData.value = await toDataURL(qrData);
+
+      // Emit updated values
+      emit("update:modelValue", numericVS);
+      emit("update:accountNumber", fullAccountNumber);
+      emit("update:bankCode", newBankCode);
     } catch (err) {
       console.error("Chyba při generování QR kódu:", err);
       qrCodeData.value = "";

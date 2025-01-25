@@ -246,8 +246,8 @@ const handleAccountNumberInput = (value, group) => {
     ).some((option) => option.value === code);
 
     if (isValidBankCode) {
-      // Nastavíme hodnoty
-      settings.value[group].accountNumber = number;
+      // Nastavíme hodnoty a odstraníme nečíselné znaky
+      settings.value[group].accountNumber = number.replace(/[^0-9]/g, "");
       settings.value[group].bankCode = code;
     }
   } else {
@@ -263,16 +263,19 @@ const validateSettings = () => {
     }
 
     // Validace předčíslí (pokud je vyplněno)
-    if (prefix && (!/^\d+$/.test(prefix) || prefix.length > 6)) {
-      return false;
+    if (prefix) {
+      const cleanPrefix = prefix.replace(/[^0-9]/g, "");
+      if (cleanPrefix.length > 6) {
+        return false;
+      }
     }
 
     // Validace čísla účtu (pouze pokud je vyplněno)
-    if (
-      number &&
-      (!/^\d+$/.test(number) || number.length < 2 || number.length > 10)
-    ) {
-      return false;
+    if (number) {
+      const cleanNumber = number.replace(/[^0-9]/g, "");
+      if (cleanNumber.length < 2 || cleanNumber.length > 10) {
+        return false;
+      }
     }
 
     return true;
@@ -325,13 +328,19 @@ const saveSettings = async () => {
 
   loading.value = true;
   try {
-    // Převedeme data do formátu pro API
-    const apiData = {};
+    // Připravíme data pro uložení
+    const dataToSave = {};
     Object.entries(settings.value).forEach(([key, value]) => {
-      apiData[key] = {
-        accountNumber: value.accountPrefix
-          ? `${value.accountPrefix}-${value.accountNumber}`
-          : value.accountNumber,
+      // Sestavíme číslo účtu s předčíslím, pokud existuje
+      const fullAccountNumber = value.accountPrefix
+        ? `${value.accountPrefix.replace(
+            /[^0-9]/g,
+            ""
+          )}-${value.accountNumber.replace(/[^0-9]/g, "")}`
+        : value.accountNumber.replace(/[^0-9]/g, "");
+
+      dataToSave[key] = {
+        accountNumber: fullAccountNumber,
         bankCode: value.bankCode,
       };
     });
@@ -341,15 +350,12 @@ const saveSettings = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(apiData),
+      body: JSON.stringify(dataToSave),
     });
 
-    if (response.ok) {
-      toast.success("Nastavení bylo úspěšně uloženo");
-      await fetchSettings(); // Znovu načteme data po uložení
-    } else {
-      throw new Error("Failed to save settings");
-    }
+    if (!response.ok) throw new Error("Chyba při ukládání");
+
+    toast.success("Nastavení bylo úspěšně uloženo");
   } catch (err) {
     console.error("Error saving settings:", err);
     toast.error("Nepodařilo se uložit nastavení");

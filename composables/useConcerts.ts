@@ -8,13 +8,13 @@ interface ConcertRow {
   desc: string | null;
   date: string;
   time: string | null;
-  price: string;
+  price: number;
   image: string | null;
   group: string | null;
   group_name: string | null;
-  variable_symbol: string | null;
-  account_number: string | null;
-  bank_code: string | null;
+  variable_symbol: string;
+  account_number: string;
+  bank_code: string;
   qr_session: string | null;
   ticket_id: string | null;
   created_at: string;
@@ -34,7 +34,7 @@ interface Concert {
   description: string;
   date: string;
   time: string;
-  price: string;
+  price: number;
   image: string;
   group_name?: string;
   group?: string;
@@ -81,23 +81,23 @@ export const useConcerts = () => {
       if (data) {
         concerts.value = data.map(item => ({
           id: Number(item.id),
-          title: String(item.title),
-          description: String(item.description || ''),
-          desc: String(item.desc || ''),
-          date: String(item.date),
+          title: item.title,
+          description: item.description || '',
+          desc: item.desc || '',
+          date: item.date,
           time: formatTime(item.time),
-          price: String(item.price),
-          image: String(item.image || ''),
-          group: String(item.group || ''),
-          group_name: item.group_name ? String(item.group_name) : undefined,
-          ticket_id: item.ticket_id ? String(item.ticket_id) : undefined,
+          price: Number(item.price),
+          image: item.image || '',
+          group: item.group || '',
+          group_name: item.group_name || undefined,
+          ticket_id: item.ticket_id || undefined,
           ticket: item.ticket && item.ticket.length > 0 ? item.ticket[0] : undefined,
-          variable_symbol: item.variable_symbol ? String(item.variable_symbol) : undefined,
-          account_number: item.account_number ? String(item.account_number) : undefined,
-          bank_code: item.bank_code ? String(item.bank_code) : undefined,
-          qr_session: item.qr_session ? String(item.qr_session) : undefined,
-          created_at: String(item.created_at),
-          updated_at: String(item.updated_at)
+          variable_symbol: item.variable_symbol || '',
+          account_number: item.account_number || '',
+          bank_code: item.bank_code || '',
+          qr_session: item.qr_session || undefined,
+          created_at: item.created_at,
+          updated_at: item.updated_at
         }));
       }
     } catch (err) {
@@ -204,15 +204,15 @@ export const useConcerts = () => {
           desc: String(data.desc || ''),
           date: String(data.date),
           time: formatTime(data.time),
-          price: String(data.price),
+          price: Number(data.price),
           image: String(data.image || ''),
           group: String(data.group || ''),
           group_name: data.group_name ? String(data.group_name) : undefined,
           ticket_id: data.ticket_id ? String(data.ticket_id) : undefined,
           ticket: data.ticket ? data.ticket[0] : undefined,
-          variable_symbol: data.variable_symbol ? String(data.variable_symbol) : undefined,
-          account_number: data.account_number ? String(data.account_number) : undefined,
-          bank_code: data.bank_code ? String(data.bank_code) : undefined,
+          variable_symbol: data.variable_symbol || '',
+          account_number: data.account_number || '',
+          bank_code: data.bank_code || '',
           qr_session: data.qr_session ? String(data.qr_session) : undefined,
           created_at: String(data.created_at),
           updated_at: String(data.updated_at)

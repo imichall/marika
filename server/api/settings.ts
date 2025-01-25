@@ -17,17 +17,27 @@ interface Settings {
 const extractAccountFromIBAN = (iban: string) => {
   if (!iban) return '';
   // IBAN formát: CZ3030300000002350851015
-  // Odstraníme prefix CZ, kód banky (4 znaky) a přední nuly
-  const match = iban.match(/^CZ\d{4}0*(\d+)$/);
+  // Odstraníme prefix CZ a kontrolní číslice (4 znaky)
+  const match = iban.match(/^CZ\d{4}(\d{4})(\d+)$/);
   if (!match) return iban;
-  return match[1];
+  // Vrátíme samotné číslo účtu bez předních nul
+  return match[2].replace(/^0+/, '');
 };
 
 // Funkce pro vytvoření IBAN
 const createIBAN = (accountNumber: string, bankCode: string) => {
   if (!accountNumber) return '';
-  const paddedAccount = accountNumber.padStart(16, '0');
-  return `CZ${bankCode}${paddedAccount}`;
+  // Doplníme číslo účtu nulami na 16 míst
+  const paddedAccount = accountNumber.replace(/\D/g, '').padStart(16, '0');
+  // Vypočítáme kontrolní číslice
+  const base = `${bankCode}${paddedAccount}123500`;
+  let remainder = 0;
+  for (let i = 0; i < base.length; i++) {
+    remainder = (remainder * 10 + parseInt(base.charAt(i))) % 97;
+  }
+  const checkDigits = String(98 - remainder).padStart(2, '0');
+  // Vrátíme kompletní IBAN
+  return `CZ${checkDigits}${bankCode}${paddedAccount}`;
 };
 
 export default defineEventHandler(async (event) => {
@@ -70,11 +80,13 @@ export default defineEventHandler(async (event) => {
           console.log('Processing account:', account);
           const key = account.group_name.toLowerCase().replace(/\s+/g, '');
           console.log('Mapped key:', key);
-          const extractedAccount = extractAccountFromIBAN(account.account_number);
-          console.log('Extracted account number:', extractedAccount);
 
           if (key === 'marikasingers' || key === 'five' || key === 'voices') {
-            settings[key === 'marikasingers' ? 'marikaSingers' : key] = {
+            const mappedKey = key === 'marikasingers' ? 'marikaSingers' : key;
+            const extractedAccount = extractAccountFromIBAN(account.account_number);
+            console.log('Extracted account number:', extractedAccount);
+
+            settings[mappedKey] = {
               accountNumber: extractedAccount,
               bankCode: account.bank_code
             };
@@ -100,12 +112,19 @@ export default defineEventHandler(async (event) => {
       console.log('Received POST data:', body);
 
       // Připravíme data pro upsert
-      const upsertData: BankAccount[] = Object.entries(body).map(([key, value]) => ({
-        group_name: key === 'marikaSingers' ? 'Marika Singers' :
-                   key === 'five' ? 'Five' : 'Voices',
-        account_number: createIBAN(value.accountNumber, value.bankCode),
-        bank_code: value.bankCode
-      }));
+      const upsertData = Object.entries(body).map(([key, value]) => {
+        const groupName = key === 'marikaSingers' ? 'Marika Singers' :
+                         key === 'five' ? 'Five' : 'Voices';
+
+        // Vytvoříme IBAN z čísla účtu a kódu banky
+        const iban = createIBAN(value.accountNumber, value.bankCode);
+
+        return {
+          group_name: groupName,
+          account_number: iban,
+          bank_code: value.bankCode
+        };
+      });
 
       console.log('Upserting data:', upsertData);
 

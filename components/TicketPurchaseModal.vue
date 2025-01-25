@@ -164,17 +164,24 @@
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-600">Číslo účtu:</span>
-                      <span class="font-bold"
-                        >{{ concert.account_number }}/{{
-                          concert.bank_code
-                        }}</span
-                      >
+                      <span class="font-bold">
+                        {{
+                          formatAccountNumber(
+                            bankDetails.accountNumber,
+                            bankDetails.bankCode
+                          )
+                        }}
+                      </span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-600">Variabilní symbol:</span>
-                      <span class="font-bold">{{
-                        concert.variable_symbol
+                      <span v-if="formattedVariableSymbol" class="font-bold">{{
+                        formattedVariableSymbol
                       }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-600">Zpráva pro příjemce:</span>
+                      <span class="font-bold">{{ concert.title }}</span>
                     </div>
                   </div>
 
@@ -190,6 +197,9 @@
                     <p>
                       Po zaplacení vám bude zaslán e-mail s potvrzením na adresu
                       {{ contactInfo.email }}
+                    </p>
+                    <p class="mt-2">
+                      Pro urychlení platby můžete použít QR kód výše
                     </p>
                   </div>
                 </div>
@@ -235,7 +245,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import {
   TransitionRoot,
   TransitionChild,
@@ -330,6 +340,42 @@ const decrementTickets = () => {
 const { createOrder } = useTicketOrders();
 const toast = useToast();
 
+const bankDetails = ref({
+  accountNumber: "",
+  bankCode: "",
+});
+
+// Načtení bankovních údajů pro danou skupinu
+const loadBankDetails = async () => {
+  try {
+    const response = await fetch("/api/settings");
+    if (!response.ok) {
+      throw new Error("Nepodařilo se načíst bankovní údaje");
+    }
+
+    const settings = await response.json();
+    const groupKey = props.concert.group_name.toLowerCase().replace(/\s+/g, "");
+    const mappedKey = groupKey === "marikasingers" ? "marikaSingers" : groupKey;
+
+    if (settings[mappedKey]) {
+      bankDetails.value = settings[mappedKey];
+    }
+  } catch (err) {
+    console.error("Error loading bank details:", err);
+    toast.error("Nepodařilo se načíst bankovní údaje");
+  }
+};
+
+// Načteme bankovní údaje při otevření modalu
+watch(
+  () => props.isOpen,
+  (newValue) => {
+    if (newValue) {
+      loadBankDetails();
+    }
+  }
+);
+
 const handleClose = () => {
   if (currentStep.value === steps.length - 1) {
     return;
@@ -344,18 +390,39 @@ const handleClose = () => {
   emit("close");
 };
 
+const formatAccountNumber = (accountNumber, bankCode) => {
+  if (!accountNumber || !bankCode) return "";
+  return `${accountNumber}/${bankCode}`;
+};
+
+// Přidáme computed pro formátovaný variabilní symbol
+const formattedVariableSymbol = computed(() => {
+  if (!props.concert.variable_symbol) return "";
+  const cleanVS = props.concert.variable_symbol
+    .replace(/\D/g, "")
+    .replace(/^0+/, ""); // Odstraníme nečíselné znaky a přední nuly
+  return cleanVS || ""; // Vrátíme prázdný řetězec, pokud by zbyly jen nuly
+});
+
 const closeModal = async () => {
   if (currentStep.value === steps.length - 1) {
     try {
-      await createOrder({
+      const orderData = {
         concert_id: props.concert.id,
         customer_name: contactInfo.value.name,
         customer_email: contactInfo.value.email,
         ticket_count: ticketCount.value,
         total_price: totalPrice.value,
-        variable_symbol: props.concert.variable_symbol,
-      });
+        variable_symbol: formattedVariableSymbol.value,
+        payment_details: {
+          account_number: bankDetails.value.accountNumber,
+          bank_code: bankDetails.value.bankCode,
+          amount: totalPrice.value,
+          message: props.concert.title,
+        },
+      };
 
+      await createOrder(orderData);
       toast.success("Objednávka byla úspěšně vytvořena");
 
       currentStep.value = 0;

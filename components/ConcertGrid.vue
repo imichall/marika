@@ -240,20 +240,26 @@ import {
 import { formatDateWithTime } from "~/utils/date";
 
 const supabase = useSupabaseClient();
-const { concerts } = useConcerts();
+const { concerts, getConcert } = useConcerts();
 const displayedConcerts = computed(() => concerts.value.slice(0, 3));
 
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
 
-const openTicketModal = (concert) => {
-  selectedConcert.value = concert;
-  isTicketModalOpen.value = true;
+const openTicketModal = async (concert) => {
+  const freshConcertData = await getConcert(concert.id);
+  if (freshConcertData) {
+    selectedConcert.value = freshConcertData;
+    isTicketModalOpen.value = true;
+  }
 };
 
 const openTicketInfoModal = async (concert) => {
   try {
+    const freshConcertData = await getConcert(concert.id);
+    if (!freshConcertData) throw new Error("Concert not found");
+
     const { data: ticketData, error } = await supabase
       .from("concert_tickets")
       .select("*")
@@ -264,7 +270,7 @@ const openTicketInfoModal = async (concert) => {
 
     if (ticketData) {
       selectedConcert.value = {
-        ...concert,
+        ...freshConcertData,
         ticket: ticketData,
       };
     }
