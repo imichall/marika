@@ -20,6 +20,13 @@ interface ConcertRow {
   updated_at: string;
 }
 
+interface ConcertTicket {
+  id: string;
+  title: string;
+  provider: string;
+  ticket_url: string;
+}
+
 interface Concert {
   id: number;
   title: string;
@@ -35,6 +42,7 @@ interface Concert {
   bank_code?: string;
   qr_session?: string;
   ticket_id?: string;
+  ticket?: ConcertTicket;
   created_at: string;
   updated_at: string;
 }
@@ -50,7 +58,15 @@ export const useConcerts = () => {
       loading.value = true;
       const { data, error: err } = await supabase
         .from('concerts')
-        .select('*')
+        .select(`
+          *,
+          ticket:concert_tickets(
+            id,
+            title,
+            provider,
+            ticket_url
+          )
+        `)
         .order('date', { ascending: true });
 
       if (err) throw err;
@@ -67,6 +83,7 @@ export const useConcerts = () => {
           group: String(item.group || ''),
           group_name: item.group_name ? String(item.group_name) : undefined,
           ticket_id: item.ticket_id ? String(item.ticket_id) : undefined,
+          ticket: item.ticket && item.ticket.length > 0 ? item.ticket[0] : undefined,
           variable_symbol: item.variable_symbol ? String(item.variable_symbol) : undefined,
           account_number: item.account_number ? String(item.account_number) : undefined,
           bank_code: item.bank_code ? String(item.bank_code) : undefined,
@@ -157,7 +174,15 @@ export const useConcerts = () => {
       loading.value = true;
       const { data, error: err } = await supabase
         .from('concerts')
-        .select('*')
+        .select(`
+          *,
+          ticket:concert_tickets(
+            id,
+            title,
+            provider,
+            ticket_url
+          )
+        `)
         .eq('id', id)
         .single();
 
@@ -175,6 +200,7 @@ export const useConcerts = () => {
           group: String(data.group || ''),
           group_name: data.group_name ? String(data.group_name) : undefined,
           ticket_id: data.ticket_id ? String(data.ticket_id) : undefined,
+          ticket: data.ticket ? data.ticket[0] : undefined,
           variable_symbol: data.variable_symbol ? String(data.variable_symbol) : undefined,
           account_number: data.account_number ? String(data.account_number) : undefined,
           bank_code: data.bank_code ? String(data.bank_code) : undefined,
