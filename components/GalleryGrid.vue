@@ -305,5 +305,20 @@ onUnmounted(() => {
 
 .grid > div img {
   @apply w-full h-full object-cover;
+  filter: grayscale(100%);
+  transition: filter 0.3s ease-in-out, transform 0.3s;
+}
+
+.grid > div:hover img {
+  filter: grayscale(0%);
+}
+
+.dialog-panel img {
+  filter: grayscale(100%);
+  transition: filter 0.3s ease-in-out;
+}
+
+.dialog-panel img:hover {
+  filter: grayscale(0%);
 }
 </style>
