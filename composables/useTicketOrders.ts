@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { useSupabaseClient } from '#imports';
 
 interface TicketOrder {
@@ -28,6 +28,7 @@ export const useTicketOrders = () => {
   const orders = ref<TicketOrder[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  let refreshInterval: NodeJS.Timeout | null = null;
 
   const createOrder = async (orderData: CreateTicketOrder) => {
     try {
@@ -109,6 +110,14 @@ export const useTicketOrders = () => {
 
       if (err) throw err;
 
+      // Aktualizujeme lokální stav
+      if (data) {
+        const index = orders.value.findIndex(order => order.id === orderId);
+        if (index !== -1) {
+          orders.value[index] = data;
+        }
+      }
+
       return data;
     } catch (err) {
       console.error('Error updating order status:', err);
@@ -119,6 +128,25 @@ export const useTicketOrders = () => {
     }
   };
 
+  // Funkce pro nastavení automatického obnovování
+  const startAutoRefresh = (intervalMs: number = 30000) => {
+    stopAutoRefresh(); // Nejdřív zastavíme případný běžící interval
+    refreshInterval = setInterval(getAllOrders, intervalMs);
+  };
+
+  // Funkce pro zastavení automatického obnovování
+  const stopAutoRefresh = () => {
+    if (refreshInterval) {
+      clearInterval(refreshInterval);
+      refreshInterval = null;
+    }
+  };
+
+  // Cleanup při unmount
+  onUnmounted(() => {
+    stopAutoRefresh();
+  });
+
   return {
     orders,
     loading,
@@ -126,6 +154,8 @@ export const useTicketOrders = () => {
     createOrder,
     getMyOrders,
     getAllOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    startAutoRefresh,
+    stopAutoRefresh
   };
 };

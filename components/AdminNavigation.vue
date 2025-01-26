@@ -68,6 +68,43 @@
             <span>Nastavení</span>
           </NuxtLink>
 
+          <!-- Notifikace -->
+          <div class="relative">
+            <button
+              @click="showNotifications = !showNotifications"
+              class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 relative"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              <span
+                v-if="pendingOrders > 0"
+                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center"
+              >
+                {{ pendingOrders }}
+              </span>
+            </button>
+
+            <!-- Notifikační panel -->
+            <NotificationPanel
+              v-if="showNotifications"
+              :orders="pendingOrdersList"
+              @close="showNotifications = false"
+              @order-click="handleOrderClick"
+            />
+          </div>
+
           <!-- Oddělovač -->
           <div class="h-6 w-px bg-gray-200"></div>
 
@@ -101,9 +138,31 @@
 <script setup>
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
+import { useTicketOrders } from "~/composables/useTicketOrders";
+import { ref, onMounted, computed } from "vue";
 
 const { logout } = useAuth();
 const router = useRouter();
+const { orders, getAllOrders } = useTicketOrders();
+const showNotifications = ref(false);
+
+// Načtení objednávek při mounted
+onMounted(async () => {
+  await getAllOrders();
+});
+
+// Počet čekajících objednávek
+const pendingOrders = computed(
+  () =>
+    orders.value?.filter((order) => order.payment_status === "pending")
+      .length || 0
+);
+
+// Seznam čekajících objednávek
+const pendingOrdersList = computed(
+  () =>
+    orders.value?.filter((order) => order.payment_status === "pending") || []
+);
 
 const handleLogout = async () => {
   try {
@@ -113,4 +172,15 @@ const handleLogout = async () => {
     console.error("Chyba při odhlášení:", error);
   }
 };
+
+const handleOrderClick = (orderId) => {
+  router.push("/admin/objednavky");
+  showNotifications.value = false;
+};
 </script>
+
+<style scoped>
+.router-link-active {
+  color: #ef4444; /* text-red-500 */
+}
+</style>
