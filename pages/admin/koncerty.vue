@@ -1,7 +1,297 @@
 <template>
-  <div class="container mx-auto px-4 mt-[100px]">
+  <div class="container mx-auto px-4 mt-[100px] mb-20">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
+
+    <!-- Collapsible Add/Edit Concert Section -->
+    <div
+      class="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+    >
+      <div
+        class="p-4 bg-gradient-to-r from-red-600 to-red-800 text-white cursor-pointer flex justify-between items-center"
+        @click="isFormVisible = !isFormVisible"
+      >
+        <h2 class="text-xl font-bold">
+          {{ editingConcert ? "Upravit koncert" : "Přidat nový koncert" }}
+        </h2>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 transform transition-transform duration-200"
+          :class="{ 'rotate-180': isFormVisible }"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
+
+      <div v-show="isFormVisible" class="p-6">
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Název koncertu
+              </label>
+              <input
+                v-model="form.title"
+                type="text"
+                required
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Zadejte název koncertu"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Těleso
+              </label>
+              <select
+                v-model="form.group_name"
+                required
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="">Vyberte těleso</option>
+                <option value="Marika Singers">Marika Singers</option>
+                <option value="Five">Five</option>
+                <option value="Voices">Voices</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Datum
+              </label>
+              <input
+                v-model="form.date"
+                type="date"
+                required
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Čas
+              </label>
+              <input
+                v-model="form.time"
+                type="time"
+                required
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Cena vstupného
+              </label>
+              <input
+                v-model="form.price"
+                type="number"
+                required
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Přiřadit vstupenku
+              </label>
+              <select
+                v-model="form.ticket_id"
+                class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option :value="''">Bez vstupenky (použít QR platbu)</option>
+                <option
+                  v-for="ticket in concertTickets"
+                  :key="ticket.id"
+                  :value="ticket.id.toString()"
+                >
+                  {{ ticket.title }} ({{ ticket.provider }})
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2">
+              Informace o koncertu
+            </label>
+            <textarea
+              v-model="form.description"
+              required
+              rows="4"
+              class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Zadejte popis koncertu..."
+            ></textarea>
+          </div>
+
+          <!-- Podmíněné zobrazení QR generátoru -->
+          <div v-if="showQRSection">
+            <QRCodeGenerator
+              :concert-title="form.title"
+              :price="Number(form.price)"
+              :selected-group="form.group_name"
+              v-model="form.variable_symbol"
+              v-model:account-number="form.account_number"
+              v-model:bank-code="form.bank_code"
+            />
+          </div>
+
+          <!-- Nahrávání obrázku -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Obrázek koncertu
+              </label>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
+                :class="{ 'border-red-500': isDragging }"
+                @dragenter.prevent="isDragging = true"
+                @dragleave.prevent="isDragging = false"
+                @dragover.prevent
+                @drop.prevent="handleDrop"
+              >
+                <div v-if="!form.image && !imagePreview" class="py-4">
+                  <span
+                    class="material-icons-outlined text-4xl text-gray-400 mb-2"
+                  >
+                    Nahrát obrázek
+                  </span>
+                  <p class="text-gray-500">
+                    Přetáhněte sem obrázek nebo
+                    <label
+                      class="text-red-500 hover:text-red-600 cursor-pointer"
+                    >
+                      vyberte ze zařízení
+                      <input
+                        type="file"
+                        class="hidden"
+                        accept="image/*"
+                        @change="handleFileSelect"
+                      />
+                    </label>
+                  </p>
+                  <p class="text-sm text-gray-400 mt-1">
+                    Podporované formáty: JPG, PNG, WebP
+                  </p>
+                </div>
+                <div v-else class="relative">
+                  <img
+                    :src="imagePreview"
+                    alt="Náhled obrázku"
+                    class="max-h-48 mx-auto rounded"
+                  />
+                  <button
+                    @click.prevent="removeImage"
+                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors duration-200"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2">
+                Plakát koncertu
+              </label>
+              <div
+                class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
+                :class="{ 'border-red-500': isPosterDragging }"
+                @dragenter.prevent="isPosterDragging = true"
+                @dragleave.prevent="isPosterDragging = false"
+                @dragover.prevent
+                @drop.prevent="handlePosterDrop"
+              >
+                <div v-if="!form.poster && !posterPreview" class="py-4">
+                  <span
+                    class="material-icons-outlined text-4xl text-gray-400 mb-2"
+                  >
+                    Nahrát plakát
+                  </span>
+                  <p class="text-gray-500">
+                    Přetáhněte sem plakát nebo
+                    <label
+                      class="text-red-500 hover:text-red-600 cursor-pointer"
+                    >
+                      vyberte ze zařízení
+                      <input
+                        type="file"
+                        class="hidden"
+                        accept="image/*"
+                        @change="handlePosterSelect"
+                      />
+                    </label>
+                  </p>
+                  <p class="text-sm text-gray-400 mt-1">
+                    Podporované formáty: JPG, PNG, WebP
+                  </p>
+                </div>
+                <div v-else class="relative">
+                  <img
+                    :src="posterPreview"
+                    alt="Náhled plakátu"
+                    class="max-h-48 mx-auto rounded"
+                  />
+                  <button
+                    @click.prevent="removePoster"
+                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors duration-200"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-4">
+            <button
+              type="button"
+              @click="resetForm"
+              class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+            >
+              Zrušit
+            </button>
+            <button
+              type="submit"
+              class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+              {{ editingConcert ? "Uložit změny" : "Přidat koncert" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <div class="flex justify-between items-center mb-8">
       <h1
@@ -11,7 +301,7 @@
       </h1>
       <div class="flex gap-4">
         <button
-          @click="showAddModal = true"
+          @click="isFormVisible = true"
           class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center gap-2"
           :disabled="loading"
         >
@@ -260,7 +550,7 @@
                   >
                   <p class="text-lg">Zatím nejsou přidány žádné koncerty</p>
                   <button
-                    @click="showAddModal = true"
+                    @click="isFormVisible = true"
                     class="mt-4 text-red-600 hover:text-red-700 font-medium transition-colors duration-150"
                   >
                     Přidat první koncert
@@ -345,11 +635,11 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
+            <tbody class="bg-white divide-y divide-gray-200">
               <tr
                 v-for="ticket in paginatedTickets"
                 :key="ticket.id"
-                class="hover:bg-gray-50/50 transition-colors duration-150"
+                class="hover:bg-gray-50 transition-colors duration-200"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -512,346 +802,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modal pro přidání/editaci koncertu -->
-    <TransitionRoot appear :show="showAddModal" as="template">
-      <Dialog as="div" @close="closeModal" class="relative z-50">
-        <!-- Backdrop -->
-        <TransitionChild
-          as="template"
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <!-- Modal panel -->
-            <TransitionChild
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-2xl">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
-                  {{ editingConcert ? "Upravit" : "Přidat" }} koncert
-                </DialogTitle>
-
-                <form @submit.prevent="handleSubmit" class="space-y-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Název koncertu
-                      </label>
-                      <input
-                        v-model="form.title"
-                        type="text"
-                        required
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Těleso
-                      </label>
-                      <select
-                        v-model="form.group_name"
-                        required
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        <option value="">Vyberte těleso</option>
-                        <option value="Marika Singers">Marika Singers</option>
-                        <option value="Five">Five</option>
-                        <option value="Voices">Voices</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Datum
-                      </label>
-                      <input
-                        v-model="form.date"
-                        type="date"
-                        required
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Čas
-                      </label>
-                      <input
-                        v-model="form.time"
-                        type="time"
-                        required
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Cena vstupného
-                      </label>
-                      <input
-                        v-model="form.price"
-                        type="number"
-                        required
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Přiřadit vstupenku
-                      </label>
-                      <select
-                        v-model="form.ticket_id"
-                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        <option :value="''">
-                          Bez vstupenky (použít QR platbu)
-                        </option>
-                        <option
-                          v-for="ticket in concertTickets"
-                          :key="ticket.id"
-                          :value="ticket.id.toString()"
-                        >
-                          {{ ticket.title }} ({{ ticket.provider }})
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Informace o koncertu
-                    </label>
-                    <textarea
-                      v-model="form.description"
-                      required
-                      rows="4"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                    ></textarea>
-                  </div>
-
-                  <!-- Podmíněné zobrazení QR generátoru -->
-                  <div v-if="showQRSection">
-                    <QRCodeGenerator
-                      :concert-title="form.title"
-                      :price="Number(form.price)"
-                      :selected-group="form.group_name"
-                      v-model="form.variable_symbol"
-                      v-model:account-number="form.account_number"
-                      v-model:bank-code="form.bank_code"
-                    />
-                  </div>
-
-                  <!-- Nahrávání obrázku -->
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Obrázek koncertu
-                    </label>
-                    <div
-                      class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
-                      :class="{ 'border-red-500': isDragging }"
-                      @dragenter.prevent="isDragging = true"
-                      @dragleave.prevent="isDragging = false"
-                      @dragover.prevent
-                      @drop.prevent="handleDrop"
-                    >
-                      <div v-if="!form.image && !imagePreview" class="py-4">
-                        <span
-                          class="material-icons-outlined text-4xl text-gray-400 mb-2"
-                        >
-                          Nahrát obrázek
-                        </span>
-                        <p class="text-gray-500">
-                          Přetáhněte sem obrázek nebo
-                          <label
-                            class="text-red-500 hover:text-red-600 cursor-pointer"
-                          >
-                            vyberte ze zařízení
-                            <input
-                              type="file"
-                              class="hidden"
-                              accept="image/*"
-                              @change="handleFileSelect"
-                            />
-                          </label>
-                        </p>
-                        <p class="text-sm text-gray-400 mt-1">
-                          Podporované formáty: JPG, PNG, WebP
-                        </p>
-                      </div>
-
-                      <div v-else class="relative">
-                        <img
-                          :src="
-                            imagePreview ||
-                            (form.image ? getFullImageUrl(form.image) : '')
-                          "
-                          alt="Náhled obrázku"
-                          class="max-h-48 mx-auto rounded-lg"
-                        />
-                        <button
-                          @click.prevent.stop="removeImage"
-                          type="button"
-                          class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
-                          title="Odstranit obrázek"
-                        >
-                          <span class="material-icons-outlined">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Nahrávání plakátu -->
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Plakát koncertu
-                    </label>
-                    <div
-                      class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
-                      :class="{ 'border-red-500': isPosterDragging }"
-                      @dragenter.prevent="isPosterDragging = true"
-                      @dragleave.prevent="isPosterDragging = false"
-                      @dragover.prevent
-                      @drop.prevent="handlePosterDrop"
-                    >
-                      <div v-if="!form.poster && !posterPreview" class="py-4">
-                        <span
-                          class="material-icons-outlined text-4xl text-gray-400 mb-2"
-                        >
-                          Nahrát plakát
-                        </span>
-                        <p class="text-gray-500">
-                          Přetáhněte sem plakát nebo
-                          <label
-                            class="text-red-500 hover:text-red-600 cursor-pointer"
-                          >
-                            vyberte ze zařízení
-                            <input
-                              type="file"
-                              class="hidden"
-                              accept="image/*"
-                              @change="handlePosterSelect"
-                            />
-                          </label>
-                        </p>
-                        <p class="text-sm text-gray-400 mt-1">
-                          Podporované formáty: JPG, PNG, WebP
-                        </p>
-                      </div>
-
-                      <div v-else class="relative">
-                        <img
-                          :src="
-                            posterPreview ||
-                            (form.poster ? form.poster.image_url : '')
-                          "
-                          alt="Náhled plakátu"
-                          class="max-h-48 mx-auto rounded-lg"
-                        />
-                        <button
-                          @click.prevent.stop="removePoster"
-                          type="button"
-                          class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
-                          title="Odstranit plakát"
-                        >
-                          <span class="material-icons-outlined">delete</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex justify-end space-x-4 mt-6">
-                    <button
-                      type="button"
-                      @click="closeModal"
-                      class="inline-flex items-center gap-2 bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors duration-200"
-                    >
-                      Zrušit
-                    </button>
-                    <button
-                      type="submit"
-                      class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors duration-200"
-                    >
-                      {{ editingConcert ? "Uložit" : "Přidat" }}
-                    </button>
-                  </div>
-                </form>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
-
-    <!-- Potvrzovací dialog pro smazání -->
-    <TransitionRoot appear :show="showDeleteModal" as="template">
-      <Dialog as="div" @close="showDeleteModal = false" class="relative z-50">
-        <TransitionChild
-          as="template"
-          enter="duration-300 ease-out"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="duration-200 ease-in"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
-                  Smazat koncert
-                </DialogTitle>
-                <p class="text-gray-600 mb-6">
-                  Opravdu chcete smazat tento koncert?
-                </p>
-                <div class="flex justify-end space-x-4">
-                  <button
-                    @click="showDeleteModal = false"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
-                  >
-                    Zrušit
-                  </button>
-                  <button
-                    @click="confirmDelete"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
-                  >
-                    Smazat
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
 
     <!-- Modal pro správu vstupenek -->
     <TransitionRoot appear :show="showTicketModal" as="template">
@@ -1611,6 +1561,7 @@ const resetForm = () => {
   imagePreview.value = null;
   posterPreview.value = null;
   editingConcert.value = null;
+  isFormVisible.value = false;
 };
 
 const closeModal = () => {
@@ -1674,7 +1625,7 @@ const handleSubmit = async () => {
       await uploadPoster(savedConcert.id, form.value.posterFile);
     }
 
-    showAddModal.value = false;
+    resetForm();
     await fetchConcerts();
     toast.success(
       editingConcert.value ? "Koncert byl upraven" : "Koncert byl přidán"
@@ -1705,7 +1656,9 @@ const editConcert = (concert) => {
   };
   imagePreview.value = concert.image ? getFullImageUrl(concert.image) : null;
   posterPreview.value = concert.poster ? concert.poster.image_url : null;
-  showAddModal.value = true;
+  isFormVisible.value = true;
+  // Scrollujeme na začátek stránky k formuláři
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
 const handleDelete = (id) => {
@@ -1908,6 +1861,9 @@ watch(showTicketModal, (newValue) => {
     ticketCurrentPage.value = 1;
   }
 });
+
+// Přidáme ref pro viditelnost formuláře
+const isFormVisible = ref(false);
 
 definePageMeta({
   layout: "admin",
