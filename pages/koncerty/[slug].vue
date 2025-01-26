@@ -159,9 +159,7 @@
                 </button>
                 <button
                   v-if="concert.poster"
-                  :href="concert.poster.image_url"
-                  target="_blank"
-                  download
+                  @click="showPosterModal = true"
                   class="flex-1 bg-transparent border border-black text-black px-4 py-3 hover:bg-black hover:text-white transition-colors duration-200"
                 >
                   Stáhnout plakát akce
@@ -338,6 +336,89 @@
       </div>
     </Dialog>
   </TransitionRoot>
+
+  <!-- Poster Modal -->
+  <TransitionRoot appear :show="showPosterModal" as="template">
+    <Dialog as="div" @close="showPosterModal = false" class="relative z-50">
+      <TransitionChild
+        as="div"
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/80" aria-hidden="true" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            as="div"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
+          >
+            <DialogPanel
+              class="relative bg-white rounded-lg shadow-xl w-auto max-h-[90vh] mx-4"
+            >
+              <div class="p-6">
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold mb-4 text-gray-900"
+                >
+                  Plakát koncertu {{ concert.title }}
+                </DialogTitle>
+
+                <div
+                  class="relative mb-6 overflow-auto max-h-[calc(90vh-12rem)]"
+                >
+                  <img
+                    :src="concert.poster.image_url"
+                    :alt="'Plakát koncertu ' + concert.title"
+                    class="max-w-full h-auto rounded-lg mx-auto"
+                  />
+                </div>
+
+                <div class="flex justify-end gap-4">
+                  <button
+                    @click="showPosterModal = false"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    Zavřít
+                  </button>
+                  <button
+                    @click="downloadPoster"
+                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors duration-200 inline-flex items-center gap-2"
+                  >
+                    Stáhnout plakát
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-5 h-5"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup>
@@ -362,6 +443,7 @@ const supabase = useSupabaseClient();
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
+const showPosterModal = ref(false);
 
 // Extract ID from the slug parameter (format: "id-title-slug")
 const getId = (slug) => {
@@ -418,6 +500,30 @@ const closeTicketInfoModal = () => {
 
 const handlePurchase = (purchaseDetails) => {
   isTicketModalOpen.value = false;
+};
+
+const downloadPoster = async () => {
+  try {
+    // Fetch the image
+    const response = await fetch(concert.value.poster.image_url);
+    const blob = await response.blob();
+
+    // Create object URL
+    const url = window.URL.createObjectURL(blob);
+
+    // Create temporary link and trigger download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `plakat-${concert.value.title}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Chyba při stahování plakátu:", error);
+  }
 };
 </script>
 
