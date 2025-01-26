@@ -2,15 +2,17 @@
   <div v-if="qrData" class="qr-code">
     <QRCodeVue3
       :value="qrData"
-      :size="size"
-      level="H"
+      :width="size"
+      :height="size"
+      :level="level"
       :background="background"
       :foreground="foreground"
+      render-as="svg"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import QRCodeVue3 from "qrcode-vue3";
 
@@ -26,6 +28,10 @@ const props = defineProps({
   size: {
     type: Number,
     default: 200,
+  },
+  level: {
+    type: String,
+    default: "H",
   },
   background: {
     type: String,

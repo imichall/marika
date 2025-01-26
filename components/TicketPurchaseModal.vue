@@ -229,7 +229,7 @@
                   </button>
                   <button
                     v-if="currentStep === steps.length - 1"
-                    @click="handleClose"
+                    @click="closeModal"
                     class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
                   >
                     Dokončit
@@ -345,7 +345,6 @@ const bankDetails = ref({
   bankCode: "",
 });
 
-// Načtení bankovních údajů pro danou skupinu
 const loadBankDetails = async () => {
   try {
     // Nejdřív zkusíme načíst data z qr_session koncertu
@@ -374,9 +373,11 @@ const loadBankDetails = async () => {
     const groupKey = props.concert.group_name.toLowerCase().replace(/\s+/g, "");
     const mappedKey = groupKey === "marikasingers" ? "marikaSingers" : groupKey;
 
-    if (settings[mappedKey]) {
-      bankDetails.value = settings[mappedKey];
+    if (!settings[mappedKey] || !settings[mappedKey].accountNumber) {
+      throw new Error("Pro tuto skupinu nejsou nastaveny bankovní údaje");
     }
+
+    bankDetails.value = settings[mappedKey];
   } catch (err) {
     console.error("Error loading bank details:", err);
     toast.error("Nepodařilo se načíst bankovní údaje");
