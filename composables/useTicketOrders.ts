@@ -155,59 +155,14 @@ export const useTicketOrders = () => {
     }
   };
 
-  // Funkce pro přidání nové objednávky do lokálního stavu
-  const handleNewOrder = async (payload: any) => {
-    const newOrder = payload.new;
-
-    // Načteme data koncertu pro novou objednávku
-    const { data: concertData } = await supabase
-      .from('concerts')
-      .select('title')
-      .eq('id', newOrder.concert_id)
-      .single();
-
-    const orderWithConcert = {
-      ...newOrder,
-      concert_name: concertData?.title || 'Neznámý koncert',
-      concerts: { title: concertData?.title }
-    };
-
-    // Přidáme novou objednávku na začátek pole
-    orders.value = [orderWithConcert, ...orders.value];
-
-    // Zobrazíme notifikaci
-    if (typeof window !== 'undefined') {
-      const toast = useToast();
-      toast.info('Přišla nová objednávka');
-    }
-  };
-
-  // Funkce pro aktualizaci existující objednávky v lokálním stavu
-  const handleOrderUpdate = (payload: any) => {
-    const updatedOrder = payload.new;
-    const index = orders.value.findIndex(order => order.id === updatedOrder.id);
-    if (index !== -1) {
-      orders.value[index] = {
-        ...orders.value[index],
-        ...updatedOrder
-      };
-    }
-  };
-
-  // Funkce pro smazání objednávky z lokálního stavu
-  const handleOrderDelete = (payload: any) => {
-    const deletedOrderId = payload.old.id;
-    orders.value = orders.value.filter(order => order.id !== deletedOrderId);
-  };
-
-  // Funkce pro nastavení real-time subscriptions
+  // Nastavení real-time subscriptions
   const setupSubscriptions = () => {
-    if (subscription) {
-      subscription.unsubscribe();
-    }
+    // Nejdřív načteme aktuální data
+    getAllOrders();
 
+    // Pak nastavíme subscription
     subscription = supabase
-      .channel('ticket-orders-changes')
+      .channel('ticket_orders_changes')
       .on(
         'postgres_changes',
         {
@@ -215,7 +170,10 @@ export const useTicketOrders = () => {
           schema: 'public',
           table: 'ticket_orders'
         },
-        handleNewOrder
+        (payload) => {
+          console.log('New order received:', payload); // Debug log
+          handleNewOrder(payload);
+        }
       )
       .on(
         'postgres_changes',
@@ -224,7 +182,10 @@ export const useTicketOrders = () => {
           schema: 'public',
           table: 'ticket_orders'
         },
-        handleOrderUpdate
+        (payload) => {
+          console.log('Order updated:', payload); // Debug log
+          handleOrderUpdate(payload);
+        }
       )
       .on(
         'postgres_changes',
@@ -233,24 +194,101 @@ export const useTicketOrders = () => {
           schema: 'public',
           table: 'ticket_orders'
         },
-        handleOrderDelete
+        (payload) => {
+          console.log('Order deleted:', payload); // Debug log
+          handleOrderDelete(payload);
+        }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status); // Debug log
+      });
   };
 
-  // Cleanup při unmount
-  onUnmounted(() => {
-    stopAutoRefresh();
+  // Funkce pro přidání nové objednávky do lokálního stavu
+  const handleNewOrder = async (payload: any) => {
+    console.log('Handling new order:', payload); // Debug log
+    const newOrder = payload.new;
+
+    try {
+      // Nejdřív načteme data koncertu
+      const { data: concertData, error: concertError } = await supabase
+        .from('concerts')
+        .select('title')
+        .eq('id', newOrder.concert_id)
+        .single();
+
+      if (concertError) {
+        console.error('Error fetching concert data:', concertError);
+        return;
+      }
+
+      // Vytvoříme kompletní objekt objednávky
+      const orderWithConcert: TicketOrder = {
+        ...newOrder,
+        concert_name: concertData?.title || 'Neznámý koncert',
+        concerts: { title: concertData?.title }
+      };
+
+      // Okamžitě aktualizujeme lokální stav
+      orders.value = [orderWithConcert, ...orders.value];
+
+      // Zobrazíme notifikaci
+      const toast = useToast();
+      toast.info(`Nová objednávka: ${orderWithConcert.concert_name}`);
+
+      // Pro jistotu načteme všechna data pro synchronizaci
+      getAllOrders();
+
+      console.log('Orders after immediate update:', orders.value);
+    } catch (err) {
+      console.error('Error handling new order:', err);
+    }
+  };
+
+  // Funkce pro aktualizaci existující objednávky v lokálním stavu
+  const handleOrderUpdate = (payload: any) => {
+    console.log('Handling order update:', payload); // Debug log
+    const updatedOrder = payload.new;
+    const index = orders.value.findIndex(order => order.id === updatedOrder.id);
+    if (index !== -1) {
+      // Vytvoříme nové pole pro reaktivitu
+      const newOrders = [...orders.value];
+      newOrders[index] = {
+        ...orders.value[index],
+        ...updatedOrder
+      };
+      orders.value = newOrders;
+      console.log('Orders after update:', orders.value); // Debug log pro kontrolu stavu
+    }
+  };
+
+  // Funkce pro smazání objednávky z lokálního stavu
+  const handleOrderDelete = (payload: any) => {
+    console.log('Handling order delete:', payload); // Debug log
+    const deletedOrderId = payload.old.id;
+    // Vytvoříme nové pole pro reaktivitu
+    orders.value = orders.value.filter(order => order.id !== deletedOrderId);
+    console.log('Orders after delete:', orders.value); // Debug log pro kontrolu stavu
+  };
+
+  // Cleanup subscriptions
+  const cleanupSubscriptions = () => {
     if (subscription) {
+      console.log('Cleaning up subscription'); // Debug log
       subscription.unsubscribe();
       subscription = null;
     }
+    stopAutoRefresh();
+  };
+
+  onMounted(() => {
+    console.log('Setting up subscriptions'); // Debug log
+    setupSubscriptions();
   });
 
-  // Inicializace při mounted
-  onMounted(() => {
-    getAllOrders();
-    setupSubscriptions();
+  onUnmounted(() => {
+    console.log('Cleaning up subscriptions'); // Debug log
+    cleanupSubscriptions();
   });
 
   return {
@@ -262,6 +300,6 @@ export const useTicketOrders = () => {
     getAllOrders,
     updateOrderStatus,
     startAutoRefresh,
-    stopAutoRefresh
+    stopAutoRefresh,
   };
 };

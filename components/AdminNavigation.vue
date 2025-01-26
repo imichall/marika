@@ -139,29 +139,47 @@
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useTicketOrders } from "~/composables/useTicketOrders";
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 
 const { logout } = useAuth();
 const router = useRouter();
-const { orders, getAllOrders } = useTicketOrders();
+const { orders, getAllOrders, startAutoRefresh } = useTicketOrders();
 const showNotifications = ref(false);
 
-// Načtení objednávek při mounted
-onMounted(async () => {
-  await getAllOrders();
+// Počet čekajících objednávek
+const pendingOrders = computed(() => {
+  if (!orders.value) return 0;
+  const count = orders.value.filter(
+    (order) => order.payment_status === "pending"
+  ).length;
+  console.log("Computing pending orders count:", count);
+  return count;
 });
 
-// Počet čekajících objednávek
-const pendingOrders = computed(
-  () =>
-    orders.value?.filter((order) => order.payment_status === "pending")
-      .length || 0
-);
+// Seznam čekajících objednávek pro panel
+const pendingOrdersList = computed(() => {
+  if (!orders.value) return [];
+  const pendingOrders = orders.value
+    .filter((order) => order.payment_status === "pending")
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  console.log("Computing pending orders list:", pendingOrders);
+  return pendingOrders;
+});
 
-// Seznam čekajících objednávek
-const pendingOrdersList = computed(
-  () =>
-    orders.value?.filter((order) => order.payment_status === "pending") || []
+// Sledujeme změny v orders pro debugging a vynutíme reaktivitu
+watch(
+  orders,
+  (newOrders) => {
+    console.log("Orders updated:", newOrders);
+    // Vynutíme přepočítání computed properties
+    const count = pendingOrders.value;
+    const list = pendingOrdersList.value;
+    console.log("Updated counts:", { count, list: list.length });
+  },
+  { deep: true, immediate: true }
 );
 
 const handleLogout = async () => {
@@ -174,13 +192,14 @@ const handleLogout = async () => {
 };
 
 const handleOrderClick = (orderId) => {
-  if (orderId) {
-    router.push(`/admin/objednavky?tab=list&order=${orderId}`);
-  } else {
-    router.push("/admin/objednavky?tab=list");
-  }
   showNotifications.value = false;
+  navigateTo(`/admin/objednavky?tab=list${orderId ? `&order=${orderId}` : ""}`);
 };
+
+onMounted(async () => {
+  await getAllOrders(); // Načteme data při prvním načtení
+  startAutoRefresh(30000); // Spustíme automatické obnovování každých 30 sekund
+});
 </script>
 
 <style scoped>
