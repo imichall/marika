@@ -1,59 +1,80 @@
 <template>
-  <section class="py-16">
+  <section>
     <div class="container mx-auto px-4">
-      <div class="relative flex py-5 items-center">
+      <div class="relative flex py-10 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
-        <span class="flex-shrink mx-4 text-black uppercase"
+        <span class="flex-shrink mx-4 text-2xl text-black uppercase"
           >Nadcházející koncerty</span
         >
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div
+        <article
           v-for="concert in displayedConcerts"
           :key="concert.id"
-          class="concert-card grid gap-4"
+          class="concert-card flex flex-col bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
         >
-          <img
-            :src="concert.image"
-            :alt="concert.title"
-            class="w-full h-48 object-cover"
-          />
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-4">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <img
+              v-if="concert.image"
+              :src="concert.image"
+              :alt="concert.title"
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div
+              v-else
+              class="w-full h-full bg-gray-100 flex items-center justify-center"
+            >
+              <span class="text-gray-400">Bez obrázku</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col flex-grow p-4 space-y-4">
+            <header>
+              <time :datetime="concert.date" class="text-gray-600 text-sm">
+                {{ formatDateWithTime(concert.date, concert.time) }}
+              </time>
+              <h2 class="font-bold text-2xl mt-2">
+                {{ concert.title }}
+                <span
+                  v-if="concert.group"
+                  class="block text-gray-600 text-sm mt-1"
+                >
+                  {{ concert.group }}
+                </span>
+              </h2>
+            </header>
+
+            <p class="text-gray-600 flex-grow">{{ concert.description }}</p>
+
+            <footer class="flex gap-4 mt-auto pt-4">
               <NuxtLink
                 :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
                 class="flex-1 bg-transparent text-black border border-black px-4 py-2 text-center hover:bg-black hover:text-white transition-colors duration-200"
+                :aria-label="'Více informací o koncertu ' + concert.title"
               >
                 Informace
               </NuxtLink>
               <button
                 v-if="concert.ticket_id"
                 @click="openTicketInfoModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                :aria-label="'Koupit vstupenky na koncert ' + concert.title"
               >
                 Vstupenky
               </button>
               <button
                 v-else
                 @click="openTicketModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                :aria-label="'Koupit vstupenky na koncert ' + concert.title"
               >
                 Vstupenky
               </button>
-            </div>
-            <p class="text-gray-600">
-              {{ formatDateWithTime(concert.date, concert.time) }}
-            </p>
-            <h3 class="font-bold text-2xl">
-              {{ concert.title }}<br />
-              <span v-if="concert.group" class="text-gray-600 text-sm">
-                ({{ concert.group }})
-              </span>
-            </h3>
-            <p class="text-gray-600 font-thin">{{ concert.description }}</p>
+            </footer>
           </div>
-        </div>
+        </article>
       </div>
       <div class="text-center mt-8">
         <NuxtLink

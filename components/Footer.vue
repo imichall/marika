@@ -1,9 +1,11 @@
 <template>
-  <footer id="contact" class="bg-gray-100 pt-12">
+  <footer id="contact" class="bg-gray-100">
     <div class="container mx-auto px-4">
-      <div class="relative flex py-5 items-center">
+      <div class="relative flex py-10 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
-        <span class="flex-shrink mx-4 text-black uppercase">Kontakt</span>
+        <span class="flex-shrink mx-4 text-2xl text-black uppercase"
+          >Kontakt</span
+        >
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
       <div v-if="loading" class="text-center py-8">

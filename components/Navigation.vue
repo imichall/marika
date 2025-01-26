@@ -111,18 +111,18 @@
     </button>
 
     <!-- Desktop menu -->
-    <div class="hidden md:block container mx-auto px-4 py-2">
+    <div class="container mx-auto px-4 py-2">
       <div class="flex justify-between items-center">
-        <div class="logo">
+        <div class="logo flex items-center">
           <NuxtLink to="/">
             <img
               src="/images/svg/marika-singers-logo.svg"
               alt="Logo"
-              class="w-[68px]"
+              class="w-[68px] min-w-[68px] h-auto"
             />
           </NuxtLink>
         </div>
-        <div class="flex space-x-6">
+        <div class="hidden md:flex space-x-6">
           <button
             v-for="item in visibleMenuItems"
             :key="item.id"
@@ -151,16 +151,6 @@
 
         <!-- Mobilní menu obsah -->
         <div class="flex flex-col h-full pt-20 px-6">
-          <!-- Logo v mobilním menu -->
-          <div class="absolute top-5 left-5 mb-8 bg-white">
-            <NuxtLink to="/" @click="isMenuOpen = false">
-              <img
-                src="/images/svg/marika-singers-logo.svg"
-                alt="Logo"
-                class="w-40"
-              />
-            </NuxtLink>
-          </div>
           <div class="text-[40px] text-white space-y-6">
             <button
               v-for="item in visibleMenuItems"

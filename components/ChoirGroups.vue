@@ -1,9 +1,11 @@
 <template>
-  <section id="about" class="py-16 bg-white font-instrument">
+  <section id="about" class="pb-16 bg-white font-instrument">
     <div class="container mx-auto px-4">
-      <div class="relative flex py-5 items-center">
+      <div class="relative flex py-10 items-center">
         <div class="flex-grow border-t border-gray-400"></div>
-        <span class="flex-shrink mx-4 text-black uppercase">O nás</span>
+        <span class="flex-shrink mx-4 text-2xl text-black uppercase"
+          >O nás</span
+        >
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
       <div v-if="loading" class="text-center py-8">
