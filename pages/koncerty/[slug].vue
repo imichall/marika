@@ -211,7 +211,9 @@
                     ({{ otherConcert.group }})
                   </span>
                 </h3>
-                <p class="text-gray-600">{{ otherConcert.date }}</p>
+                <p class="text-gray-600">
+                  {{ formatDateWithTime(otherConcert.date, otherConcert.time) }}
+                </p>
               </div>
             </NuxtLink>
           </div>
