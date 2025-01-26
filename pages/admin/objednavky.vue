@@ -306,7 +306,8 @@
                     <tr
                       v-for="order in filteredOrders"
                       :key="order.id"
-                      class="hover:bg-gray-50"
+                      @click="openOrderDetail(order)"
+                      class="hover:bg-gray-50 cursor-pointer"
                     >
                       <td
                         class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
@@ -482,6 +483,17 @@
         </TabPanel>
       </TabPanels>
     </TabGroup>
+
+    <!-- Modální okno -->
+    <OrderDetailModal
+      v-if="selectedOrder"
+      :is-open="isDetailModalOpen"
+      :order="selectedOrder"
+      :bank-account="bankAccount"
+      :get-concert-title="getConcertTitle"
+      @close="closeOrderDetail"
+      @update-status="handleStatusUpdate"
+    />
   </div>
 </template>
 
@@ -962,4 +974,33 @@ const hourlyDistributionData = computed(() => {
     ],
   };
 });
+
+// Stav modálního okna
+const selectedOrder = ref(null);
+const isDetailModalOpen = ref(false);
+
+// Funkce pro otevření detailu objednávky
+const openOrderDetail = (order) => {
+  selectedOrder.value = order;
+  isDetailModalOpen.value = true;
+};
+
+// Funkce pro zavření detailu objednávky
+const closeOrderDetail = () => {
+  selectedOrder.value = null;
+  isDetailModalOpen.value = false;
+};
+
+// Funkce pro aktualizaci stavu objednávky
+const handleStatusUpdate = async (orderId, newStatus) => {
+  try {
+    await updateOrderStatus(orderId, newStatus);
+    await getAllOrders();
+    toast.success("Stav objednávky byl úspěšně aktualizován");
+    closeOrderDetail();
+  } catch (error) {
+    console.error("Chyba při aktualizaci stavu:", error);
+    toast.error("Nepodařilo se aktualizovat stav objednávky");
+  }
+};
 </script>
