@@ -562,6 +562,36 @@ watch(selectedTab, (newValue) => {
   }
 });
 
+// Načtení dat
+onMounted(async () => {
+  await Promise.all([getAllOrders(), fetchConcerts()]);
+  // Po načtení dat zkontrolujeme, jestli máme otevřít detail
+  const orderId = route.query.order;
+  if (orderId) {
+    const order = orders.value?.find((o) => o.id === Number(orderId));
+    if (order) {
+      openOrderDetail(order);
+    }
+  }
+});
+
+// Sledování změn v URL pro otevření detailu objednávky
+watch(
+  () => route.query.order,
+  async (orderId) => {
+    if (orderId && orders.value?.length === 0) {
+      // Pokud nemáme data, načteme je
+      await getAllOrders();
+    }
+    if (orderId) {
+      const order = orders.value?.find((o) => o.id === Number(orderId));
+      if (order) {
+        openOrderDetail(order);
+      }
+    }
+  }
+);
+
 // UI komponenty
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/vue";
@@ -609,11 +639,6 @@ interface MonthData {
   label: string;
   date: Date;
 }
-
-// Načtení dat
-onMounted(async () => {
-  await Promise.all([getAllOrders(), fetchConcerts()]);
-});
 
 // Vyhledávání a filtry
 const searchQuery = ref("");
