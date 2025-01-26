@@ -72,7 +72,7 @@
           <div class="relative">
             <button
               @click="showNotifications = !showNotifications"
-              class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 relative"
+              class="notification-bell relative p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
