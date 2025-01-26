@@ -8,7 +8,12 @@
     </div>
 
     <!-- Taby -->
-    <TabGroup as="div" v-model="selectedTab" class="w-full">
+    <TabGroup
+      as="div"
+      :selected-index="selectedTab"
+      @change="(index) => (selectedTab = index)"
+      class="w-full"
+    >
       <div class="border-b border-gray-200">
         <TabList class="flex -mb-px space-x-8">
           <Tab v-slot="{ selected }">
@@ -489,7 +494,7 @@ definePageMeta({
 
 // Vue importy
 import { ref, onMounted, computed, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 // Chart.js importy
 import type { ChartOptions } from "chart.js";
@@ -516,6 +521,7 @@ const { orders, getAllOrders, updateOrderStatus } = useTicketOrders();
 const { concerts, fetchConcerts } = useConcerts();
 const toast = useToast();
 const route = useRoute();
+const router = useRouter();
 
 // Vybraný tab
 const selectedTab = ref(0);
@@ -523,13 +529,26 @@ const selectedTab = ref(0);
 // Sledování změn v URL
 watch(
   () => route.query.tab,
-  (newTab: string | string[] | undefined) => {
+  (newTab) => {
     if (newTab === "list") {
       selectedTab.value = 1;
+    } else {
+      selectedTab.value = 0;
     }
   },
   { immediate: true }
 );
+
+// Sledování změn v selectedTab a aktualizace URL
+watch(selectedTab, (newValue) => {
+  if (newValue === 1) {
+    router.push({ query: { ...route.query, tab: "list" } });
+  } else {
+    const query = { ...route.query };
+    delete query.tab;
+    router.push({ query });
+  }
+});
 
 // UI komponenty
 import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";

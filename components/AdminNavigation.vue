@@ -175,7 +175,7 @@ const handleLogout = async () => {
 
 const handleOrderClick = (orderId) => {
   if (orderId) {
-    router.push("/admin/objednavky");
+    router.push(`/admin/objednavky?tab=list&order=${orderId}`);
   } else {
     router.push("/admin/objednavky?tab=list");
   }
