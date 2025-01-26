@@ -174,7 +174,11 @@ const handleLogout = async () => {
 };
 
 const handleOrderClick = (orderId) => {
-  router.push("/admin/objednavky");
+  if (orderId) {
+    router.push("/admin/objednavky");
+  } else {
+    router.push("/admin/objednavky?tab=list");
+  }
   showNotifications.value = false;
 };
 </script>
