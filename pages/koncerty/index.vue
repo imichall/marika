@@ -51,46 +51,85 @@
         <div
           v-for="concert in filteredConcerts"
           :key="concert.id"
-          class="concert-card grid gap-4"
+          class="concert-card flex flex-col bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
         >
-          <img
-            :src="concert.image"
-            :alt="concert.title"
-            class="w-full h-48 object-cover"
-          />
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-4">
+          <div class="relative aspect-[4/3] overflow-hidden">
+            <img
+              v-if="concert.image"
+              :src="concert.image"
+              :alt="concert.title"
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+            <div
+              v-else
+              class="w-full h-full bg-gray-100 flex items-center justify-center"
+            >
+              <span class="text-gray-400">Bez obrázku</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col flex-grow p-4 space-y-4">
+            <header>
+              <div class="flex items-center gap-2 mb-2">
+                <time :datetime="concert.date" class="text-gray-600 text-sm">
+                  {{ formatDateWithTime(concert.date, concert.time) }}
+                </time>
+                <span class="text-gray-400">•</span>
+                <div class="relative inline-flex items-center">
+                  <svg
+                    class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                    />
+                  </svg>
+                  <span
+                    class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
+                    :class="{
+                      'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
+                        concert.group_name === 'Marika Singers',
+                      'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
+                        concert.group_name === 'Voices',
+                      'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
+                        concert.group_name === 'Five',
+                    }"
+                  >
+                    {{ concert.group_name }}
+                  </span>
+                </div>
+              </div>
+              <h3 class="font-bold text-2xl">
+                {{ concert.title }}
+              </h3>
+            </header>
+
+            <p class="text-gray-600 flex-grow">{{ concert.description }}</p>
+
+            <footer class="flex gap-4 mt-auto pt-4">
               <NuxtLink
                 :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
-                class="flex-1 bg-transparent text-black border border-black hover:bg-black hover:text-white px-4 py-2 text-center transition-colors duration-200"
+                class="flex-1 bg-transparent text-black border border-black px-4 py-2 text-center hover:bg-black hover:text-white transition-colors duration-200"
               >
                 Informace
               </NuxtLink>
               <button
                 v-if="concert.ticket_id"
                 @click="openTicketInfoModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
               >
                 Vstupenky
               </button>
               <button
                 v-else
                 @click="openTicketModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
               >
                 Vstupenky
               </button>
-            </div>
-            <p class="text-gray-600">
-              {{ formatDateWithTime(concert.date, concert.time) }}
-            </p>
-            <h3 class="font-bold text-2xl">
-              {{ concert.title }}<br />
-              <span v-if="concert.group" class="text-gray-600 text-sm">
-                ({{ concert.group }})
-              </span>
-            </h3>
-            <p class="text-gray-600 font-thin">{{ concert.description }}</p>
+            </footer>
           </div>
         </div>
       </div>

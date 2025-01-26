@@ -32,17 +32,38 @@
 
           <div class="flex flex-col flex-grow p-4 space-y-4">
             <header>
-              <time :datetime="concert.date" class="text-gray-600 text-sm">
-                {{ formatDateWithTime(concert.date, concert.time) }}
-              </time>
-              <h2 class="font-bold text-2xl mt-2">
+              <div class="flex items-center gap-2 mb-2">
+                <time :datetime="concert.date" class="text-gray-600 text-sm">
+                  {{ formatDateWithTime(concert.date, concert.time) }}
+                </time>
+                <span class="text-gray-400">•</span>
+                <div class="relative inline-flex items-center">
+                  <svg
+                    class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                    />
+                  </svg>
+                  <span
+                    class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
+                    :class="{
+                      'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
+                        concert.group_name === 'Marika Singers',
+                      'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
+                        concert.group_name === 'Voices',
+                      'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
+                        concert.group_name === 'Five',
+                    }"
+                  >
+                    {{ concert.group_name }}
+                  </span>
+                </div>
+              </div>
+              <h2 class="font-bold text-2xl">
                 {{ concert.title }}
-                <span
-                  v-if="concert.group"
-                  class="block text-gray-600 text-sm mt-1"
-                >
-                  {{ concert.group }}
-                </span>
               </h2>
             </header>
 
