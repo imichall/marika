@@ -206,11 +206,10 @@ export const useTicketOrders = () => {
 
   // Funkce pro přidání nové objednávky do lokálního stavu
   const handleNewOrder = async (payload: any) => {
-    console.log('Handling new order:', payload); // Debug log
+    console.log('Handling new order:', payload);
     const newOrder = payload.new;
 
     try {
-      // Nejdřív načteme data koncertu
       const { data: concertData, error: concertError } = await supabase
         .from('concerts')
         .select('title')
@@ -219,56 +218,77 @@ export const useTicketOrders = () => {
 
       if (concertError) {
         console.error('Error fetching concert data:', concertError);
+        const toast = useToast();
+        toast.error('Chyba při načítání dat koncertu');
         return;
       }
 
-      // Vytvoříme kompletní objekt objednávky
       const orderWithConcert: TicketOrder = {
         ...newOrder,
         concert_name: concertData?.title || 'Neznámý koncert',
         concerts: { title: concertData?.title }
       };
 
-      // Okamžitě aktualizujeme lokální stav
       orders.value = [orderWithConcert, ...orders.value];
 
-      // Zobrazíme notifikaci
       const toast = useToast();
-      toast.info(`Nová objednávka: ${orderWithConcert.concert_name}`);
+      toast.success(`Nová objednávka: ${orderWithConcert.concert_name} (${orderWithConcert.ticket_count}x)`);
 
-      // Pro jistotu načteme všechna data pro synchronizaci
       getAllOrders();
-
-      console.log('Orders after immediate update:', orders.value);
     } catch (err) {
       console.error('Error handling new order:', err);
+      const toast = useToast();
+      toast.error('Chyba při zpracování nové objednávky');
     }
   };
 
   // Funkce pro aktualizaci existující objednávky v lokálním stavu
   const handleOrderUpdate = (payload: any) => {
-    console.log('Handling order update:', payload); // Debug log
+    console.log('Handling order update:', payload);
     const updatedOrder = payload.new;
+    const oldOrder = payload.old;
+
     const index = orders.value.findIndex(order => order.id === updatedOrder.id);
     if (index !== -1) {
-      // Vytvoříme nové pole pro reaktivitu
       const newOrders = [...orders.value];
       newOrders[index] = {
         ...orders.value[index],
         ...updatedOrder
       };
       orders.value = newOrders;
-      console.log('Orders after update:', orders.value); // Debug log pro kontrolu stavu
+
+      // Zobrazíme toast notifikaci při změně stavu platby
+      if (oldOrder.payment_status !== updatedOrder.payment_status) {
+        const toast = useToast();
+        const orderName = orders.value[index].concert_name || 'Neznámý koncert';
+
+        switch (updatedOrder.payment_status) {
+          case 'completed':
+            toast.success(`Objednávka ${orderName} byla zaplacena`);
+            break;
+          case 'cancelled':
+            toast.warning(`Objednávka ${orderName} byla zrušena`);
+            break;
+          case 'pending':
+            toast.info(`Objednávka ${orderName} čeká na platbu`);
+            break;
+        }
+      }
     }
   };
 
   // Funkce pro smazání objednávky z lokálního stavu
   const handleOrderDelete = (payload: any) => {
-    console.log('Handling order delete:', payload); // Debug log
+    console.log('Handling order delete:', payload);
     const deletedOrderId = payload.old.id;
-    // Vytvoříme nové pole pro reaktivitu
+    const deletedOrder = orders.value.find(order => order.id === deletedOrderId);
+
     orders.value = orders.value.filter(order => order.id !== deletedOrderId);
-    console.log('Orders after delete:', orders.value); // Debug log pro kontrolu stavu
+
+    if (deletedOrder) {
+      const toast = useToast();
+      toast.warning(`Objednávka ${deletedOrder.concert_name || 'Neznámý koncert'} byla smazána`);
+    }
   };
 
   // Cleanup subscriptions

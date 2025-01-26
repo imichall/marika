@@ -74,6 +74,7 @@
               @click="showNotifications = !showNotifications"
               class="notification-bell relative p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
+              <span class="sr-only">Zobrazit notifikace</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5"
@@ -85,7 +86,7 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
                 />
               </svg>
               <span
@@ -139,7 +140,7 @@
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useTicketOrders } from "~/composables/useTicketOrders";
-import { ref, onMounted, computed, watch } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const { logout } = useAuth();
 const router = useRouter();
@@ -148,39 +149,22 @@ const showNotifications = ref(false);
 
 // Počet čekajících objednávek
 const pendingOrders = computed(() => {
-  if (!orders.value) return 0;
-  const count = orders.value.filter(
-    (order) => order.payment_status === "pending"
-  ).length;
-  console.log("Computing pending orders count:", count);
-  return count;
+  return (
+    orders.value?.filter((order) => order.payment_status === "pending")
+      .length || 0
+  );
 });
 
 // Seznam čekajících objednávek pro panel
 const pendingOrdersList = computed(() => {
   if (!orders.value) return [];
-  const pendingOrders = orders.value
+  return orders.value
     .filter((order) => order.payment_status === "pending")
     .sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  console.log("Computing pending orders list:", pendingOrders);
-  return pendingOrders;
 });
-
-// Sledujeme změny v orders pro debugging a vynutíme reaktivitu
-watch(
-  orders,
-  (newOrders) => {
-    console.log("Orders updated:", newOrders);
-    // Vynutíme přepočítání computed properties
-    const count = pendingOrders.value;
-    const list = pendingOrdersList.value;
-    console.log("Updated counts:", { count, list: list.length });
-  },
-  { deep: true, immediate: true }
-);
 
 const handleLogout = async () => {
   try {
@@ -193,12 +177,14 @@ const handleLogout = async () => {
 
 const handleOrderClick = (orderId) => {
   showNotifications.value = false;
-  navigateTo(`/admin/objednavky?tab=list${orderId ? `&order=${orderId}` : ""}`);
+  router.push(
+    `/admin/objednavky?tab=list${orderId ? `&order=${orderId}` : ""}`
+  );
 };
 
-onMounted(async () => {
-  await getAllOrders(); // Načteme data při prvním načtení
-  startAutoRefresh(30000); // Spustíme automatické obnovování každých 30 sekund
+onMounted(() => {
+  getAllOrders();
+  startAutoRefresh(30000);
 });
 </script>
 
