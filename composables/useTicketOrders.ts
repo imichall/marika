@@ -1,5 +1,5 @@
-import { ref, onUnmounted } from 'vue';
-import { useSupabaseClient } from '#imports';
+import { ref, onUnmounted, onMounted } from 'vue';
+import { useSupabaseClient, useToast } from '#imports';
 
 interface TicketOrder {
   id: number;
@@ -33,6 +33,7 @@ export const useTicketOrders = () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   let refreshInterval: NodeJS.Timeout | null = null;
+  let subscription: ReturnType<typeof supabase.channel> | null = null;
 
   const createOrder = async (orderData: CreateTicketOrder) => {
     try {
@@ -154,9 +155,102 @@ export const useTicketOrders = () => {
     }
   };
 
+  // Funkce pro přidání nové objednávky do lokálního stavu
+  const handleNewOrder = async (payload: any) => {
+    const newOrder = payload.new;
+
+    // Načteme data koncertu pro novou objednávku
+    const { data: concertData } = await supabase
+      .from('concerts')
+      .select('title')
+      .eq('id', newOrder.concert_id)
+      .single();
+
+    const orderWithConcert = {
+      ...newOrder,
+      concert_name: concertData?.title || 'Neznámý koncert',
+      concerts: { title: concertData?.title }
+    };
+
+    // Přidáme novou objednávku na začátek pole
+    orders.value = [orderWithConcert, ...orders.value];
+
+    // Zobrazíme notifikaci
+    if (typeof window !== 'undefined') {
+      const toast = useToast();
+      toast.info('Přišla nová objednávka');
+    }
+  };
+
+  // Funkce pro aktualizaci existující objednávky v lokálním stavu
+  const handleOrderUpdate = (payload: any) => {
+    const updatedOrder = payload.new;
+    const index = orders.value.findIndex(order => order.id === updatedOrder.id);
+    if (index !== -1) {
+      orders.value[index] = {
+        ...orders.value[index],
+        ...updatedOrder
+      };
+    }
+  };
+
+  // Funkce pro smazání objednávky z lokálního stavu
+  const handleOrderDelete = (payload: any) => {
+    const deletedOrderId = payload.old.id;
+    orders.value = orders.value.filter(order => order.id !== deletedOrderId);
+  };
+
+  // Funkce pro nastavení real-time subscriptions
+  const setupSubscriptions = () => {
+    if (subscription) {
+      subscription.unsubscribe();
+    }
+
+    subscription = supabase
+      .channel('ticket-orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ticket_orders'
+        },
+        handleNewOrder
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'ticket_orders'
+        },
+        handleOrderUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'ticket_orders'
+        },
+        handleOrderDelete
+      )
+      .subscribe();
+  };
+
   // Cleanup při unmount
   onUnmounted(() => {
     stopAutoRefresh();
+    if (subscription) {
+      subscription.unsubscribe();
+      subscription = null;
+    }
+  });
+
+  // Inicializace při mounted
+  onMounted(() => {
+    getAllOrders();
+    setupSubscriptions();
   });
 
   return {

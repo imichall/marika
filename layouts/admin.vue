@@ -1,11 +1,12 @@
 <template>
   <div class="min-h-screen">
     <AdminNavigation v-if="isAuthenticated" />
-    <main v-if="isAuthenticated">
-      <div class="container mx-auto px-4 mt-[100px]">
+    <main v-if="isAuthenticated" class="pt-16">
+      <div class="container mx-auto px-4">
         <slot />
       </div>
     </main>
+    <ToastNotifications />
     <!-- <div v-else>
       <p>Přesměrování na přihlášení...</p>
     </div> -->
@@ -17,6 +18,7 @@ import AdminNavigation from "~/components/AdminNavigation.vue";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
+import ToastNotifications from "~/components/ToastNotifications.vue";
 
 const { user, checkUser } = useAuth();
 const router = useRouter();

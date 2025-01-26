@@ -1,28 +1,45 @@
-import { useToast as useVueToast } from 'vue-toastification'
+import { ref } from 'vue';
+
+interface Toast {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+}
+
+const toasts = ref<Toast[]>([]);
+let nextId = 1;
 
 export const useToast = () => {
-  const toast = useVueToast()
+  const addToast = (toast: Omit<Toast, 'id'>) => {
+    const id = nextId++;
+    toasts.value.push({ ...toast, id });
+
+    // Automaticky odstraníme toast po 5 sekundách
+    setTimeout(() => {
+      removeToast(id);
+    }, 5000);
+
+    return id;
+  };
+
+  const removeToast = (id: number) => {
+    const index = toasts.value.findIndex(t => t.id === id);
+    if (index > -1) {
+      toasts.value.splice(index, 1);
+    }
+  };
+
+  const success = (message: string) => addToast({ message, type: 'success' });
+  const error = (message: string) => addToast({ message, type: 'error' });
+  const info = (message: string) => addToast({ message, type: 'info' });
+  const warning = (message: string) => addToast({ message, type: 'warning' });
 
   return {
-    success: (message: string) => {
-      toast.success(message, {
-        timeout: 3000
-      })
-    },
-    error: (message: string) => {
-      toast.error(message, {
-        timeout: 5000
-      })
-    },
-    warning: (message: string) => {
-      toast.warning(message, {
-        timeout: 4000
-      })
-    },
-    info: (message: string) => {
-      toast.info(message, {
-        timeout: 3000
-      })
-    }
-  }
-}
+    toasts,
+    success,
+    error,
+    info,
+    warning,
+    remove: removeToast
+  };
+};
