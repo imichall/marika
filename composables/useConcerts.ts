@@ -17,6 +17,7 @@ interface ConcertRow {
   bank_code: string;
   qr_session: string | null;
   ticket_id: string | null;
+  poster_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +27,14 @@ interface ConcertTicket {
   title: string;
   provider: string;
   ticket_url: string;
+}
+
+interface ConcertPoster {
+  id: string;
+  concert_id: number;
+  image_url: string;
+  title: string;
+  created_at: string;
 }
 
 interface Concert {
@@ -45,6 +54,8 @@ interface Concert {
   qr_session?: string;
   ticket_id?: string;
   ticket?: ConcertTicket;
+  poster_id?: string;
+  poster?: ConcertPoster;
   created_at: string;
   updated_at: string;
 }
@@ -61,48 +72,29 @@ export const useConcerts = () => {
   const error = ref<string | null>(null);
 
   const fetchConcerts = async () => {
+    loading.value = true;
+    error.value = null;
     try {
-      loading.value = true;
       const { data, error: err } = await supabase
         .from('concerts')
         .select(`
           *,
-          ticket:concert_tickets(
+          poster:posters!concerts_poster_id_fkey (
             id,
-            title,
-            provider,
-            ticket_url
+            image_url,
+            title
           )
         `)
-        .order('date', { ascending: true });
+        .order('date', { ascending: false });
 
       if (err) throw err;
-
-      if (data) {
-        concerts.value = data.map(item => ({
-          id: Number(item.id),
-          title: item.title,
-          description: item.description || '',
-          desc: item.desc || '',
-          date: item.date,
-          time: formatTime(item.time),
-          price: Number(item.price),
-          image: item.image || '',
-          group: item.group || '',
-          group_name: item.group_name || undefined,
-          ticket_id: item.ticket_id || undefined,
-          ticket: item.ticket && item.ticket.length > 0 ? item.ticket[0] : undefined,
-          variable_symbol: item.variable_symbol || '',
-          account_number: item.account_number || '',
-          bank_code: item.bank_code || '',
-          qr_session: item.qr_session || undefined,
-          created_at: item.created_at,
-          updated_at: item.updated_at
-        }));
-      }
+      concerts.value = data.map(concert => ({
+        ...concert,
+        poster: concert.poster || null
+      }));
     } catch (err) {
+      error.value = err.message;
       console.error('Error fetching concerts:', err);
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
     } finally {
       loading.value = false;
     }
@@ -179,50 +171,113 @@ export const useConcerts = () => {
 
   const getConcert = async (id: number) => {
     try {
-      loading.value = true;
       const { data, error: err } = await supabase
         .from('concerts')
         .select(`
           *,
-          ticket:concert_tickets(
+          poster:posters!concerts_poster_id_fkey (
             id,
-            title,
-            provider,
-            ticket_url
+            image_url,
+            title
           )
         `)
         .eq('id', id)
         .single();
 
       if (err) throw err;
-
-      if (data) {
-        return {
-          id: Number(data.id),
-          title: String(data.title),
-          description: String(data.description || ''),
-          desc: String(data.desc || ''),
-          date: String(data.date),
-          time: formatTime(data.time),
-          price: Number(data.price),
-          image: String(data.image || ''),
-          group: String(data.group || ''),
-          group_name: data.group_name ? String(data.group_name) : undefined,
-          ticket_id: data.ticket_id ? String(data.ticket_id) : undefined,
-          ticket: data.ticket ? data.ticket[0] : undefined,
-          variable_symbol: data.variable_symbol || '',
-          account_number: data.account_number || '',
-          bank_code: data.bank_code || '',
-          qr_session: data.qr_session ? String(data.qr_session) : undefined,
-          created_at: String(data.created_at),
-          updated_at: String(data.updated_at)
-        };
-      }
-      return null;
+      return {
+        ...data,
+        poster: data.poster || null
+      };
     } catch (err) {
       console.error('Error fetching concert:', err);
+      throw err;
+    }
+  };
+
+  const uploadPoster = async (concertId: number, file: File) => {
+    try {
+      loading.value = true;
+      const timestamp = Date.now();
+      const fileName = `poster-${timestamp}-${file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`;
+
+      // Upload to storage
+      const { data: storageData, error: storageError } = await supabase
+        .storage
+        .from('posters')
+        .upload(fileName, file);
+
+      if (storageError) throw storageError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('posters')
+        .getPublicUrl(fileName);
+
+      // Create poster record
+      const { data: posterData, error: posterError } = await supabase
+        .from('posters')
+        .insert([{
+          concert_id: concertId,
+          image_url: publicUrl,
+          title: file.name
+        }])
+        .select()
+        .single();
+
+      if (posterError) throw posterError;
+
+      // Update concert with poster_id
+      const { error: concertError } = await supabase
+        .from('concerts')
+        .update({ poster_id: posterData.id })
+        .eq('id', concertId);
+
+      if (concertError) throw concertError;
+
+      await fetchConcerts();
+      return { success: true, poster: posterData };
+    } catch (err) {
+      console.error('Error uploading poster:', err);
       error.value = err instanceof Error ? err.message : 'Unknown error occurred';
-      return null;
+      return { success: false, error: error.value };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const deletePoster = async (concertId: number) => {
+    try {
+      loading.value = true;
+      const concert = concerts.value.find(c => c.id === concertId);
+      if (!concert?.poster) return { success: false, error: 'No poster found' };
+
+      // Delete from storage
+      const fileName = concert.poster.image_url.split('/').pop();
+      if (!fileName) throw new Error('Invalid poster URL');
+
+      const { error: storageError } = await supabase
+        .storage
+        .from('posters')
+        .remove([fileName]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database and update concert
+      const { error: dbError } = await supabase
+        .from('concerts')
+        .update({ poster_id: null })
+        .eq('id', concertId);
+
+      if (dbError) throw dbError;
+
+      await fetchConcerts();
+      return { success: true };
+    } catch (err) {
+      console.error('Error deleting poster:', err);
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      return { success: false, error: error.value };
     } finally {
       loading.value = false;
     }
@@ -240,6 +295,8 @@ export const useConcerts = () => {
     addConcert,
     updateConcert,
     deleteConcert,
-    getConcert
+    getConcert,
+    uploadPoster,
+    deletePoster
   };
 };

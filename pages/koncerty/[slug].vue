@@ -158,9 +158,20 @@
                   Koupit vstupenky
                 </button>
                 <button
+                  v-if="concert.poster"
+                  :href="concert.poster.image_url"
+                  target="_blank"
+                  download
                   class="flex-1 bg-transparent border border-black text-black px-4 py-3 hover:bg-black hover:text-white transition-colors duration-200"
                 >
                   Stáhnout plakát akce
+                </button>
+                <button
+                  v-else
+                  class="flex-1 bg-transparent border border-gray-300 text-gray-400 px-4 py-3 cursor-not-allowed"
+                  disabled
+                >
+                  Plakát není k dispozici
                 </button>
               </footer>
             </div>

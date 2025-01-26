@@ -717,6 +717,65 @@
                     </div>
                   </div>
 
+                  <!-- Nahrávání plakátu -->
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                      Plakát koncertu
+                    </label>
+                    <div
+                      class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
+                      :class="{ 'border-red-500': isPosterDragging }"
+                      @dragenter.prevent="isPosterDragging = true"
+                      @dragleave.prevent="isPosterDragging = false"
+                      @dragover.prevent
+                      @drop.prevent="handlePosterDrop"
+                    >
+                      <div v-if="!form.poster && !posterPreview" class="py-4">
+                        <span
+                          class="material-icons-outlined text-4xl text-gray-400 mb-2"
+                        >
+                          Nahrát plakát
+                        </span>
+                        <p class="text-gray-500">
+                          Přetáhněte sem plakát nebo
+                          <label
+                            class="text-red-500 hover:text-red-600 cursor-pointer"
+                          >
+                            vyberte ze zařízení
+                            <input
+                              type="file"
+                              class="hidden"
+                              accept="image/*"
+                              @change="handlePosterSelect"
+                            />
+                          </label>
+                        </p>
+                        <p class="text-sm text-gray-400 mt-1">
+                          Podporované formáty: JPG, PNG, WebP
+                        </p>
+                      </div>
+
+                      <div v-else class="relative">
+                        <img
+                          :src="
+                            posterPreview ||
+                            (form.poster ? form.poster.image_url : '')
+                          "
+                          alt="Náhled plakátu"
+                          class="max-h-48 mx-auto rounded-lg"
+                        />
+                        <button
+                          @click.prevent.stop="removePoster"
+                          type="button"
+                          class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-200"
+                          title="Odstranit plakát"
+                        >
+                          <span class="material-icons-outlined">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="flex justify-end space-x-4 mt-6">
                     <button
                       type="button"
@@ -1176,7 +1235,9 @@ const showDeleteModal = ref(false);
 const concertToDelete = ref(null);
 
 const isDragging = ref(false);
+const isPosterDragging = ref(false);
 const imagePreview = ref(null);
+const posterPreview = ref(null);
 
 const form = ref({
   title: "",
@@ -1191,6 +1252,8 @@ const form = ref({
   account_number: "123456789",
   bank_code: "0100",
   ticket_id: null,
+  poster: null,
+  posterFile: null,
 });
 
 const showTicketModal = ref(false);
@@ -1330,7 +1393,7 @@ const handleDrop = (event) => {
 
 const processFile = async (file) => {
   if (file.size > 5 * 1024 * 1024) {
-    alert("Obrázek je příliš velký. Maximální velikost je 5MB.");
+    toast.error("Obrázek je příliš velký. Maximální velikost je 5MB.");
     return;
   }
 
@@ -1357,7 +1420,7 @@ const processFile = async (file) => {
       imagePreview.value = getFullImageUrl(data.path);
     }
   } catch (err) {
-    alert("Chyba při nahrávání obrázku: " + err.message);
+    toast.error("Chyba při nahrávání obrázku: " + err.message);
   }
 };
 
@@ -1366,6 +1429,166 @@ const removeImage = (e) => {
   e?.stopPropagation();
   form.value.image = "";
   imagePreview.value = null;
+};
+
+const handlePosterSelect = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    processPosterFile(file);
+  }
+};
+
+const handlePosterDrop = (event) => {
+  isPosterDragging.value = false;
+  const file = event.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    processPosterFile(file);
+  }
+};
+
+const processPosterFile = async (file) => {
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error("Plakát je příliš velký. Maximální velikost je 5MB.");
+    return;
+  }
+
+  try {
+    if (editingConcert.value) {
+      const result = await uploadPoster(editingConcert.value.id, file);
+      if (result.success) {
+        form.value.poster = result.poster;
+        toast.success("Plakát byl úspěšně nahrán");
+      } else {
+        toast.error("Chyba při nahrávání plakátu: " + result.error);
+      }
+    } else {
+      // Pro nový koncert pouze zobrazíme náhled
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        posterPreview.value = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      form.value.posterFile = file;
+    }
+  } catch (err) {
+    toast.error("Chyba při zpracování plakátu: " + err.message);
+  }
+};
+
+const uploadPoster = async (concertId, file) => {
+  try {
+    const timestamp = Date.now();
+    const fileName = `${concertId}-${timestamp}-${file.name
+      .toLowerCase()
+      .replace(/[^a-z0-9.]/g, "-")}`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("posters")
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("posters").getPublicUrl(fileName);
+
+    // Create poster record
+    const { data: posterData, error: posterError } = await supabase
+      .from("posters")
+      .insert([
+        {
+          concert_id: concertId,
+          image_url: publicUrl,
+          title: file.name,
+        },
+      ])
+      .select()
+      .single();
+
+    if (posterError) throw posterError;
+
+    // Update concert with poster_id
+    const { error: concertError } = await supabase
+      .from("concerts")
+      .update({ poster_id: posterData.id })
+      .eq("id", concertId);
+
+    if (concertError) throw concertError;
+
+    return { success: true, poster: posterData };
+  } catch (error) {
+    console.error("Error uploading poster:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+const deletePoster = async (concertId) => {
+  try {
+    // Get current poster
+    const { data: concert, error: concertError } = await supabase
+      .from("concerts")
+      .select("poster_id")
+      .eq("id", concertId)
+      .single();
+
+    if (concertError) throw concertError;
+    if (!concert.poster_id) return { success: true };
+
+    // Get poster record
+    const { data: poster, error: posterError } = await supabase
+      .from("posters")
+      .select("*")
+      .eq("id", concert.poster_id)
+      .single();
+
+    if (posterError) throw posterError;
+
+    // Delete from storage
+    const fileName = poster.image_url.split("/").pop();
+    const { error: storageError } = await supabase.storage
+      .from("posters")
+      .remove([fileName]);
+
+    if (storageError) throw storageError;
+
+    // Delete poster record and update concert
+    const { error: deleteError } = await supabase
+      .from("posters")
+      .delete()
+      .eq("id", concert.poster_id);
+
+    if (deleteError) throw deleteError;
+
+    // Update concert
+    const { error: updateError } = await supabase
+      .from("concerts")
+      .update({ poster_id: null })
+      .eq("id", concertId);
+
+    if (updateError) throw updateError;
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting poster:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+const removePoster = async () => {
+  if (editingConcert.value) {
+    const result = await deletePoster(editingConcert.value.id);
+    if (result.success) {
+      form.value.poster = null;
+      toast.success("Plakát byl úspěšně odstraněn");
+    } else {
+      toast.error("Chyba při odstraňování plakátu: " + result.error);
+    }
+  } else {
+    posterPreview.value = null;
+    form.value.posterFile = null;
+  }
 };
 
 const resetForm = () => {
@@ -1382,8 +1605,11 @@ const resetForm = () => {
     account_number: "123456789",
     bank_code: "0100",
     ticket_id: null,
+    poster: null,
+    posterFile: null,
   };
   imagePreview.value = null;
+  posterPreview.value = null;
   editingConcert.value = null;
 };
 
@@ -1422,9 +1648,12 @@ const handleSubmit = async () => {
       ...form.value,
       variable_symbol: cleanVS,
       qr_session: qrSessionData,
-      // Zajistíme, že ticket_id bude null místo prázdného stringu
       ticket_id: form.value.ticket_id || null,
     };
+
+    // Odstraníme nepotřebné hodnoty
+    delete concertData.poster;
+    delete concertData.posterFile;
 
     // Odstraníme prázdné hodnoty, které by mohly způsobit problémy s UUID
     Object.keys(concertData).forEach((key) => {
@@ -1433,10 +1662,16 @@ const handleSubmit = async () => {
       }
     });
 
+    let savedConcert;
     if (editingConcert.value) {
-      await updateConcert(editingConcert.value.id, concertData);
+      savedConcert = await updateConcert(editingConcert.value.id, concertData);
     } else {
-      await addConcert(concertData);
+      savedConcert = await addConcert(concertData);
+    }
+
+    // Pokud máme nový plakát k nahrání
+    if (form.value.posterFile && savedConcert) {
+      await uploadPoster(savedConcert.id, form.value.posterFile);
     }
 
     showAddModal.value = false;
@@ -1465,7 +1700,11 @@ const editConcert = (concert) => {
     account_number: concert.account_number || "123456789",
     bank_code: concert.bank_code || "0100",
     qr_session: concert.qr_session || "",
+    poster: concert.poster || null,
+    posterFile: null,
   };
+  imagePreview.value = concert.image ? getFullImageUrl(concert.image) : null;
+  posterPreview.value = concert.poster ? concert.poster.image_url : null;
   showAddModal.value = true;
 };
 
