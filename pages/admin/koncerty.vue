@@ -8,27 +8,53 @@
       class="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
     >
       <div
-        class="p-4 bg-gradient-to-r from-red-600 to-red-800 text-white cursor-pointer flex justify-between items-center"
+        class="p-4 bg-gradient-to-r from-rose-50 to-red-100 hover:from-rose-100 hover:to-red-200 cursor-pointer flex justify-between items-center group transition-all duration-300 border-b border-red-100"
         @click="isFormVisible = !isFormVisible"
       >
-        <h2 class="text-xl font-bold">
+        <h2 class="text-xl font-bold text-red-800 flex items-center gap-3">
+          <span class="relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-6 h-6 transform group-hover:scale-110 transition-transform duration-300"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            <span
+              class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"
+            ></span>
+          </span>
           {{ editingConcert ? "Upravit koncert" : "Přidat nový koncert" }}
         </h2>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-6 w-6 transform transition-transform duration-200"
-          :class="{ 'rotate-180': isFormVisible }"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
+        <div class="flex items-center gap-2">
+          <span
+            class="text-sm text-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          >
+            {{ isFormVisible ? "Zavřít" : "Otevřít" }}
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-red-700 transform transition-transform duration-300"
+            :class="{ 'rotate-180': isFormVisible }"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </div>
       </div>
 
       <div v-show="isFormVisible" class="p-6">
@@ -302,45 +328,55 @@
       <div class="flex gap-4">
         <button
           @click="isFormVisible = true"
-          class="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center gap-2"
+          class="group relative px-6 py-3 bg-gradient-to-br from-red-500 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
           :disabled="loading"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-5 h-5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Přidat koncert
+          <div
+            class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+          ></div>
+          <span class="relative flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Přidat koncert
+          </span>
         </button>
         <button
           @click="showTicketModal = true"
-          class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5 inline-flex items-center gap-2"
+          class="group relative px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
           :disabled="loading"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-5 h-5"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
-            />
-          </svg>
-          Správa vstupenek
+          <div
+            class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+          ></div>
+          <span class="relative flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
+              />
+            </svg>
+            Správa vstupenek
+          </span>
         </button>
       </div>
     </div>
@@ -551,9 +587,28 @@
                   <p class="text-lg">Zatím nejsou přidány žádné koncerty</p>
                   <button
                     @click="isFormVisible = true"
-                    class="mt-4 text-red-600 hover:text-red-700 font-medium transition-colors duration-150"
+                    class="group relative mt-4 px-6 py-3 bg-gradient-to-br from-red-500 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
                   >
-                    Přidat první koncert
+                    <div
+                      class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                    ></div>
+                    <span class="relative flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 4.5v15m7.5-7.5h-15"
+                        />
+                      </svg>
+                      Přidat první koncert
+                    </span>
                   </button>
                 </div>
               </td>
