@@ -454,20 +454,140 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Název</div>
+              <th
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="toggleSort('title')"
+              >
+                <div class="flex items-center gap-2">
+                  Název
+                  <span class="flex flex-col">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 -mb-1"
+                      :class="{
+                        'text-red-600': sortBy === 'title' && !sortDesc,
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Datum</div>
+              <th
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="toggleSort('date')"
+              >
+                <div class="flex items-center gap-2">
+                  Datum
+                  <span class="flex flex-col">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 -mb-1"
+                      :class="{
+                        'text-red-600': sortBy === 'date' && !sortDesc,
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Čas</div>
+              <th
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="toggleSort('time')"
+              >
+                <div class="flex items-center gap-2">
+                  Čas
+                  <span class="flex flex-col">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 -mb-1"
+                      :class="{
+                        'text-red-600': sortBy === 'time' && !sortDesc,
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Těleso</div>
+              <th
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="toggleSort('group_name')"
+              >
+                <div class="flex items-center gap-2">
+                  Těleso
+                  <span class="flex flex-col">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 -mb-1"
+                      :class="{
+                        'text-red-600': sortBy === 'group_name' && !sortDesc,
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                <div class="flex items-center justify-center">Vstupné</div>
+              <th
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                @click="toggleSort('price')"
+              >
+                <div class="flex items-center gap-2">
+                  Vstupné
+                  <span class="flex flex-col">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 -mb-1"
+                      :class="{
+                        'text-red-600': sortBy === 'price' && !sortDesc,
+                      }"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 15l7-7 7 7"
+                      />
+                    </svg>
+                  </span>
+                </div>
               </th>
               <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
                 <div class="flex items-center justify-center">Akce</div>
@@ -633,7 +753,7 @@
         <div class="flex items-center justify-between">
           <div class="text-sm text-gray-500">
             Zobrazeno {{ paginationStart + 1 }} - {{ paginationEnd }} z
-            {{ filteredConcerts.length }} koncertů
+            {{ totalFilteredConcerts }} koncertů
           </div>
           <div class="flex gap-2">
             <button
@@ -1292,86 +1412,93 @@ const ITEMS_PER_PAGE = 10;
 // Přidáme ref pro aktuální stránku
 const currentPage = ref(1);
 
-// Computed properties pro stránkování
-const totalPages = computed(() =>
-  Math.ceil(filteredConcerts.value.length / ITEMS_PER_PAGE)
-);
+// Přidáme state pro řazení
+const sortBy = ref("date"); // Výchozí řazení podle data
+const sortDesc = ref(true); // Výchozí sestupné řazení
 
+// Funkce pro změnu řazení
+const toggleSort = (column) => {
+  if (sortBy.value === column) {
+    sortDesc.value = !sortDesc.value;
+  } else {
+    sortBy.value = column;
+    sortDesc.value = true;
+  }
+};
+
+// Upravíme filteredConcerts aby používalo řazení
+const filteredConcerts = computed(() => {
+  if (!concerts.value) return [];
+
+  let filtered = [...concerts.value];
+
+  // Aplikujeme filtry
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(
+      (concert) =>
+        concert.title.toLowerCase().includes(query) ||
+        concert.group_name.toLowerCase().includes(query)
+    );
+  }
+
+  if (selectedGroup.value) {
+    filtered = filtered.filter(
+      (concert) => concert.group_name === selectedGroup.value
+    );
+  }
+
+  if (ticketFilter.value === "withTickets") {
+    filtered = filtered.filter((concert) => concert.ticket_id);
+  } else if (ticketFilter.value === "withoutTickets") {
+    filtered = filtered.filter((concert) => !concert.ticket_id);
+  }
+
+  // Aplikujeme řazení
+  return filtered.sort((a, b) => {
+    const modifier = sortDesc.value ? -1 : 1;
+
+    switch (sortBy.value) {
+      case "title":
+        return modifier * (a.title || "").localeCompare(b.title || "");
+      case "date":
+        return modifier * (new Date(a.date || "") - new Date(b.date || ""));
+      case "time":
+        return modifier * (a.time || "").localeCompare(b.time || "");
+      case "group_name":
+        return (
+          modifier * (a.group_name || "").localeCompare(b.group_name || "")
+        );
+      case "price":
+        return modifier * ((a.price || 0) - (b.price || 0));
+      default:
+        return modifier * (new Date(b.date) - new Date(a.date)); // Výchozí řazení podle data
+    }
+  });
+});
+
+// Upravíme paginaci aby používala filtrovaná a seřazená data
 const paginationStart = computed(
   () => (currentPage.value - 1) * ITEMS_PER_PAGE
 );
-
-const paginationEnd = computed(() =>
-  Math.min(
-    paginationStart.value + ITEMS_PER_PAGE,
-    filteredConcerts.value.length
-  )
-);
+const paginationEnd = computed(() => {
+  const end = currentPage.value * ITEMS_PER_PAGE;
+  return end > filteredConcerts.value?.length
+    ? filteredConcerts.value?.length
+    : end;
+});
 
 const paginatedConcerts = computed(() => {
+  if (!filteredConcerts.value) return [];
   return filteredConcerts.value.slice(
     paginationStart.value,
     paginationEnd.value
   );
 });
 
-// Resetujeme stránku při změně filtrů
-watch([searchQuery, selectedGroup, ticketFilter], () => {
-  currentPage.value = 1;
-});
-
-// Funkce pro odstranění diakritiky
-const removeDiacritics = (str) => {
-  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-};
-
-// Watch pro okamžitou aktualizaci variable_symbol
-watch(
-  () => form.value.title,
-  (newTitle) => {
-    if (!form.value.ticket_id) {
-      const words = removeDiacritics(newTitle).split(" ");
-      const currentYear = new Date().getFullYear().toString();
-      const initials = words
-        .map((word) => word.charAt(0))
-        .join("")
-        .toUpperCase();
-      form.value.variable_symbol = (initials + currentYear).slice(0, 10);
-    }
-  },
-  { immediate: true }
-);
-
-// Přidáme watch pro ticket_id, aby se vyčistily QR údaje při výběru vstupenky
-watch(
-  () => form.value.ticket_id,
-  (newTicketId) => {
-    if (newTicketId) {
-      form.value.variable_symbol = "";
-      form.value.account_number = "";
-      form.value.bank_code = "";
-      form.value.qr_session = "";
-    } else {
-      // Obnovíme výchozí hodnoty
-      form.value.account_number = "123456789";
-      form.value.bank_code = "0100";
-      // Znovu vygenerujeme variable_symbol
-      const words = removeDiacritics(form.value.title).split(" ");
-      const currentYear = new Date().getFullYear().toString();
-      const initials = words
-        .map((word) => word.charAt(0))
-        .join("")
-        .toUpperCase();
-      form.value.variable_symbol = (initials + currentYear).slice(0, 10);
-    }
-  }
-);
-
-const sortedConcerts = computed(() => {
-  if (!concerts.value) return [];
-  return [...concerts.value].sort(
-    (a, b) => new Date(b.date) - new Date(a.date)
-  );
+// Počet stránek
+const totalPages = computed(() => {
+  return Math.ceil((filteredConcerts.value?.length || 0) / ITEMS_PER_PAGE);
 });
 
 const formatDate = (date) => {
@@ -1631,8 +1758,15 @@ const resetForm = () => {
 };
 
 const closeModal = () => {
-  showAddModal.value = false;
-  resetForm();
+  showTicketModal.value = false;
+  ticketForm.value = {
+    title: "",
+    group_id: "",
+    provider: "",
+    ticket_url: "",
+  };
+  ticketCurrentPage.value = 1;
+  fetchConcertTickets();
 };
 
 // Helper funkce pro validaci variabilního symbolu
@@ -1869,30 +2003,6 @@ watch(
     console.log("current form state:", form.value);
   }
 );
-
-// Upravíme existující computed property pro filtrované koncerty
-const filteredConcerts = computed(() => {
-  return concerts.value.filter((concert) => {
-    const searchMatch = searchQuery.value
-      ? concert.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        concert.description
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase())
-      : true;
-
-    const groupMatch = selectedGroup.value
-      ? concert.group_name === selectedGroup.value
-      : true;
-
-    const ticketMatch = ticketFilter.value
-      ? ticketFilter.value === "withTickets"
-        ? concert.ticket_id
-        : !concert.ticket_id
-      : true;
-
-    return searchMatch && groupMatch && ticketMatch;
-  });
-});
 
 // Konstanty pro stránkování vstupenek
 const TICKETS_PER_PAGE = 10;
