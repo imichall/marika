@@ -3,8 +3,8 @@
     <Navigation />
     <NuxtLayout>
       <NuxtPage />
+      <Footer v-if="!isAdminRoute" />
     </NuxtLayout>
-    <Footer v-if="!isAdminRoute" />
   </div>
 </template>
 
