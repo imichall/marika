@@ -93,10 +93,10 @@
             >
               <header>
                 <div class="flex items-center gap-2 mb-2">
-                  <time :datetime="concert.date" class="text-gray-600 text-sm">
+                  <!-- <time :datetime="concert.date" class="text-gray-600 text-sm">
                     {{ formatDateWithTime(concert.date, concert.time) }}
                   </time>
-                  <span class="text-gray-400">•</span>
+                  <span class="text-gray-400">•</span> -->
                   <div class="relative inline-flex items-center">
                     <svg
                       class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
