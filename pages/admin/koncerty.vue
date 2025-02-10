@@ -372,33 +372,6 @@
             }}
           </span>
         </button>
-        <button
-          @click="showTicketModal = true"
-          class="group relative px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
-          :disabled="loading"
-        >
-          <div
-            class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
-          ></div>
-          <span class="relative flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200"
-              :class="{ 'rotate-45': isFormVisible }"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            {{ isFormVisible ? "Zrušit" : "Přidat první koncert" }}
-          </span>
-        </button>
       </div>
     </div>
 
@@ -805,7 +778,34 @@
 
     <!-- Po existující tabulce koncertů přidáme tabulku vstupenek -->
     <div class="mt-8">
-      <h2 class="text-xl font-bold mb-4">Odkazy na vstupenky</h2>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Odkazy na vstupenky</h2>
+        <button
+          @click="showTicketModal = true"
+          class="group relative px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+          ></div>
+          <span class="relative flex items-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5 transform group-hover:scale-110 transition-transform duration-200"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Přidat odkaz na vstupenky
+          </span>
+        </button>
+      </div>
       <div
         class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
       >
@@ -944,12 +944,6 @@
                     <p class="text-lg">
                       Zatím nejsou přidány žádné odkazy na vstupenky
                     </p>
-                    <button
-                      @click="showTicketModal = true"
-                      class="mt-4 text-blue-600 hover:text-blue-700 font-medium transition-colors duration-150"
-                    >
-                      Přidat první odkaz
-                    </button>
                   </div>
                 </td>
               </tr>
