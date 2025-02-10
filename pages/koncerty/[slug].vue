@@ -374,14 +374,34 @@
                   Plakát koncertu {{ concert.title }}
                 </DialogTitle>
 
-                <div
-                  class="relative mb-6 overflow-auto max-h-[calc(90vh-12rem)]"
-                >
-                  <img
-                    :src="concert.poster.image_url"
-                    :alt="'Plakát koncertu ' + concert.title"
-                    class="max-w-full h-auto rounded-lg mx-auto"
-                  />
+                <div class="p-4 sm:p-6">
+                  <div class="relative">
+                    <img
+                      v-if="
+                        concert.poster?.image_url &&
+                        !concert.poster.image_url.endsWith('.pdf')
+                      "
+                      :src="concert.poster.image_url"
+                      :alt="concert.title"
+                      class="w-full h-auto rounded-lg shadow-lg"
+                    />
+                    <object
+                      v-else-if="
+                        concert.poster?.image_url &&
+                        concert.poster.image_url.endsWith('.pdf')
+                      "
+                      :data="concert.poster.image_url"
+                      type="application/pdf"
+                      class="w-full h-[80vh] rounded-lg shadow-lg"
+                    >
+                      <div class="text-center p-4">
+                        <p class="text-gray-600">
+                          Pro zobrazení PDF plakátu klikněte na tlačítko
+                          Stáhnout plakát
+                        </p>
+                      </div>
+                    </object>
+                  </div>
                 </div>
 
                 <div class="flex justify-end gap-4">

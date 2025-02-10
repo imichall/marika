@@ -263,21 +263,34 @@
                       <input
                         type="file"
                         class="hidden"
-                        accept="image/*"
+                        accept="image/*,application/pdf"
                         @change="handlePosterSelect"
                       />
                     </label>
                   </p>
                   <p class="text-sm text-gray-400 mt-1">
-                    Podporované formáty: JPG, PNG, WebP
+                    Podporované formáty: JPG, PNG, WebP, PDF
                   </p>
                 </div>
                 <div v-else class="relative">
                   <img
+                    v-if="posterPreview && !posterPreview.endsWith('.pdf')"
                     :src="posterPreview"
                     alt="Náhled plakátu"
                     class="max-h-48 mx-auto rounded"
                   />
+                  <object
+                    v-else-if="posterPreview && posterPreview.endsWith('.pdf')"
+                    :data="posterPreview"
+                    type="application/pdf"
+                    class="max-h-48 mx-auto rounded"
+                  >
+                    <img
+                      src="/images/pdf-placeholder.svg"
+                      alt="PDF plakát"
+                      class="max-h-48 mx-auto rounded"
+                    />
+                  </object>
                   <button
                     @click.prevent="removePoster"
                     class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors duration-200"
@@ -1584,14 +1597,17 @@ const handlePosterSelect = (event) => {
 const handlePosterDrop = (event) => {
   isPosterDragging.value = false;
   const file = event.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) {
+  if (
+    file &&
+    (file.type.startsWith("image/") || file.type === "application/pdf")
+  ) {
     processPosterFile(file);
   }
 };
 
 const processPosterFile = async (file) => {
-  if (file.size > 5 * 1024 * 1024) {
-    toast.error("Plakát je příliš velký. Maximální velikost je 5MB.");
+  if (file.size > 10 * 1024 * 1024) {
+    toast.error("Plakát je příliš velký. Maximální velikost je 10MB.");
     return;
   }
 
@@ -1606,11 +1622,16 @@ const processPosterFile = async (file) => {
       }
     } else {
       // Pro nový koncert pouze zobrazíme náhled
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        posterPreview.value = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          posterPreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // Pro PDF soubory zobrazíme placeholder
+        posterPreview.value = "/images/pdf-placeholder.png";
+      }
       form.value.posterFile = file;
     }
   } catch (err) {
