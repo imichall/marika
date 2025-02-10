@@ -12,7 +12,7 @@
     <div class="mx-auto px-4">
       <!-- Grid galerie -->
       <div
-        v-if="images.length > 0"
+        v-if="allImages.length > 0"
         class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3]"
       >
         <!-- Velký obrázek vlevo nahoře (2x2) -->
@@ -231,7 +231,7 @@ import {
 } from "@headlessui/vue";
 import { useSupabaseClient } from "#imports";
 
-const { images, fetchAllVisibleImages } = useGallery();
+const { allImages, fetchImages } = useGallery();
 const isLightboxOpen = ref(false);
 const currentImageIndex = ref(0);
 const layoutImages = ref([]);
@@ -250,8 +250,8 @@ onMounted(async () => {
     layoutImages.value = layoutData;
   }
 
-  // Načteme všechny viditelné obrázky
-  await fetchAllVisibleImages();
+  // Načteme všechny obrázky
+  await fetchImages();
 
   // Přidání event listeneru pro klávesové šipky
   window.addEventListener("keydown", handleKeyDown);
@@ -266,7 +266,7 @@ const getImageByPosition = (position) => {
   if (!layoutItem) return null;
 
   // Najdeme odpovídající obrázek podle ID
-  const image = images.value.find((img) => img.id === layoutItem.image_id);
+  const image = allImages.value.find((img) => img.id === layoutItem.image_id);
   return image || null;
 };
 
@@ -274,7 +274,7 @@ const getImageByPosition = (position) => {
 const currentImage = computed(() => {
   // Získáme všechny obrázky z layoutu v pořadí
   const visibleImages = layoutImages.value
-    .map((layout) => images.value.find((img) => img.id === layout.image_id))
+    .map((layout) => allImages.value.find((img) => img.id === layout.image_id))
     .filter((img) => img); // Odstraníme null hodnoty
   return visibleImages[currentImageIndex.value];
 });
@@ -282,7 +282,7 @@ const currentImage = computed(() => {
 const openLightbox = (image) => {
   // Získáme všechny obrázky z layoutu v pořadí
   const visibleImages = layoutImages.value
-    .map((layout) => images.value.find((img) => img.id === layout.image_id))
+    .map((layout) => allImages.value.find((img) => img.id === layout.image_id))
     .filter((img) => img);
 
   currentImageIndex.value = visibleImages.findIndex(
@@ -296,13 +296,13 @@ const closeLightbox = () => {
 };
 
 const previousImage = () => {
-  const visibleImages = images.value.filter((img) => img.position !== null);
+  const visibleImages = allImages.value.filter((img) => img.position !== null);
   currentImageIndex.value =
     (currentImageIndex.value - 1 + visibleImages.length) % visibleImages.length;
 };
 
 const nextImage = () => {
-  const visibleImages = images.value.filter((img) => img.position !== null);
+  const visibleImages = allImages.value.filter((img) => img.position !== null);
   currentImageIndex.value =
     (currentImageIndex.value + 1) % visibleImages.length;
 };
