@@ -54,7 +54,7 @@
         :key="image.id"
         class="relative group aspect-square"
         draggable="true"
-        @dragstart="onDragStart($event, image.id)"
+        @dragstart="onDragStart(index + 1, image.id, $event)"
       >
         <div class="relative overflow-hidden rounded-lg h-full cursor-move">
           <img
@@ -117,7 +117,7 @@
         <div
           class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 1)"
+          @drop="onDrop(1, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -127,17 +127,15 @@
             v-if="layoutImages[0]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 1)"
+            @dragstart="onDragStart(1, layoutImages[0].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[0].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[0].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 1"
             />
             <button
-              @click="removeFromLayout(0)"
+              @click="removeFromLayout(1)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -164,7 +162,7 @@
         <div
           class="col-span-2 row-span-1 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 2)"
+          @drop="onDrop(2, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -174,17 +172,15 @@
             v-if="layoutImages[1]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 2)"
+            @dragstart="onDragStart(2, layoutImages[1].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[1].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[1].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 2"
             />
             <button
-              @click="removeFromLayout(1)"
+              @click="removeFromLayout(2)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -211,7 +207,7 @@
         <div
           class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 3)"
+          @drop="onDrop(3, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -221,17 +217,15 @@
             v-if="layoutImages[2]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 3)"
+            @dragstart="onDragStart(3, layoutImages[2].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[2].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[2].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 3"
             />
             <button
-              @click="removeFromLayout(2)"
+              @click="removeFromLayout(3)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -258,7 +252,7 @@
         <div
           class="col-span-1 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 4)"
+          @drop="onDrop(4, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -268,17 +262,15 @@
             v-if="layoutImages[3]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 4)"
+            @dragstart="onDragStart(4, layoutImages[3].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[3].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[3].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 4"
             />
             <button
-              @click="removeFromLayout(3)"
+              @click="removeFromLayout(4)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -305,7 +297,7 @@
         <div
           class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 5)"
+          @drop="onDrop(5, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -315,17 +307,15 @@
             v-if="layoutImages[4]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 5)"
+            @dragstart="onDragStart(5, layoutImages[4].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[4].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[4].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 5"
             />
             <button
-              @click="removeFromLayout(4)"
+              @click="removeFromLayout(5)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -352,7 +342,7 @@
         <div
           class="row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 6)"
+          @drop="onDrop(6, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -362,17 +352,15 @@
             v-if="layoutImages[5]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 6)"
+            @dragstart="onDragStart(6, layoutImages[5].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[5].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[5].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 6"
             />
             <button
-              @click="removeFromLayout(5)"
+              @click="removeFromLayout(6)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -399,7 +387,7 @@
         <div
           class="col-span-3 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 7)"
+          @drop="onDrop(7, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -409,17 +397,15 @@
             v-if="layoutImages[6]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 7)"
+            @dragstart="onDragStart(7, layoutImages[6].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[6].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[6].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 7"
             />
             <button
-              @click="removeFromLayout(6)"
+              @click="removeFromLayout(7)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -446,7 +432,7 @@
         <div
           class="col-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 8)"
+          @drop="onDrop(8, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -456,17 +442,15 @@
             v-if="layoutImages[7]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 8)"
+            @dragstart="onDragStart(8, layoutImages[7].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[7].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[7].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 8"
             />
             <button
-              @click="removeFromLayout(7)"
+              @click="removeFromLayout(8)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -493,7 +477,7 @@
         <div
           class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
-          @drop.prevent="onDrop($event, 9)"
+          @drop="onDrop(9, $event)"
         >
           <span
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
@@ -503,17 +487,15 @@
             v-if="layoutImages[8]?.id"
             class="absolute inset-0 p-2"
             draggable="true"
-            @dragstart="onLayoutDragStart($event, 9)"
+            @dragstart="onDragStart(9, layoutImages[8].id, $event)"
           >
             <img
-              :src="
-                images.find((img) => img.id === layoutImages[8].id)?.image_url
-              "
+              :src="images.find((img: GalleryImage) => img.id === layoutImages[8].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 9"
             />
             <button
-              @click="removeFromLayout(8)"
+              @click="removeFromLayout(9)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -540,6 +522,30 @@
         Toto schéma zobrazuje rozložení fotografií na webu. Čísla představují
         poměr velikostí (šířka×výška).
       </p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <h2 class="text-2xl font-bold col-span-2">Náčrt rozložení</h2>
+      <div class="flex justify-end">
+        <button
+          @click="saveLayout"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
+          :class="{ 'opacity-50 cursor-not-allowed': !hasUnsavedChanges }"
+          :disabled="!hasUnsavedChanges"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h-2v5.586l-1.293-1.293z"
+            />
+          </svg>
+          Uložit rozložení
+        </button>
+      </div>
     </div>
 
     <!-- Modal pro nahrávání -->
@@ -780,6 +786,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "#imports";
 import { useGallery } from "~/composables/useGallery";
+import type { GalleryImage } from "~/composables/useGallery";
 import { useToast } from "~/composables/useToast";
 import draggable from "vuedraggable";
 import {
@@ -789,20 +796,15 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
 
 definePageMeta({
   layout: "admin",
   middleware: ["auth"],
 });
 
-interface Image {
-  id: string;
-  image_url: string;
-  title?: string;
-}
-
 interface LayoutImage {
-  id: string | null;
+  id: number | null;
   position: number;
 }
 
@@ -824,6 +826,8 @@ const {
 } = useGallery();
 const { success, error: showError } = useToast();
 
+const supabase = useSupabaseClient();
+
 const zobrazitModalNahraniFotek = ref(false);
 const showDeleteModal = ref(false);
 const showLightbox = ref(false);
@@ -831,7 +835,7 @@ const isDragging = ref(false);
 const selectedFiles = ref<File[]>([]);
 const previewUrls = ref<string[]>([]);
 const uploading = ref(false);
-const imageToDelete = ref(null);
+const imageToDelete = ref<string | null>(null);
 const currentImageIndex = ref(0);
 const selectedImageIndex = ref<number | null>(null);
 
@@ -847,8 +851,11 @@ const layoutImages = ref<LayoutImage[]>([
   { id: null, position: 9 },
 ]);
 
-onMounted(() => {
-  fetchImages();
+const hasUnsavedChanges = ref(false);
+
+onMounted(async () => {
+  await fetchImages();
+  await loadLayout();
 });
 
 const handleDelete = async (image: any) => {
@@ -883,10 +890,9 @@ const handleUploadSuccess = () => {
 };
 
 const handleFileSelect = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  if (target.files) {
-    const files = Array.from(target.files);
-    processFiles(files);
+  const input = event.target as HTMLInputElement;
+  if (input.files) {
+    processFiles(Array.from(input.files));
   }
 };
 
@@ -901,27 +907,13 @@ const handleDrop = (event: DragEvent) => {
 };
 
 const processFiles = (files: File[]) => {
-  files.forEach((file) => {
-    if (file.size > 5 * 1024 * 1024) {
-      showError(
-        `Soubor ${file.name} je příliš velký. Maximální velikost je 5MB.`
-      );
-      return;
-    }
-
-    selectedFiles.value.push(file);
-    const reader = new FileReader();
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      if (e.target?.result) {
-        previewUrls.value.push(e.target.result.toString());
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  selectedFiles.value = files;
+  previewUrls.value = files.map((file) => URL.createObjectURL(file));
 };
 
 const removeFile = (index: number) => {
   selectedFiles.value.splice(index, 1);
+  URL.revokeObjectURL(previewUrls.value[index]);
   previewUrls.value.splice(index, 1);
 };
 
@@ -930,7 +922,7 @@ const uploadFiles = async () => {
     uploading.value = true;
     const formData = new FormData();
 
-    selectedFiles.value.forEach((file, index) => {
+    selectedFiles.value.forEach((file: File, index: number) => {
       const timestamp = Date.now();
       const fileName = `mansory-${String(index + 1).padStart(
         5,
@@ -949,12 +941,11 @@ const uploadFiles = async () => {
     await fetchImages();
     closeUploadModal();
     success("Fotografie byly úspěšně nahrány");
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error uploading files:", error);
-    showError(
-      "Chyba při nahrávání: " +
-        (error instanceof Error ? error.message : "Neznámá chyba")
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Neznámá chyba";
+    showError("Chyba při nahrávání: " + errorMessage);
   } finally {
     uploading.value = false;
   }
@@ -979,9 +970,11 @@ const confirmDelete = async () => {
     showDeleteModal.value = false;
     imageToDelete.value = null;
     success("Fotografie byla úspěšně smazána");
-  } catch (err) {
-    console.error("Error deleting image:", err);
-    showError("Chyba při mazání: " + err.message);
+  } catch (error: unknown) {
+    console.error("Error deleting image:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Neznámá chyba";
+    showError("Chyba při mazání: " + errorMessage);
   }
 };
 
@@ -1000,60 +993,115 @@ const handleClearCache = async () => {
   success("Cache byla vymazána");
 };
 
-const onDragStart = (event: DragEvent, imageId: string | null) => {
-  if (!imageId) return;
-  event.dataTransfer?.setData("imageId", imageId);
-  event.dataTransfer?.setData("sourceType", "gallery");
+const onDragStart = (position: number, id: number | null, event: DragEvent) => {
+  if (!id || !event.dataTransfer) return;
+
+  event.dataTransfer.setData("imageId", String(id));
+  event.dataTransfer.setData("sourceType", "layout");
+  event.dataTransfer.setData("sourcePosition", String(position));
 };
 
-const onLayoutDragStart = (event: DragEvent, position: number) => {
-  const index = position - 1;
-  const imageId = layoutImages.value[index]?.id;
-  if (!imageId) return;
-
-  event.dataTransfer?.setData("imageId", imageId);
-  event.dataTransfer?.setData("sourcePosition", String(position));
-  event.dataTransfer?.setData("sourceType", "layout");
-};
-
-const onDrop = (event: DragEvent, position: number) => {
+const onDrop = async (position: number, event: DragEvent) => {
   event.preventDefault();
-  if (!event.dataTransfer) return;
 
-  const imageId = event.dataTransfer.getData("imageId");
-  const sourceType = event.dataTransfer.getData("sourceType");
-  const sourcePosition = event.dataTransfer.getData("sourcePosition");
+  // Získáme data z přenosu
+  const imageId = Number(event.dataTransfer?.getData("imageId"));
+  const sourceType = event.dataTransfer?.getData("sourceType");
+  const sourcePosition = event.dataTransfer?.getData("sourcePosition");
 
   if (!imageId) return;
 
-  const targetIndex = position - 1;
+  // Vytvoříme kopii layoutu
+  const newLayout = [...layoutImages.value];
 
   if (sourceType === "layout" && sourcePosition) {
-    // Přesun mezi pozicemi v layoutu
+    // Přesouvání mezi pozicemi v layoutu
     const sourceIndex = parseInt(sourcePosition) - 1;
-    const sourceImageId = layoutImages.value[sourceIndex].id;
+    const targetIndex = position - 1;
 
-    // Prohodíme obrázky mezi pozicemi
-    layoutImages.value[sourceIndex].id = layoutImages.value[targetIndex].id;
-    layoutImages.value[targetIndex].id = sourceImageId;
-
-    success(
-      `Obrázek byl přesunut z pozice ${sourcePosition} na pozici ${position}`
-    );
+    // Prohodíme ID obrázků
+    const tempId = newLayout[sourceIndex].id;
+    newLayout[sourceIndex].id = newLayout[targetIndex].id;
+    newLayout[targetIndex].id = tempId;
   } else {
-    // Přesun z galerie do layoutu
-    const droppedImage = images.value?.find((img: Image) => img.id === imageId);
-    if (droppedImage && layoutImages.value) {
-      layoutImages.value[targetIndex].id = imageId;
-      success(`Obrázek byl přiřazen na pozici ${position}`);
-    }
+    // Přetažení nového obrázku z galerie
+    newLayout[position - 1].id = imageId;
+  }
+
+  layoutImages.value = newLayout;
+  hasUnsavedChanges.value = true;
+};
+
+const removeFromLayout = async (position: number) => {
+  const index = position - 1;
+  if (index >= 0 && index < layoutImages.value.length) {
+    // Nastavíme ID na null pro danou pozici
+    layoutImages.value[index] = {
+      ...layoutImages.value[index],
+      id: null,
+    };
+
+    // Uložíme změny do databáze
+    await saveLayout();
   }
 };
 
-const removeFromLayout = (index: number) => {
-  if (layoutImages.value[index]) {
-    layoutImages.value[index].id = null;
-    success("Obrázek byl odebrán z náčrtu");
+const loadLayout = async () => {
+  try {
+    const { data: layoutData, error: err } = await supabase
+      .from("gallery_layout")
+      .select("*")
+      .order("position", { ascending: true });
+
+    if (err) throw err;
+
+    if (layoutData) {
+      // Aktualizujeme layout podle dat z databáze
+      layoutData.forEach((item) => {
+        const index = layoutImages.value.findIndex(
+          (img) => img.position === item.position
+        );
+        if (index !== -1) {
+          layoutImages.value[index].id = item.image_id;
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Error loading layout:", err);
+    showError("Chyba při načítání rozložení");
+  }
+};
+
+const saveLayout = async () => {
+  try {
+    // Nejdřív smažeme všechny existující záznamy
+    const { error: deleteError } = await supabase
+      .from("gallery_layout")
+      .delete()
+      .neq("position", 0); // Smažeme všechny pozice
+
+    if (deleteError) throw deleteError;
+
+    // Připravíme data pro uložení
+    const layoutData = layoutImages.value
+      .filter((img) => img.id !== null)
+      .map((img) => ({
+        image_id: img.id,
+        position: img.position,
+      }));
+
+    // Uložíme nové rozložení
+    const { error: insertError } = await supabase
+      .from("gallery_layout")
+      .insert(layoutData);
+
+    if (insertError) throw insertError;
+
+    hasUnsavedChanges.value = false;
+    success("Rozložení bylo úspěšně uloženo");
+  } catch (err) {
+    console.error("Error saving layout:", err);
+    showError("Chyba při ukládání rozložení");
   }
 };
 </script>

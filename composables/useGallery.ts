@@ -7,8 +7,8 @@ const CACHE_TIMESTAMP_KEY = 'gallery_images_cache_timestamp'
 const CACHE_DURATION = 1000 * 60 * 60 // 1 hour
 const ITEMS_PER_PAGE = 12
 
-interface GalleryImage {
-  id: string
+export interface GalleryImage {
+  id: number
   image_url: string
   title: string
   is_visible: boolean
@@ -68,7 +68,7 @@ export const useGallery = () => {
 
       if (data) {
         images.value = data.map((item: any) => ({
-          id: String(item.id),
+          id: Number(item.id),
           image_url: String(item.image_url),
           title: String(item.title),
           is_visible: Boolean(item.is_visible),
@@ -108,7 +108,7 @@ export const useGallery = () => {
 
       if (data) {
         images.value = data.map((item: any) => ({
-          id: String(item.id),
+          id: Number(item.id),
           image_url: String(item.image_url),
           title: String(item.title),
           is_visible: Boolean(item.is_visible),
@@ -125,7 +125,7 @@ export const useGallery = () => {
     }
   }
 
-  const toggleVisibility = async (imageId: string, isVisible: boolean) => {
+  const toggleVisibility = async (imageId: number, isVisible: boolean) => {
     try {
       const { error: err } = await supabase
         .from('gallery')
@@ -197,7 +197,7 @@ export const useGallery = () => {
     await fetchImages()
   }
 
-  const updatePosition = async (imageId: string, position: number | null) => {
+  const updatePosition = async (imageId: number, position: number | null) => {
     try {
       const { error: err } = await supabase
         .from('gallery')
