@@ -33,6 +33,7 @@ export const useGallery = () => {
   const totalImages = ref(0)
   const usedPositions = ref<Set<number>>(new Set())
   const { showToast } = useToast() as { showToast: Toast }
+  const allImages = ref<GalleryImage[]>([])
 
   const clearCache = () => {
     localStorage.removeItem(CACHE_KEY)
@@ -54,7 +55,24 @@ export const useGallery = () => {
         totalPages.value = Math.ceil(count / ITEMS_PER_PAGE)
       }
 
-      // Get paginated data
+      // Načteme všechny obrázky pro allImages
+      const { data: allData } = await supabase
+        .from('gallery')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (allData) {
+        allImages.value = allData.map((item: any) => ({
+          id: Number(item.id),
+          image_url: String(item.image_url),
+          title: String(item.title),
+          is_visible: Boolean(item.is_visible),
+          created_at: String(item.created_at),
+          position: item.position ? Number(item.position) : null
+        }))
+      }
+
+      // Get paginated data for current page
       const { data, error: err } = await supabase
         .from('gallery')
         .select('*')
@@ -288,6 +306,7 @@ export const useGallery = () => {
     changePage,
     handlePositionChange,
     updateUsedPositions,
-    updatePosition
+    updatePosition,
+    allImages
   }
 }

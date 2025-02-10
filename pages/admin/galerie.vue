@@ -96,7 +96,7 @@
       <button
         v-for="page in totalPages"
         :key="page"
-        @click="changePage(page)"
+        @click="handlePageChange(page)"
         class="px-4 py-2 rounded-lg transition-colors duration-200"
         :class="{
           'bg-red-500 text-white': currentPage === page,
@@ -130,7 +130,7 @@
             @dragstart="onDragStart(1, layoutImages[0].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[0].id)?.image_url"
+              :src="getImageById(layoutImages[0].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 1"
             />
@@ -175,7 +175,7 @@
             @dragstart="onDragStart(2, layoutImages[1].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[1].id)?.image_url"
+              :src="getImageById(layoutImages[1].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 2"
             />
@@ -220,7 +220,7 @@
             @dragstart="onDragStart(3, layoutImages[2].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[2].id)?.image_url"
+              :src="getImageById(layoutImages[2].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 3"
             />
@@ -265,7 +265,7 @@
             @dragstart="onDragStart(4, layoutImages[3].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[3].id)?.image_url"
+              :src="getImageById(layoutImages[3].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 4"
             />
@@ -310,7 +310,7 @@
             @dragstart="onDragStart(5, layoutImages[4].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[4].id)?.image_url"
+              :src="getImageById(layoutImages[4].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 5"
             />
@@ -355,7 +355,7 @@
             @dragstart="onDragStart(6, layoutImages[5].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[5].id)?.image_url"
+              :src="getImageById(layoutImages[5].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 6"
             />
@@ -400,7 +400,7 @@
             @dragstart="onDragStart(7, layoutImages[6].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[6].id)?.image_url"
+              :src="getImageById(layoutImages[6].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 7"
             />
@@ -445,7 +445,7 @@
             @dragstart="onDragStart(8, layoutImages[7].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[7].id)?.image_url"
+              :src="getImageById(layoutImages[7].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 8"
             />
@@ -490,7 +490,7 @@
             @dragstart="onDragStart(9, layoutImages[8].id, $event)"
           >
             <img
-              :src="images.find((img: GalleryImage) => img.id === layoutImages[8].id)?.image_url"
+              :src="getImageById(layoutImages[8].id)?.image_url"
               class="w-full h-full object-cover rounded-lg"
               alt="Pozice 9"
             />
@@ -823,6 +823,8 @@ const {
   deleteImage,
   clearCache,
   changePage,
+  fetchAllVisibleImages,
+  allImages,
 } = useGallery();
 const { success, error: showError } = useToast();
 
@@ -853,7 +855,24 @@ const layoutImages = ref<LayoutImage[]>([
 
 const hasUnsavedChanges = ref(false);
 
+// Funkce pro získání obrázku podle ID
+const getImageById = (id: number | null) => {
+  if (!id) return null;
+  return allImages.value.find((img) => img.id === id);
+};
+
 onMounted(async () => {
+  // Načteme všechny obrázky do allImages
+  const { data } = await supabase
+    .from("gallery")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (data) {
+    allImages.value = data;
+  }
+
+  // Načteme první stránku galerie
   await fetchImages();
   await loadLayout();
 });
@@ -994,11 +1013,12 @@ const handleClearCache = async () => {
 };
 
 const onDragStart = (position: number, id: number | null, event: DragEvent) => {
-  if (!id || !event.dataTransfer) return;
+  if (!event.dataTransfer) return;
 
-  event.dataTransfer.setData("imageId", String(id));
-  event.dataTransfer.setData("sourceType", "layout");
-  event.dataTransfer.setData("sourcePosition", String(position));
+  if (id) {
+    event.dataTransfer.setData("imageId", String(id));
+    event.dataTransfer.setData("sourceType", "gallery");
+  }
 };
 
 const onDrop = async (position: number, event: DragEvent) => {
@@ -1048,6 +1068,7 @@ const removeFromLayout = async (position: number) => {
 
 const loadLayout = async () => {
   try {
+    // Nejdřív načteme všechny obrázky
     const { data: layoutData, error: err } = await supabase
       .from("gallery_layout")
       .select("*")
@@ -1055,9 +1076,26 @@ const loadLayout = async () => {
 
     if (err) throw err;
 
+    // Načteme všechny obrázky z galerie
+    const { data: allImagesData, error: imagesErr } = await supabase
+      .from("gallery")
+      .select("*");
+
+    if (imagesErr) throw imagesErr;
+
+    // Uložíme všechny obrázky do ref
+    allImages.value = allImagesData.map((item: any) => ({
+      id: Number(item.id),
+      image_url: String(item.image_url),
+      title: String(item.title),
+      is_visible: Boolean(item.is_visible),
+      created_at: String(item.created_at),
+      position: item.position ? Number(item.position) : null,
+    }));
+
     if (layoutData) {
       // Aktualizujeme layout podle dat z databáze
-      layoutData.forEach((item) => {
+      layoutData.forEach((item: any) => {
         const index = layoutImages.value.findIndex(
           (img) => img.position === item.position
         );
@@ -1103,6 +1141,13 @@ const saveLayout = async () => {
     console.error("Error saving layout:", err);
     showError("Chyba při ukládání rozložení");
   }
+};
+
+// Upravíme funkci changePage tak, aby neovlivňovala allImages
+const handlePageChange = async (page: number) => {
+  if (page === currentPage.value) return;
+  currentPage.value = page;
+  await fetchImages();
 };
 </script>
 
