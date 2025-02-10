@@ -141,6 +141,7 @@ import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useTicketOrders } from "~/composables/useTicketOrders";
 import { ref, onMounted, computed } from "vue";
+import NotificationPanel from "~/components/NotificationPanel.vue";
 
 const { logout } = useAuth();
 const router = useRouter();
