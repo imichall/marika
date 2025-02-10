@@ -123,7 +123,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >1</span
           >
-          <div v-if="layoutImages[0]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[0]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 1)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[0].id)?.image_url
@@ -165,7 +170,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >2</span
           >
-          <div v-if="layoutImages[1]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[1]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 2)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[1].id)?.image_url
@@ -207,7 +217,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >3</span
           >
-          <div v-if="layoutImages[2]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[2]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 3)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[2].id)?.image_url
@@ -249,7 +264,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >4</span
           >
-          <div v-if="layoutImages[3]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[3]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 4)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[3].id)?.image_url
@@ -291,7 +311,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >5</span
           >
-          <div v-if="layoutImages[4]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[4]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 5)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[4].id)?.image_url
@@ -333,7 +358,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >6</span
           >
-          <div v-if="layoutImages[5]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[5]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 6)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[5].id)?.image_url
@@ -375,7 +405,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >7</span
           >
-          <div v-if="layoutImages[6]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[6]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 7)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[6].id)?.image_url
@@ -417,7 +452,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >8</span
           >
-          <div v-if="layoutImages[7]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[7]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 8)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[7].id)?.image_url
@@ -459,7 +499,12 @@
             class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
             >9</span
           >
-          <div v-if="layoutImages[8]?.id" class="absolute inset-0 p-2">
+          <div
+            v-if="layoutImages[8]?.id"
+            class="absolute inset-0 p-2"
+            draggable="true"
+            @dragstart="onLayoutDragStart($event, 9)"
+          >
             <img
               :src="
                 images.find((img) => img.id === layoutImages[8].id)?.image_url
@@ -761,6 +806,11 @@ interface LayoutImage {
   position: number;
 }
 
+interface DragEndEvent {
+  dataTransfer: DataTransfer;
+  target: HTMLElement;
+}
+
 const {
   images,
   loading: nacitani,
@@ -950,23 +1000,54 @@ const handleClearCache = async () => {
   success("Cache byla vymazána");
 };
 
+const onDragStart = (event: DragEvent, imageId: string | null) => {
+  if (!imageId) return;
+  event.dataTransfer?.setData("imageId", imageId);
+  event.dataTransfer?.setData("sourceType", "gallery");
+};
+
+const onLayoutDragStart = (event: DragEvent, position: number) => {
+  const index = position - 1;
+  const imageId = layoutImages.value[index]?.id;
+  if (!imageId) return;
+
+  event.dataTransfer?.setData("imageId", imageId);
+  event.dataTransfer?.setData("sourcePosition", String(position));
+  event.dataTransfer?.setData("sourceType", "layout");
+};
+
 const onDrop = (event: DragEvent, position: number) => {
+  event.preventDefault();
   if (!event.dataTransfer) return;
 
   const imageId = event.dataTransfer.getData("imageId");
-  const droppedImage = images.value?.find((img: Image) => img.id === imageId);
+  const sourceType = event.dataTransfer.getData("sourceType");
+  const sourcePosition = event.dataTransfer.getData("sourcePosition");
 
-  if (droppedImage && layoutImages.value) {
-    const index = position - 1;
-    if (index >= 0 && index < layoutImages.value.length) {
-      layoutImages.value[index].id = imageId;
+  if (!imageId) return;
+
+  const targetIndex = position - 1;
+
+  if (sourceType === "layout" && sourcePosition) {
+    // Přesun mezi pozicemi v layoutu
+    const sourceIndex = parseInt(sourcePosition) - 1;
+    const sourceImageId = layoutImages.value[sourceIndex].id;
+
+    // Prohodíme obrázky mezi pozicemi
+    layoutImages.value[sourceIndex].id = layoutImages.value[targetIndex].id;
+    layoutImages.value[targetIndex].id = sourceImageId;
+
+    success(
+      `Obrázek byl přesunut z pozice ${sourcePosition} na pozici ${position}`
+    );
+  } else {
+    // Přesun z galerie do layoutu
+    const droppedImage = images.value?.find((img: Image) => img.id === imageId);
+    if (droppedImage && layoutImages.value) {
+      layoutImages.value[targetIndex].id = imageId;
       success(`Obrázek byl přiřazen na pozici ${position}`);
     }
   }
-};
-
-const onDragStart = (event: any, imageId: string) => {
-  event.dataTransfer.setData("imageId", imageId);
 };
 
 const removeFromLayout = (index: number) => {
