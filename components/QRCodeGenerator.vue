@@ -91,7 +91,8 @@
         <input
           v-model="amount"
           type="number"
-          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+          disabled
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 cursor-not-allowed"
         />
       </div>
 
