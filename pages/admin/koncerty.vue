@@ -163,7 +163,7 @@
           <div v-if="showQRSection">
             <QRCodeGenerator
               :concert-title="form.title"
-              :price="Number(form.price)"
+              v-model:price="form.price"
               :selected-group="form.group_name"
               v-model="form.variable_symbol"
               v-model:account-number="form.account_number"

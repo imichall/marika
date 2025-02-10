@@ -152,6 +152,7 @@ const emit = defineEmits([
   "update:modelValue",
   "update:accountNumber",
   "update:bankCode",
+  "update:price",
 ]);
 
 const accountPrefix = ref("");
@@ -415,6 +416,20 @@ watch(
   },
   { immediate: true }
 );
+
+// Sledování změny ceny z props
+watch(
+  () => props.price,
+  (newPrice) => {
+    amount.value = newPrice;
+  },
+  { immediate: true }
+);
+
+// Emitování změny částky zpět do parent komponenty
+watch(amount, (newAmount) => {
+  emit("update:price", Number(newAmount));
+});
 
 // Exportujeme data pro rodiče
 defineExpose({
