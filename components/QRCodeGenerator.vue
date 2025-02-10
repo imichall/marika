@@ -146,6 +146,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  modelValue: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits([
@@ -161,7 +165,7 @@ const accountPrefixError = ref("");
 const accountNumberError = ref("");
 const bankCode = ref("3030");
 const amount = ref(props.price);
-const variableSymbol = ref("");
+const variableSymbol = ref(props.modelValue);
 const message = ref(props.concertTitle);
 const qrCodeData = ref("");
 const isAccountLocked = ref(false);
@@ -452,4 +456,22 @@ watch(
   },
   { immediate: true }
 );
+
+// Sledování změny variabilního symbolu z props
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    if (newValue !== variableSymbol.value) {
+      variableSymbol.value = newValue;
+    }
+  },
+  { immediate: true }
+);
+
+// Sledování změny lokálního variabilního symbolu
+watch(variableSymbol, (newValue) => {
+  if (newValue !== props.modelValue) {
+    emit("update:modelValue", newValue);
+  }
+});
 </script>
