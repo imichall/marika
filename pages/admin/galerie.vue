@@ -135,7 +135,7 @@
               alt="Pozice 1"
             />
             <button
-              @click="removeFromLayout(1)"
+              @click="removeImage(1)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -180,7 +180,7 @@
               alt="Pozice 2"
             />
             <button
-              @click="removeFromLayout(2)"
+              @click="removeImage(2)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -225,7 +225,7 @@
               alt="Pozice 3"
             />
             <button
-              @click="removeFromLayout(3)"
+              @click="removeImage(3)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -270,7 +270,7 @@
               alt="Pozice 4"
             />
             <button
-              @click="removeFromLayout(4)"
+              @click="removeImage(4)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -315,7 +315,7 @@
               alt="Pozice 5"
             />
             <button
-              @click="removeFromLayout(5)"
+              @click="removeImage(5)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -360,7 +360,7 @@
               alt="Pozice 6"
             />
             <button
-              @click="removeFromLayout(6)"
+              @click="removeImage(6)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -405,7 +405,7 @@
               alt="Pozice 7"
             />
             <button
-              @click="removeFromLayout(7)"
+              @click="removeImage(7)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -450,7 +450,7 @@
               alt="Pozice 8"
             />
             <button
-              @click="removeFromLayout(8)"
+              @click="removeImage(8)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -495,7 +495,7 @@
               alt="Pozice 9"
             />
             <button
-              @click="removeFromLayout(9)"
+              @click="removeImage(9)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
               title="Odebrat z náčrtu"
             >
@@ -1012,57 +1012,73 @@ const handleClearCache = async () => {
   success("Cache byla vymazána");
 };
 
-const onDragStart = (position: number, id: number | null, event: DragEvent) => {
+const onDragStart = (
+  position: number,
+  imageId: number | null,
+  event: DragEvent
+) => {
   if (!event.dataTransfer) return;
 
-  if (id) {
-    event.dataTransfer.setData("imageId", String(id));
+  if (imageId) {
+    event.dataTransfer.setData("imageId", String(imageId));
     event.dataTransfer.setData("sourceType", "gallery");
+    event.dataTransfer.setData("sourcePosition", String(position));
   }
 };
 
-const onDrop = async (position: number, event: DragEvent) => {
+const onDrop = (position: number, event: DragEvent) => {
   event.preventDefault();
+  if (!event.dataTransfer) return;
 
-  // Získáme data z přenosu
-  const imageId = Number(event.dataTransfer?.getData("imageId"));
-  const sourceType = event.dataTransfer?.getData("sourceType");
-  const sourcePosition = event.dataTransfer?.getData("sourcePosition");
+  const imageId = event.dataTransfer.getData("imageId");
+  const sourceType = event.dataTransfer.getData("sourceType");
 
   if (!imageId) return;
 
-  // Vytvoříme kopii layoutu
-  const newLayout = [...layoutImages.value];
+  const targetIndex = layoutImages.value.findIndex(
+    (img) => img.position === position
+  );
 
-  if (sourceType === "layout" && sourcePosition) {
-    // Přesouvání mezi pozicemi v layoutu
-    const sourceIndex = parseInt(sourcePosition) - 1;
-    const targetIndex = position - 1;
+  if (targetIndex === -1) return;
 
-    // Prohodíme ID obrázků
-    const tempId = newLayout[sourceIndex].id;
-    newLayout[sourceIndex].id = newLayout[targetIndex].id;
-    newLayout[targetIndex].id = tempId;
-  } else {
-    // Přetažení nového obrázku z galerie
-    newLayout[position - 1].id = imageId;
+  // Pokud přetahujeme z galerie
+  if (sourceType === "gallery") {
+    // Nejdřív odstraníme obrázek z původní pozice, pokud existuje
+    const existingIndex = layoutImages.value.findIndex(
+      (img) => img.id === Number(imageId)
+    );
+    if (existingIndex !== -1) {
+      layoutImages.value[existingIndex].id = null;
+    }
+
+    // Pak přidáme na novou pozici
+    layoutImages.value[targetIndex].id = Number(imageId);
+  }
+  // Pokud přetahujeme v rámci layoutu
+  else {
+    const sourcePosition = Number(event.dataTransfer.getData("sourcePosition"));
+    const sourceIndex = layoutImages.value.findIndex(
+      (img) => img.position === sourcePosition
+    );
+
+    if (sourceIndex !== -1) {
+      // Prohodíme ID obrázků mezi zdrojovou a cílovou pozicí
+      const tempId = layoutImages.value[sourceIndex].id;
+      layoutImages.value[sourceIndex].id = layoutImages.value[targetIndex].id;
+      layoutImages.value[targetIndex].id = tempId;
+    }
   }
 
-  layoutImages.value = newLayout;
   hasUnsavedChanges.value = true;
 };
 
-const removeFromLayout = async (position: number) => {
-  const index = position - 1;
-  if (index >= 0 && index < layoutImages.value.length) {
-    // Nastavíme ID na null pro danou pozici
-    layoutImages.value[index] = {
-      ...layoutImages.value[index],
-      id: null,
-    };
-
-    // Uložíme změny do databáze
-    await saveLayout();
+const removeImage = (position: number) => {
+  const index = layoutImages.value.findIndex(
+    (img) => img.position === position
+  );
+  if (index !== -1) {
+    layoutImages.value[index].id = null;
+    hasUnsavedChanges.value = true;
   }
 };
 
@@ -1112,14 +1128,6 @@ const loadLayout = async () => {
 
 const saveLayout = async () => {
   try {
-    // Nejdřív smažeme všechny existující záznamy
-    const { error: deleteError } = await supabase
-      .from("gallery_layout")
-      .delete()
-      .neq("position", 0); // Smažeme všechny pozice
-
-    if (deleteError) throw deleteError;
-
     // Připravíme data pro uložení
     const layoutData = layoutImages.value
       .filter((img) => img.id !== null)
@@ -1128,15 +1136,26 @@ const saveLayout = async () => {
         position: img.position,
       }));
 
-    // Uložíme nové rozložení
-    const { error: insertError } = await supabase
+    // Nejdřív smažeme všechny existující záznamy - bez podmínky
+    const { error: deleteError } = await supabase
       .from("gallery_layout")
-      .insert(layoutData);
+      .delete()
+      .neq("position", -1); // Použijeme vždy pravdivou podmínku
 
-    if (insertError) throw insertError;
+    if (deleteError) throw deleteError;
 
-    hasUnsavedChanges.value = false;
+    // Pokud máme nějaká data k uložení
+    if (layoutData.length > 0) {
+      // Pak vložíme nové záznamy
+      const { error: insertError } = await supabase
+        .from("gallery_layout")
+        .insert(layoutData);
+
+      if (insertError) throw insertError;
+    }
+
     success("Rozložení bylo úspěšně uloženo");
+    hasUnsavedChanges.value = false;
   } catch (err) {
     console.error("Error saving layout:", err);
     showError("Chyba při ukládání rozložení");

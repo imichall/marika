@@ -229,31 +229,62 @@ import {
   Dialog,
   DialogPanel,
 } from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
 
 const { images, fetchAllVisibleImages } = useGallery();
 const isLightboxOpen = ref(false);
 const currentImageIndex = ref(0);
+const layoutImages = ref([]);
 
 // Načtení obrázků při vytvoření komponenty
 onMounted(async () => {
+  const supabase = useSupabaseClient();
+
+  // Načteme layout z databáze
+  const { data: layoutData } = await supabase
+    .from("gallery_layout")
+    .select("*")
+    .order("position", { ascending: true });
+
+  if (layoutData) {
+    layoutImages.value = layoutData;
+  }
+
+  // Načteme všechny viditelné obrázky
   await fetchAllVisibleImages();
+
   // Přidání event listeneru pro klávesové šipky
   window.addEventListener("keydown", handleKeyDown);
 });
 
 // Funkce pro získání obrázku podle pozice
 const getImageByPosition = (position) => {
-  return images.value.find((img) => img.position === position);
+  // Najdeme záznam v layoutu pro danou pozici
+  const layoutItem = layoutImages.value.find(
+    (item) => item.position === position
+  );
+  if (!layoutItem) return null;
+
+  // Najdeme odpovídající obrázek podle ID
+  const image = images.value.find((img) => img.id === layoutItem.image_id);
+  return image || null;
 };
 
 // Lightbox funkce
 const currentImage = computed(() => {
-  const visibleImages = images.value.filter((img) => img.position !== null);
+  // Získáme všechny obrázky z layoutu v pořadí
+  const visibleImages = layoutImages.value
+    .map((layout) => images.value.find((img) => img.id === layout.image_id))
+    .filter((img) => img); // Odstraníme null hodnoty
   return visibleImages[currentImageIndex.value];
 });
 
 const openLightbox = (image) => {
-  const visibleImages = images.value.filter((img) => img.position !== null);
+  // Získáme všechny obrázky z layoutu v pořadí
+  const visibleImages = layoutImages.value
+    .map((layout) => images.value.find((img) => img.id === layout.image_id))
+    .filter((img) => img);
+
   currentImageIndex.value = visibleImages.findIndex(
     (img) => img.id === image.id
   );
