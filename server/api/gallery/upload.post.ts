@@ -1,48 +1,48 @@
-import formidable from 'formidable'
-import type { Fields, Files, File } from 'formidable'
 import { serverSupabaseClient } from '#supabase/server'
-import { readFile } from 'fs/promises'
+import { readMultipartFormData } from 'h3'
+
+interface GalleryImage {
+  id?: number
+  image_url: string
+  title: string
+  created_at: string
+}
 
 export default defineEventHandler(async (event) => {
   try {
-    const form = formidable({
-      maxFiles: 10,
-      maxFileSize: 5 * 1024 * 1024, // 5MB
-      allowEmptyFiles: false,
-      filter: (part) => {
-        return part.mimetype?.startsWith('image/') || false
-      }
-    })
+    const formData = await readMultipartFormData(event)
+    if (!formData || formData.length === 0) {
+      throw new Error('Žádný soubor nebyl nahrán')
+    }
 
-    const [fields, files] = await new Promise<[Fields, Files]>((resolve, reject) => {
-      form.parse(event.node.req, (err, fields, files) => {
-        if (err) reject(err)
-        else resolve([fields, files])
-      })
-    })
-
-    const uploadedFiles = Array.isArray(files.images) ? files.images : [files.images]
     const savedFiles = []
-
     const client = await serverSupabaseClient(event)
 
-    for (const file of uploadedFiles) {
-      if (!file) continue
+    for (const file of formData) {
+      if (!file.type?.startsWith('image/')) {
+        throw new Error('Nepodporovaný formát souboru. Povoleny jsou pouze obrázky.')
+      }
 
-      const fileName = file.originalFilename || 'image.jpg'
+      if (!file.data || file.data.length === 0) {
+        throw new Error('Prázdný soubor')
+      }
+
+      if (file.data.length > 5 * 1024 * 1024) {
+        throw new Error('Soubor je příliš velký. Maximální velikost je 5MB.')
+      }
+
+      const fileName = file.filename || 'image.jpg'
       const timestamp = Date.now()
       const newFileName = `mansory-${timestamp}-${fileName.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`
-
-      // Přečtení obsahu souboru z dočasného umístění
-      const fileContent = await readFile(file.filepath)
 
       // Upload do Supabase Storage
       const { data: storageData, error: storageError } = await client
         .storage
         .from('gallery')
-        .upload(newFileName, fileContent, {
-          contentType: file.mimetype || 'image/jpeg',
-          cacheControl: '3600'
+        .upload(newFileName, file.data, {
+          contentType: file.type || 'image/jpeg',
+          cacheControl: '3600',
+          duplex: 'half'
         })
 
       if (storageError) {
@@ -56,14 +56,16 @@ export default defineEventHandler(async (event) => {
         .from('gallery')
         .getPublicUrl(newFileName)
 
+      const newImage: Omit<GalleryImage, 'id'> = {
+        image_url: publicURL.publicUrl,
+        title: fileName.split('.')[0],
+        created_at: new Date().toISOString()
+      }
+
       // Uložení záznamu do databáze
       const { data: dbData, error: dbError } = await client
         .from('gallery')
-        .insert([{
-          image_url: publicURL.publicUrl,
-          title: fileName.split('.')[0], // Použijeme název souboru jako titulek
-          created_at: new Date().toISOString()
-        }])
+        .insert(newImage)
         .select()
         .single()
 
@@ -84,9 +86,9 @@ export default defineEventHandler(async (event) => {
     }
   } catch (err: any) {
     console.error('Error uploading files:', err)
-    return {
-      success: false,
-      error: 'Nepodařilo se nahrát soubory'
-    }
+    throw createError({
+      statusCode: 500,
+      message: err.message || 'Nepodařilo se nahrát soubory'
+    })
   }
 })

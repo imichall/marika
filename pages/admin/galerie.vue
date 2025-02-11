@@ -637,6 +637,24 @@
                   </div>
                 </div>
 
+                <div v-if="uploading" class="mt-4">
+                  <div
+                    class="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
+                  >
+                    <div
+                      class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative overflow-hidden"
+                      :style="{ width: uploadProgress + '%' }"
+                    >
+                      <div
+                        class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                      ></div>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 text-center mt-2">
+                    Nahrávání: {{ uploadProgress }}%
+                  </p>
+                </div>
+
                 <div class="flex justify-end space-x-4 mt-6">
                   <button
                     type="button"
@@ -840,6 +858,7 @@ const uploading = ref(false);
 const imageToDelete = ref<string | null>(null);
 const currentImageIndex = ref(0);
 const selectedImageIndex = ref<number | null>(null);
+const uploadProgress = ref(0);
 
 const layoutImages = ref<LayoutImage[]>([
   { id: null, position: 1 },
@@ -943,6 +962,7 @@ const removeFile = (index: number) => {
 const uploadFiles = async () => {
   try {
     uploading.value = true;
+    uploadProgress.value = 0;
     const formData = new FormData();
 
     selectedFiles.value.forEach((file: File, index: number) => {
@@ -954,12 +974,32 @@ const uploadFiles = async () => {
       formData.append("images", file, fileName);
     });
 
-    const response = await fetch("/api/gallery/upload", {
-      method: "POST",
-      body: formData,
+    const response = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.response));
+        } else {
+          reject(new Error(xhr.response || "Nahrávání selhalo"));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Nahrávání selhalo"));
+
+      xhr.open("POST", "/api/gallery/upload");
+      xhr.send(formData);
     });
 
-    if (!response.ok) throw new Error("Nahrávání selhalo");
+    if (!response.success) {
+      throw new Error("Nahrávání selhalo");
+    }
 
     await fetchImages();
     closeUploadModal();
@@ -971,6 +1011,7 @@ const uploadFiles = async () => {
     showError("Chyba při nahrávání: " + errorMessage);
   } finally {
     uploading.value = false;
+    uploadProgress.value = 0;
   }
 };
 
