@@ -17,7 +17,7 @@
         {{ error }}
       </div>
       <div v-else class="grid grid-cols-1 gap-12">
-        <div
+        <FadeUpOnScroll
           v-for="group in groups"
           :key="group.id"
           class="text-center grid grid-cols-1 md:grid-cols-2 gap-14"
@@ -84,7 +84,7 @@
               </svg>
             </a>
           </div>
-        </div>
+        </FadeUpOnScroll>
       </div>
     </div>
   </section>
@@ -94,6 +94,7 @@
 import { onMounted } from "vue";
 import { useChoirGroups } from "~/composables/useChoirGroups";
 import { useSocialMedia } from "~/composables/useSocialMedia";
+import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 
 const { groups, loading, error, fetchGroups } = useChoirGroups();
 const { socialMedia, fetchSocialMedia } = useSocialMedia();

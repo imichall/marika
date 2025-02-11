@@ -15,43 +15,43 @@
         <p>{{ error }}</p>
       </div>
       <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div
-          v-for="contact in contacts"
-          :key="contact.id"
-          :class="{
-            'bg-pink-50': contact.group_name === 'Marika Singers, z.s.',
-            'bg-white': contact.group_name === 'VOICES',
-            'bg-gray-50': contact.group_name === 'FIVE',
-          }"
-          class="p-6"
-        >
-          <h3 class="font-bold mb-2">{{ contact.group_name }}</h3>
-          <div v-if="contact.address" class="whitespace-pre-line">
-            {{ contact.address }}
+        <FadeUpOnScroll v-for="contact in contacts" :key="contact.id">
+          <div
+            :class="{
+              'bg-pink-50': contact.group_name === 'Marika Singers, z.s.',
+              'bg-white': contact.group_name === 'VOICES',
+              'bg-gray-50': contact.group_name === 'FIVE',
+            }"
+            class="p-6"
+          >
+            <h3 class="font-bold mb-2">{{ contact.group_name }}</h3>
+            <div v-if="contact.address" class="whitespace-pre-line">
+              {{ contact.address }}
+            </div>
+            <div v-if="contact.ico || contact.dic" class="mt-4">
+              <template v-if="contact.ico && contact.dic">
+                IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
+              </template>
+              <template v-else-if="contact.ico">
+                IČO: {{ contact.ico }}
+              </template>
+            </div>
+            <div v-if="contact.email" class="mt-4">
+              <a
+                :href="`mailto:${contact.email}`"
+                class="text-gray-600 hover:text-gray-900"
+              >
+                {{ contact.email }}
+              </a>
+            </div>
+            <div v-if="getBankAccount(contact.group_name)" class="mt-4">
+              <span class="text-gray-600">
+                Bankovní účet:
+                {{ formatBankAccount(getBankAccount(contact.group_name)) }}
+              </span>
+            </div>
           </div>
-          <div v-if="contact.ico || contact.dic" class="mt-4">
-            <template v-if="contact.ico && contact.dic">
-              IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
-            </template>
-            <template v-else-if="contact.ico">
-              IČO: {{ contact.ico }}
-            </template>
-          </div>
-          <div v-if="contact.email" class="mt-4">
-            <a
-              :href="`mailto:${contact.email}`"
-              class="text-gray-600 hover:text-gray-900"
-            >
-              {{ contact.email }}
-            </a>
-          </div>
-          <div v-if="getBankAccount(contact.group_name)" class="mt-4">
-            <span class="text-gray-600">
-              Bankovní účet:
-              {{ formatBankAccount(getBankAccount(contact.group_name)) }}
-            </span>
-          </div>
-        </div>
+        </FadeUpOnScroll>
       </div>
     </div>
     <div class="text-center mt-8 py-4 text-sm bg-black text-white">
@@ -64,6 +64,7 @@
 import { onMounted } from "#imports";
 import { useContacts } from "~/composables/useContacts";
 import { useSettings } from "~/composables/useSettings";
+import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 
 const { contacts, loading, error, fetchContacts } = useContacts();
 const { settings, loading: settingsLoading, fetchSettings } = useSettings();

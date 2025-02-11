@@ -11,127 +11,129 @@
     </div>
     <div class="mx-auto px-4">
       <!-- Grid galerie -->
-      <div
-        v-if="allImages.length > 0"
-        class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3]"
-      >
-        <!-- Velký obrázek vlevo nahoře (2x2) -->
+      <FadeUpOnScroll v-if="allImages.length > 0">
         <div
-          v-if="getImageByPosition(1)"
-          class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(1))"
+          v-if="allImages.length > 0"
+          class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3]"
         >
-          <img
-            :src="getImageByPosition(1).image_url"
-            :alt="getImageByPosition(1).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Velký obrázek vlevo nahoře (2x2) -->
+          <div
+            v-if="getImageByPosition(1)"
+            class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(1))"
+          >
+            <img
+              :src="getImageByPosition(1).image_url"
+              :alt="getImageByPosition(1).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Široký obrázek nahoře uprostřed (2x1) -->
-        <div
-          v-if="getImageByPosition(2)"
-          class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(2))"
-        >
-          <img
-            :src="getImageByPosition(2).image_url"
-            :alt="getImageByPosition(2).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Široký obrázek nahoře uprostřed (2x1) -->
+          <div
+            v-if="getImageByPosition(2)"
+            class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(2))"
+          >
+            <img
+              :src="getImageByPosition(2).image_url"
+              :alt="getImageByPosition(2).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Velký obrázek vpravo nahoře (2x2) -->
-        <div
-          v-if="getImageByPosition(3)"
-          class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(3))"
-        >
-          <img
-            :src="getImageByPosition(3).image_url"
-            :alt="getImageByPosition(3).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Velký obrázek vpravo nahoře (2x2) -->
+          <div
+            v-if="getImageByPosition(3)"
+            class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(3))"
+          >
+            <img
+              :src="getImageByPosition(3).image_url"
+              :alt="getImageByPosition(3).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Úzký vysoký obrázek vpravo (1x2) -->
-        <div
-          v-if="getImageByPosition(4)"
-          class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(4))"
-        >
-          <img
-            :src="getImageByPosition(4).image_url"
-            :alt="getImageByPosition(4).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Úzký vysoký obrázek vpravo (1x2) -->
+          <div
+            v-if="getImageByPosition(4)"
+            class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(4))"
+          >
+            <img
+              :src="getImageByPosition(4).image_url"
+              :alt="getImageByPosition(4).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Malý čtvercový obrázek (1x1) -->
-        <div
-          v-if="getImageByPosition(5)"
-          class="relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(5))"
-        >
-          <img
-            :src="getImageByPosition(5).image_url"
-            :alt="getImageByPosition(5).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Malý čtvercový obrázek (1x1) -->
+          <div
+            v-if="getImageByPosition(5)"
+            class="relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(5))"
+          >
+            <img
+              :src="getImageByPosition(5).image_url"
+              :alt="getImageByPosition(5).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Úzký vysoký obrázek (1x2) -->
-        <div
-          v-if="getImageByPosition(6)"
-          class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(6))"
-        >
-          <img
-            :src="getImageByPosition(6).image_url"
-            :alt="getImageByPosition(6).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Úzký vysoký obrázek (1x2) -->
+          <div
+            v-if="getImageByPosition(6)"
+            class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(6))"
+          >
+            <img
+              :src="getImageByPosition(6).image_url"
+              :alt="getImageByPosition(6).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Široký obrázek dole (3x1) -->
-        <div
-          v-if="getImageByPosition(7)"
-          class="col-span-3 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(7))"
-        >
-          <img
-            :src="getImageByPosition(7).image_url"
-            :alt="getImageByPosition(7).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Široký obrázek dole (3x1) -->
+          <div
+            v-if="getImageByPosition(7)"
+            class="col-span-3 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(7))"
+          >
+            <img
+              :src="getImageByPosition(7).image_url"
+              :alt="getImageByPosition(7).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Široký obrázek dole (2x1) -->
-        <div
-          v-if="getImageByPosition(8)"
-          class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(8))"
-        >
-          <img
-            :src="getImageByPosition(8).image_url"
-            :alt="getImageByPosition(8).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
-        </div>
+          <!-- Široký obrázek dole (2x1) -->
+          <div
+            v-if="getImageByPosition(8)"
+            class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(8))"
+          >
+            <img
+              :src="getImageByPosition(8).image_url"
+              :alt="getImageByPosition(8).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
 
-        <!-- Malý čtvercový obrázek dole (1x1) -->
-        <div
-          v-if="getImageByPosition(9)"
-          class="relative overflow-hidden rounded-xl cursor-pointer"
-          @click="openLightbox(getImageByPosition(9))"
-        >
-          <img
-            :src="getImageByPosition(9).image_url"
-            :alt="getImageByPosition(9).title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-          />
+          <!-- Malý čtvercový obrázek dole (1x1) -->
+          <div
+            v-if="getImageByPosition(9)"
+            class="relative overflow-hidden rounded-xl cursor-pointer"
+            @click="openLightbox(getImageByPosition(9))"
+          >
+            <img
+              :src="getImageByPosition(9).image_url"
+              :alt="getImageByPosition(9).title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+            />
+          </div>
         </div>
-      </div>
+      </FadeUpOnScroll>
       <div v-else class="text-center py-8 text-gray-500">
         Načítání galerie...
       </div>
@@ -223,6 +225,7 @@
 <script setup>
 import { useGallery } from "~/composables/useGallery";
 import { computed, onMounted, ref, onUnmounted } from "vue";
+import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 import {
   TransitionRoot,
   TransitionChild,
