@@ -1632,6 +1632,60 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Potvrzovací dialog pro smazání koncertu -->
+    <TransitionRoot appear :show="showDeleteModal" as="template">
+      <Dialog as="div" @close="showDeleteModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+                  Smazat koncert
+                </DialogTitle>
+                <p class="text-gray-600 mb-6">
+                  Opravdu chcete smazat tento koncert?
+                </p>
+                <div class="flex justify-end space-x-4">
+                  <button
+                    @click="showDeleteModal = false"
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    @click="confirmDelete"
+                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
