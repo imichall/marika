@@ -524,7 +524,7 @@
       </p>
     </div>
 
-    <div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-3 gap-4 mb-20">
       <h2 class="text-2xl font-bold col-span-2">Náčrt rozložení</h2>
       <div class="flex justify-end">
         <button
