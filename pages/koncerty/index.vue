@@ -1,46 +1,66 @@
 <template>
   <section class="pb-16 mt-[100px]">
+    <div class="container mx-auto px-4 mb-8">
+      <Breadcrumbs>
+        <BreadcrumbsItem :isLast="true">
+          <span class="ml-1 text-gray-500 md:ml-2"> Koncerty </span>
+        </BreadcrumbsItem>
+      </Breadcrumbs>
+    </div>
+
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold mb-8 text-center">Všechny koncerty</h1>
 
-      <!-- Filtry a vyhledávání -->
-      <div class="mb-8 space-y-4">
-        <div class="flex flex-col md:flex-row gap-4">
-          <!-- Vyhledávání -->
-          <div class="flex-1">
-            <input
-              type="text"
-              v-model="searchQuery"
-              placeholder="Vyhledat koncert..."
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-            />
-          </div>
-
-          <!-- Filtr podle tělesa -->
-          <div class="md:w-48">
-            <select
-              v-model="selectedGroup"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-            >
-              <option value="">Všechna tělesa</option>
-              <option value="Marika Singers">Marika Singers</option>
-              <option value="Five">Five</option>
-              <option value="Voices">Voices</option>
-            </select>
-          </div>
-
-          <!-- Filtr podle vstupenek -->
-          <div class="md:w-48">
-            <select
-              v-model="ticketFilter"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
-            >
-              <option value="">Všechny koncerty</option>
-              <option value="withTickets">S online vstupenkami</option>
-              <option value="withoutTickets">Bez online vstupenek</option>
-            </select>
-          </div>
-        </div>
+      <!-- Moderní filtr pro tělesa -->
+      <div class="flex justify-center mb-12">
+        <nav
+          class="flex gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100"
+        >
+          <button
+            @click="selectedGroup = ''"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === ''
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Všechna tělesa</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Marika Singers'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Marika Singers'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Marika Singers</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Voices'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Voices'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Voices</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Five'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Five'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Five</span>
+          </button>
+        </nav>
       </div>
 
       <!-- Seznam koncertů -->
@@ -272,36 +292,17 @@ const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
 
-// Filtry a vyhledávání
-const searchQuery = ref("");
+// Moderní filtr pro tělesa
 const selectedGroup = ref("");
-const ticketFilter = ref("");
 
-// Filtrované koncerty
+// Upravená computed property pro filtrované koncerty - pouze podle tělesa
 const filteredConcerts = computed(() => {
-  return concerts.value.filter((concert) => {
-    // Filtr podle vyhledávání
-    const searchMatch = searchQuery.value
-      ? concert.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        concert.description
-          .toLowerCase()
-          .includes(searchQuery.value.toLowerCase())
-      : true;
+  if (!concerts.value) return [];
+  if (!selectedGroup.value) return concerts.value;
 
-    // Filtr podle tělesa
-    const groupMatch = selectedGroup.value
-      ? concert.group === selectedGroup.value
-      : true;
-
-    // Filtr podle vstupenek
-    const ticketMatch = ticketFilter.value
-      ? ticketFilter.value === "withTickets"
-        ? concert.ticket_id
-        : !concert.ticket_id
-      : true;
-
-    return searchMatch && groupMatch && ticketMatch;
-  });
+  return concerts.value.filter(
+    (concert) => concert.group_name === selectedGroup.value
+  );
 });
 
 const openTicketModal = (concert) => {

@@ -45,9 +45,70 @@
     </div>
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold mb-8 text-center">Všechny koncerty</h1>
+
+      <!-- Moderní filtr pro tělesa -->
+      <div class="flex justify-center mb-12">
+        <nav
+          class="flex gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100"
+        >
+          <button
+            @click="selectedGroup = ''"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === ''
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Všechna tělesa</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Marika Singers'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Marika Singers'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Marika Singers</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Voices'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Voices'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Voices</span>
+          </button>
+          <button
+            @click="selectedGroup = 'Five'"
+            :class="[
+              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              selectedGroup === 'Five'
+                ? 'text-red-800 bg-red-50'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
+            ]"
+          >
+            <span class="relative z-10">Five</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Zobrazení počtu nalezených koncertů -->
+      <div
+        v-if="filteredConcerts.length === 0"
+        class="text-center text-gray-500 mb-8"
+      >
+        Nenalezeny žádné koncerty pro vybrané těleso
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div
-          v-for="concert in concerts"
+          v-for="concert in filteredConcerts"
           :key="concert.id"
           class="concert-card grid gap-4"
         >
@@ -117,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useConcerts } from "~/composables/useConcerts";
 import { useSupabaseClient } from "#imports";
 import { slugify } from "~/utils/string";
@@ -137,6 +198,17 @@ const { concerts } = useConcerts();
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
+const selectedGroup = ref("");
+
+// Přidáme computed property pro filtrované koncerty
+const filteredConcerts = computed(() => {
+  if (!concerts.value) return [];
+  if (!selectedGroup.value) return concerts.value;
+
+  return concerts.value.filter(
+    (concert) => concert.group_name === selectedGroup.value
+  );
+});
 
 const openTicketModal = (concert) => {
   selectedConcert.value = concert;
