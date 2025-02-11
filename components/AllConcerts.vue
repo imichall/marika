@@ -203,11 +203,24 @@ const selectedGroup = ref("");
 // Přidáme computed property pro filtrované koncerty
 const filteredConcerts = computed(() => {
   if (!concerts.value) return [];
-  if (!selectedGroup.value) return concerts.value;
 
-  return concerts.value.filter(
-    (concert) => concert.group_name === selectedGroup.value
-  );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return concerts.value
+    .filter((concert) => {
+      const concertDate = new Date(concert.date);
+      concertDate.setHours(0, 0, 0, 0);
+
+      // Filtrujeme podle vybraného tělesa, pokud je nastaveno
+      if (selectedGroup.value && concert.group_name !== selectedGroup.value) {
+        return false;
+      }
+
+      // Zobrazujeme pouze nadcházející koncerty
+      return concertDate >= today;
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
 
 const openTicketModal = (concert) => {

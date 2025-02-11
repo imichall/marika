@@ -283,7 +283,19 @@ import { formatDateWithTime } from "~/utils/date";
 
 const supabase = useSupabaseClient();
 const { concerts, getConcert } = useConcerts();
-const displayedConcerts = computed(() => concerts.value.slice(0, 3));
+const displayedConcerts = computed(() => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return concerts.value
+    .filter((concert) => {
+      const concertDate = new Date(concert.date);
+      concertDate.setHours(0, 0, 0, 0);
+      return concertDate >= today;
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
+});
 
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
