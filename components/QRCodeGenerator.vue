@@ -104,7 +104,6 @@
           v-model="variableSymbol"
           type="text"
           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-          maxlength="10"
           @input="validateVariableSymbol"
         />
         <p v-if="variableSymbolError" class="text-red-500 text-sm mt-1">
@@ -330,11 +329,6 @@ const validateVariableSymbol = () => {
       "Variabilní symbol může obsahovat pouze číslice";
     return false;
   }
-  if (value && value.length > 10) {
-    variableSymbolError.value =
-      "Variabilní symbol může mít maximálně 10 číslic";
-    return false;
-  }
   variableSymbolError.value = "";
   return true;
 };
@@ -402,7 +396,7 @@ watch(
       // Vypočítáme kontrolní číslice a sestavíme IBAN
       const paddedAccount = fullAccountNumber.padStart(16, "0");
       const checkDigits = calculateIBANCheckDigits(newBankCode, paddedAccount);
-      const numericVS = (newVS || "").replace(/\D/g, "").padStart(10, "0");
+      const numericVS = (newVS || "").replace(/\D/g, "");
 
       const qrData = `SPD*1.0*ACC:CZ${checkDigits}${newBankCode}${paddedAccount}*AM:${formattedAmount}*CC:CZK${
         numericVS ? "*X-VS:" + numericVS : ""
