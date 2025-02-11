@@ -1857,6 +1857,11 @@ const totalPages = computed(() => {
   return Math.ceil((filteredConcerts.value?.length || 0) / ITEMS_PER_PAGE);
 });
 
+// Přidáme computed property pro celkový počet filtrovaných koncertů
+const totalFilteredConcerts = computed(() => {
+  return filteredConcerts.value?.length || 0;
+});
+
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString("cs-CZ", {
     weekday: "long",
