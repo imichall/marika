@@ -24,7 +24,7 @@
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
           >
-            <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
+            <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-xl">
               <DialogTitle as="h2" class="text-2xl font-bold mb-4">
                 {{ concert.title }}
               </DialogTitle>
