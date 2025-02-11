@@ -17,12 +17,13 @@ export default defineEventHandler(async (event) => {
       throw new Error('Prázdný soubor')
     }
 
-    if (!mimeType?.startsWith('image/')) {
-      throw new Error('Nepodporovaný formát souboru. Povoleny jsou pouze obrázky.')
+    if (!mimeType?.startsWith('image/') && mimeType !== 'application/pdf') {
+      throw new Error('Nepodporovaný formát souboru. Povoleny jsou pouze obrázky a PDF soubory.')
     }
 
-    if (buffer.length > 5 * 1024 * 1024) {
-      throw new Error('Soubor je příliš velký. Maximální velikost je 5MB.')
+    const maxSize = mimeType === 'application/pdf' ? 10 * 1024 * 1024 : 5 * 1024 * 1024
+    if (buffer.length > maxSize) {
+      throw new Error(`Soubor je příliš velký. Maximální velikost je ${maxSize === 10 * 1024 * 1024 ? '10MB' : '5MB'}.`)
     }
 
     const client = await serverSupabaseClient(event)

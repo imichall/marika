@@ -51,11 +51,11 @@ interface Concert {
   variable_symbol?: string;
   account_number?: string;
   bank_code?: string;
-  qr_session?: string;
-  ticket_id?: string;
-  ticket?: ConcertTicket;
-  poster_id?: string;
-  poster?: ConcertPoster;
+  qr_session?: string | null;
+  ticket_id?: string | null;
+  poster_id?: string | null;
+  ticket?: ConcertTicket | null;
+  poster?: ConcertPoster | null;
   created_at: string;
   updated_at: string;
 }
@@ -70,6 +70,8 @@ export const useConcerts = () => {
   const concerts = ref<Concert[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const posterUploadProgress = ref(0);
+  const isPosterUploading = ref(false);
 
   const fetchConcerts = async () => {
     loading.value = true;
@@ -197,30 +199,49 @@ export const useConcerts = () => {
 
   const uploadPoster = async (concertId: number, file: File) => {
     try {
-      loading.value = true;
+      isPosterUploading.value = true;
+      posterUploadProgress.value = 0;
       const timestamp = Date.now();
       const fileName = `poster-${timestamp}-${file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`;
 
-      // Upload to storage
-      const { data: storageData, error: storageError } = await supabase
-        .storage
-        .from('posters')
-        .upload(fileName, file);
+      // Create FormData
+      const formData = new FormData();
+      formData.append('image', file, fileName);
 
-      if (storageError) throw storageError;
+      // Upload using XMLHttpRequest for progress tracking
+      const response = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase
-        .storage
-        .from('posters')
-        .getPublicUrl(fileName);
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            posterUploadProgress.value = Math.round((event.loaded / event.total) * 100);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.response));
+          } else {
+            reject(new Error(xhr.response || 'Upload failed'));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Upload failed'));
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
+      });
+
+      if (!response.success) {
+        throw new Error('Upload failed');
+      }
 
       // Create poster record
       const { data: posterData, error: posterError } = await supabase
         .from('posters')
         .insert([{
           concert_id: concertId,
-          image_url: publicUrl,
+          image_url: response.path,
           title: file.name
         }])
         .select()
@@ -243,7 +264,8 @@ export const useConcerts = () => {
       error.value = err instanceof Error ? err.message : 'Unknown error occurred';
       return { success: false, error: error.value };
     } finally {
-      loading.value = false;
+      isPosterUploading.value = false;
+      posterUploadProgress.value = 0;
     }
   };
 
@@ -272,9 +294,19 @@ export const useConcerts = () => {
 
       if (dbError) throw dbError;
 
-      await fetchConcerts();
+      // Okamžitě aktualizujeme lokální stav
+      const concertIndex = concerts.value.findIndex(c => c.id === concertId);
+      if (concertIndex !== -1) {
+        const updatedConcert = {
+          ...concerts.value[concertIndex],
+          poster_id: null as string | null,
+          poster: null as ConcertPoster | null
+        };
+        concerts.value[concertIndex] = updatedConcert;
+      }
+
       return { success: true };
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error deleting poster:', err);
       error.value = err instanceof Error ? err.message : 'Unknown error occurred';
       return { success: false, error: error.value };
@@ -297,6 +329,8 @@ export const useConcerts = () => {
     deleteConcert,
     getConcert,
     uploadPoster,
-    deletePoster
+    deletePoster,
+    posterUploadProgress,
+    isPosterUploading
   };
 };

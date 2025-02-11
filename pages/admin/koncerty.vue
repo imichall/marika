@@ -1822,6 +1822,10 @@ const {
   addConcert,
   updateConcert,
   deleteConcert,
+  uploadPoster,
+  deletePoster,
+  posterUploadProgress,
+  isPosterUploading,
 } = useConcerts();
 
 const toast = useToast();
@@ -2124,112 +2128,15 @@ const processPosterFile = async (file) => {
   }
 };
 
-const uploadPoster = async (concertId, file) => {
-  try {
-    const timestamp = Date.now();
-    const fileName = `${concertId}-${timestamp}-${file.name
-      .toLowerCase()
-      .replace(/[^a-z0-9.]/g, "-")}`;
-
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("posters")
-      .upload(fileName, file);
-
-    if (uploadError) throw uploadError;
-
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from("posters").getPublicUrl(fileName);
-
-    // Create poster record
-    const { data: posterData, error: posterError } = await supabase
-      .from("posters")
-      .insert([
-        {
-          concert_id: concertId,
-          image_url: publicUrl,
-          title: file.name,
-        },
-      ])
-      .select()
-      .single();
-
-    if (posterError) throw posterError;
-
-    // Update concert with poster_id
-    const { error: concertError } = await supabase
-      .from("concerts")
-      .update({ poster_id: posterData.id })
-      .eq("id", concertId);
-
-    if (concertError) throw concertError;
-
-    return { success: true, poster: posterData };
-  } catch (error) {
-    console.error("Error uploading poster:", error);
-    return { success: false, error: error.message };
-  }
-};
-
-const deletePoster = async (concertId) => {
-  try {
-    // Get current poster
-    const { data: concert, error: concertError } = await supabase
-      .from("concerts")
-      .select("poster_id")
-      .eq("id", concertId)
-      .single();
-
-    if (concertError) throw concertError;
-    if (!concert.poster_id) return { success: true };
-
-    // Get poster record
-    const { data: poster, error: posterError } = await supabase
-      .from("posters")
-      .select("*")
-      .eq("id", concert.poster_id)
-      .single();
-
-    if (posterError) throw posterError;
-
-    // Nejdřív aktualizujeme koncert (odstraníme referenci na poster)
-    const { error: updateError } = await supabase
-      .from("concerts")
-      .update({ poster_id: null })
-      .eq("id", concertId);
-
-    if (updateError) throw updateError;
-
-    // Pak smažeme poster z databáze
-    const { error: deleteError } = await supabase
-      .from("posters")
-      .delete()
-      .eq("id", concert.poster_id);
-
-    if (deleteError) throw deleteError;
-
-    // Nakonec smažeme soubor ze storage
-    const fileName = poster.image_url.split("/").pop();
-    const { error: storageError } = await supabase.storage
-      .from("posters")
-      .remove([fileName]);
-
-    if (storageError) throw storageError;
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting poster:", error);
-    return { success: false, error: error.message };
-  }
-};
-
 const removePoster = async () => {
   if (editingConcert.value) {
     const result = await deletePoster(editingConcert.value.id);
     if (result.success) {
       form.value.poster = null;
+      form.value.posterFile = null;
+      posterPreview.value = null;
+      editingConcert.value.poster = null;
+      editingConcert.value.poster_id = null;
       toast.success("Plakát byl úspěšně odstraněn");
     } else {
       toast.error("Chyba při odstraňování plakátu: " + result.error);
@@ -2237,6 +2144,7 @@ const removePoster = async () => {
   } else {
     posterPreview.value = null;
     form.value.posterFile = null;
+    form.value.poster = null;
   }
 };
 
@@ -2555,8 +2463,6 @@ definePageMeta({
 // Přidáme nový ref pro progress
 const uploadProgress = ref(0);
 const isUploading = ref(false);
-const posterUploadProgress = ref(0);
-const isPosterUploading = ref(false);
 </script>
 
 <style scoped>
