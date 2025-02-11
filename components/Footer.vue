@@ -8,7 +8,7 @@
         >
         <div class="flex-grow border-t border-gray-400"></div>
       </div>
-      <div v-if="loading" class="text-center py-8">
+      <div v-if="loading || settingsLoading" class="text-center py-8">
         <p>Načítání...</p>
       </div>
       <div v-else-if="error" class="text-center py-8 text-red-600">
@@ -45,6 +45,12 @@
               {{ contact.email }}
             </a>
           </div>
+          <div v-if="getBankAccount(contact.group_name)" class="mt-4">
+            <span class="text-gray-600">
+              Bankovní účet:
+              {{ formatBankAccount(getBankAccount(contact.group_name)) }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -57,10 +63,30 @@
 <script setup>
 import { onMounted } from "#imports";
 import { useContacts } from "~/composables/useContacts";
+import { useSettings } from "~/composables/useSettings";
 
 const { contacts, loading, error, fetchContacts } = useContacts();
+const { settings, loading: settingsLoading, fetchSettings } = useSettings();
 
-onMounted(() => {
-  fetchContacts();
+const getBankAccount = (groupName) => {
+  const normalizedName = groupName.replace(", z.s.", "").toLowerCase();
+  if (normalizedName === "marika singers") {
+    return settings.value.marikaSingers;
+  } else if (normalizedName === "five") {
+    return settings.value.five;
+  } else if (normalizedName === "voices") {
+    return settings.value.voices;
+  }
+  return null;
+};
+
+const formatBankAccount = (account) => {
+  if (!account || !account.accountNumber) return "Není nastaveno";
+  const prefix = account.accountPrefix ? `${account.accountPrefix}-` : "";
+  return `${prefix}${account.accountNumber}/${account.bankCode}`;
+};
+
+onMounted(async () => {
+  await Promise.all([fetchContacts(), fetchSettings()]);
 });
 </script>

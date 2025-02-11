@@ -8,6 +8,7 @@ interface Contact {
   ico: string | null
   dic: string | null
   email: string | null
+  bank_account: string | null
   created_at: string
   updated_at: string
 }
@@ -25,7 +26,7 @@ export const useContacts = () => {
 
       const { data, error: err } = await supabase
         .from('contacts')
-        .select('id, group_name, address, ico, dic, email, created_at, updated_at')
+        .select('id, group_name, address, ico, dic, email, bank_account, created_at, updated_at')
         .order('group_name')
 
       if (err) throw err
@@ -37,6 +38,7 @@ export const useContacts = () => {
         ico: item.ico ? String(item.ico) : null,
         dic: item.dic ? String(item.dic) : null,
         email: item.email ? String(item.email) : null,
+        bank_account: item.bank_account ? String(item.bank_account) : null,
         created_at: String(item.created_at),
         updated_at: String(item.updated_at)
       })) || []
@@ -113,6 +115,7 @@ export const useContacts = () => {
         ico: newData.ico ? String(newData.ico) : null,
         dic: newData.dic ? String(newData.dic) : null,
         email: newData.email ? String(newData.email) : null,
+        bank_account: newData.bank_account ? String(newData.bank_account) : null,
         created_at: String(newData.created_at),
         updated_at: String(newData.updated_at)
       }

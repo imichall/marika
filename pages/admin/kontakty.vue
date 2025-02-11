@@ -196,6 +196,29 @@
                 {{ contact.email }}
               </a>
             </div>
+
+            <div
+              v-if="getBankAccount(contact.group_name)"
+              class="mt-4 flex items-center space-x-3"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                />
+              </svg>
+              <span class="text-gray-600">
+                {{ formatBankAccount(getBankAccount(contact.group_name)) }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -290,6 +313,74 @@
                     />
                   </div>
 
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                      Bankovní účet
+                    </label>
+                    <select
+                      v-model="form.bank_account"
+                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value="">Vyberte bankovní účet</option>
+                      <option
+                        v-if="settings?.value?.marikaSingers?.accountNumber"
+                        :value="{
+                          accountNumber:
+                            settings.value.marikaSingers.accountNumber,
+                          accountPrefix:
+                            settings.value.marikaSingers.accountPrefix,
+                          bankCode: settings.value.marikaSingers.bankCode,
+                          group: 'Marika Singers, z.s.',
+                        }"
+                      >
+                        Marika Singers -
+                        {{
+                          settings.value.marikaSingers.accountPrefix
+                            ? settings.value.marikaSingers.accountPrefix + "-"
+                            : ""
+                        }}{{ settings.value.marikaSingers.accountNumber }}/{{
+                          settings.value.marikaSingers.bankCode
+                        }}
+                      </option>
+                      <option
+                        v-if="settings?.value?.five?.accountNumber"
+                        :value="{
+                          accountNumber: settings.value.five.accountNumber,
+                          accountPrefix: settings.value.five.accountPrefix,
+                          bankCode: settings.value.five.bankCode,
+                          group: 'FIVE',
+                        }"
+                      >
+                        FIVE -
+                        {{
+                          settings.value.five.accountPrefix
+                            ? settings.value.five.accountPrefix + "-"
+                            : ""
+                        }}{{ settings.value.five.accountNumber }}/{{
+                          settings.value.five.bankCode
+                        }}
+                      </option>
+                      <option
+                        v-if="settings?.value?.voices?.accountNumber"
+                        :value="{
+                          accountNumber: settings.value.voices.accountNumber,
+                          accountPrefix: settings.value.voices.accountPrefix,
+                          bankCode: settings.value.voices.bankCode,
+                          group: 'VOICES',
+                        }"
+                      >
+                        VOICES -
+                        {{
+                          settings.value.voices.accountPrefix
+                            ? settings.value.voices.accountPrefix + "-"
+                            : ""
+                        }}{{ settings.value.voices.accountNumber }}/{{
+                          settings.value.voices.bankCode
+                        }}
+                      </option>
+                    </select>
+                  </div>
+
                   <div class="flex justify-end space-x-3 mt-6">
                     <button
                       type="button"
@@ -371,8 +462,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from "vue";
+import { ref, onMounted, reactive, computed, watch } from "vue";
 import { useContacts } from "~/composables/useContacts";
+import { useSettings } from "~/composables/useSettings";
 import { useToast } from "~/composables/useToast";
 import {
   TransitionRoot,
@@ -392,6 +484,8 @@ const {
   deleteContact,
 } = useContacts();
 
+const { settings, fetchSettings } = useSettings();
+
 const toast = useToast();
 
 const showAddModal = ref(false);
@@ -405,10 +499,61 @@ const form = reactive({
   ico: "",
   dic: "",
   email: "",
+  bank_account: "",
 });
 
-onMounted(() => {
-  fetchContacts();
+const getBankAccount = (groupName) => {
+  const normalizedName = groupName.replace(", z.s.", "").toLowerCase();
+  if (normalizedName === "marika singers") {
+    return settings.value.marikaSingers;
+  } else if (normalizedName === "five") {
+    return settings.value.five;
+  } else if (normalizedName === "voices") {
+    return settings.value.voices;
+  }
+  return null;
+};
+
+const formatBankAccount = (account) => {
+  if (!account || !account.accountNumber) return "Není nastaveno";
+  return `${account.accountNumber}/${account.bankCode}`;
+};
+
+const formatFullBankAccount = (account) => {
+  if (!account || !account.accountNumber) return "";
+  const prefix = account.accountPrefix ? `${account.accountPrefix}-` : "";
+  return `${prefix}${account.accountNumber}/${account.bankCode}`;
+};
+
+// Přidáme computed property pro seznam účtů
+const bankAccounts = computed(() => {
+  if (!settings.value) return [];
+
+  const accounts = [];
+  if (settings.value.marikaSingers) {
+    accounts.push({
+      name: "Marika Singers, z.s.",
+      ...settings.value.marikaSingers,
+    });
+  }
+  if (settings.value.five) {
+    accounts.push({
+      name: "FIVE",
+      ...settings.value.five,
+    });
+  }
+  if (settings.value.voices) {
+    accounts.push({
+      name: "VOICES",
+      ...settings.value.voices,
+    });
+  }
+  return accounts;
+});
+
+onMounted(async () => {
+  await Promise.all([fetchContacts(), fetchSettings()]);
+  console.log("Settings loaded:", settings.value);
 });
 
 const resetForm = () => {
@@ -417,6 +562,7 @@ const resetForm = () => {
   form.ico = "";
   form.dic = "";
   form.email = "";
+  form.bank_account = "";
   editingContact.value = null;
 };
 
@@ -427,11 +573,24 @@ const closeModal = () => {
 
 const handleSubmit = async () => {
   try {
+    const formData = { ...form };
+
+    if (formData.bank_account) {
+      // Pokud je bank_account objekt (při výběru ze selectu)
+      if (typeof formData.bank_account === "object") {
+        formData.group_name = formData.bank_account.group;
+        // Sestavíme číslo účtu s předčíslím, pokud existuje
+        formData.bank_account = formData.bank_account.accountPrefix
+          ? `${formData.bank_account.accountPrefix}-${formData.bank_account.accountNumber}/${formData.bank_account.bankCode}`
+          : `${formData.bank_account.accountNumber}/${formData.bank_account.bankCode}`;
+      }
+    }
+
     if (editingContact.value) {
-      await updateContact(editingContact.value.id, form);
+      await updateContact(editingContact.value.id, formData);
       toast.success("Kontakt byl úspěšně upraven");
     } else {
-      await addContact(form);
+      await addContact(formData);
       toast.success("Kontakt byl úspěšně přidán");
     }
     closeModal();
@@ -447,6 +606,7 @@ const editContact = (contact) => {
   form.ico = contact.ico || "";
   form.dic = contact.dic || "";
   form.email = contact.email || "";
+  form.bank_account = contact.bank_account || "";
   showAddModal.value = true;
 };
 
@@ -473,6 +633,15 @@ const confirmDelete = async () => {
     }
   }
 };
+
+// Přidáme watch na settings před definePageMeta
+watch(
+  settings,
+  (newSettings) => {
+    console.log("Settings changed:", newSettings);
+  },
+  { immediate: true, deep: true }
+);
 
 definePageMeta({
   layout: "admin",
