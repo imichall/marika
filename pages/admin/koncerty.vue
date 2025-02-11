@@ -2057,15 +2057,15 @@ const deletePoster = async (concertId) => {
 
     if (posterError) throw posterError;
 
-    // Delete from storage
-    const fileName = poster.image_url.split("/").pop();
-    const { error: storageError } = await supabase.storage
-      .from("posters")
-      .remove([fileName]);
+    // Nejdřív aktualizujeme koncert (odstraníme referenci na poster)
+    const { error: updateError } = await supabase
+      .from("concerts")
+      .update({ poster_id: null })
+      .eq("id", concertId);
 
-    if (storageError) throw storageError;
+    if (updateError) throw updateError;
 
-    // Delete poster record and update concert
+    // Pak smažeme poster z databáze
     const { error: deleteError } = await supabase
       .from("posters")
       .delete()
@@ -2073,13 +2073,13 @@ const deletePoster = async (concertId) => {
 
     if (deleteError) throw deleteError;
 
-    // Update concert
-    const { error: updateError } = await supabase
-      .from("concerts")
-      .update({ poster_id: null })
-      .eq("id", concertId);
+    // Nakonec smažeme soubor ze storage
+    const fileName = poster.image_url.split("/").pop();
+    const { error: storageError } = await supabase.storage
+      .from("posters")
+      .remove([fileName]);
 
-    if (updateError) throw updateError;
+    if (storageError) throw storageError;
 
     return { success: true };
   } catch (error) {
