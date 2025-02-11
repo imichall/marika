@@ -1,18 +1,28 @@
-import formidable from 'formidable'
-import type { Fields, Files } from 'formidable'
 import { serverSupabaseClient } from '#supabase/server'
-import { readBody } from 'h3'
+import { readMultipartFormData } from 'h3'
 
 export default defineEventHandler(async (event) => {
   try {
-    // Načteme data přímo z requestu jako buffer
-    const body = await readBody(event)
-    const buffer = Buffer.from(await body.image.arrayBuffer())
-    const originalFilename = body.image.name
-    const mimeType = body.image.type
-
-    if (!buffer) {
+    const formData = await readMultipartFormData(event)
+    if (!formData || !formData[0]) {
       throw new Error('Žádný soubor nebyl nahrán')
+    }
+
+    const file = formData[0]
+    const buffer = file.data
+    const originalFilename = file.filename
+    const mimeType = file.type
+
+    if (!buffer || buffer.length === 0) {
+      throw new Error('Prázdný soubor')
+    }
+
+    if (!mimeType?.startsWith('image/')) {
+      throw new Error('Nepodporovaný formát souboru. Povoleny jsou pouze obrázky.')
+    }
+
+    if (buffer.length > 5 * 1024 * 1024) {
+      throw new Error('Soubor je příliš velký. Maximální velikost je 5MB.')
     }
 
     const client = await serverSupabaseClient(event)
@@ -21,13 +31,13 @@ export default defineEventHandler(async (event) => {
     const timestamp = Date.now()
     const newFileName = `concert-${timestamp}-${fileName.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`
 
-    // Upload do Supabase Storage přímo z bufferu
     const { error: storageError } = await client
       .storage
       .from('concerts')
       .upload(newFileName, buffer, {
-        contentType: mimeType || 'image/jpeg',
-        cacheControl: '3600'
+        contentType: mimeType,
+        cacheControl: '3600',
+        duplex: 'half'
       })
 
     if (storageError) {
@@ -35,7 +45,6 @@ export default defineEventHandler(async (event) => {
       throw storageError
     }
 
-    // Získání veřejné URL
     const { data: publicURL } = client
       .storage
       .from('concerts')
@@ -44,7 +53,9 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       fileName: newFileName,
-      path: publicURL.publicUrl
+      path: publicURL.publicUrl,
+      size: buffer.length,
+      type: mimeType
     }
   } catch (err: any) {
     console.error('Error uploading file:', err)

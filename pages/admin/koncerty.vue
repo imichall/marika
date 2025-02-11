@@ -425,7 +425,10 @@
                   @dragover.prevent
                   @drop.prevent="handleDrop"
                 >
-                  <div v-if="!form.image && !imagePreview" class="py-8">
+                  <div
+                    v-if="!form.image && !imagePreview && !isUploading"
+                    class="py-8"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="mx-auto h-12 w-12 text-gray-400 group-hover:text-red-500 transition-colors duration-200"
@@ -457,6 +460,57 @@
                     <p class="text-sm text-gray-400 mt-2">
                       Podporované formáty: JPG, PNG, WebP
                     </p>
+                  </div>
+                  <div
+                    v-else-if="isUploading"
+                    class="relative h-64 flex items-center justify-center bg-gray-50 rounded-lg"
+                  >
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div class="w-32 h-32">
+                        <svg
+                          class="animate-spin h-full w-full text-red-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="absolute inset-x-4 bottom-4 space-y-3">
+                      <div
+                        class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative"
+                          :style="{ width: uploadProgress + '%' }"
+                        >
+                          <div
+                            class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                          ></div>
+                        </div>
+                      </div>
+                      <div
+                        class="flex justify-between text-sm font-medium text-gray-600"
+                      >
+                        <span>Nahrávání...</span>
+                        <span>{{ uploadProgress }}%</span>
+                      </div>
+                    </div>
                   </div>
                   <div v-else class="relative">
                     <img
@@ -498,7 +552,10 @@
                   @dragover.prevent
                   @drop.prevent="handlePosterDrop"
                 >
-                  <div v-if="!form.poster && !posterPreview" class="py-8">
+                  <div
+                    v-if="!form.poster && !posterPreview && !isPosterUploading"
+                    class="py-8"
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       class="mx-auto h-12 w-12 text-gray-400 group-hover:text-red-500 transition-colors duration-200"
@@ -530,6 +587,57 @@
                     <p class="text-sm text-gray-400 mt-2">
                       Podporované formáty: JPG, PNG, WebP, PDF
                     </p>
+                  </div>
+                  <div
+                    v-else-if="isPosterUploading"
+                    class="relative h-64 flex items-center justify-center bg-gray-50 rounded-lg"
+                  >
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <div class="w-32 h-32">
+                        <svg
+                          class="animate-spin h-full w-full text-red-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                          ></circle>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="absolute inset-x-4 bottom-4 space-y-3">
+                      <div
+                        class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden"
+                      >
+                        <div
+                          class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative"
+                          :style="{ width: posterUploadProgress + '%' }"
+                        >
+                          <div
+                            class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                          ></div>
+                        </div>
+                      </div>
+                      <div
+                        class="flex justify-between text-sm font-medium text-gray-600"
+                      >
+                        <span>Nahrávání plakátu...</span>
+                        <span>{{ posterUploadProgress }}%</span>
+                      </div>
+                    </div>
                   </div>
                   <div v-else class="relative">
                     <img
@@ -1901,7 +2009,15 @@ const processFile = async (file) => {
     return;
   }
 
+  if (!file.type.startsWith("image/")) {
+    toast.error("Nepodporovaný formát souboru. Povoleny jsou pouze obrázky.");
+    return;
+  }
+
   try {
+    isUploading.value = true;
+    uploadProgress.value = 0;
+
     const formData = new FormData();
     const timestamp = Date.now();
     const fileName = `${timestamp}-${file.name
@@ -1909,22 +2025,43 @@ const processFile = async (file) => {
       .replace(/[^a-z0-9.]/g, "-")}`;
     formData.append("image", file, fileName);
 
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
+    const xhr = new XMLHttpRequest();
+
+    // Nastavíme progress handler
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+      }
+    };
+
+    const response = await new Promise((resolve, reject) => {
+      xhr.open("POST", "/api/upload");
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(JSON.parse(xhr.response));
+        } else {
+          reject(new Error(xhr.response || "Upload failed"));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error("Upload failed"));
+      xhr.send(formData);
     });
 
-    if (!response.ok) {
-      throw new Error("Nahrávání selhalo");
-    }
-
-    const data = await response.json();
-    if (data.success) {
-      form.value.image = data.path;
-      imagePreview.value = getFullImageUrl(data.path);
+    if (response.success) {
+      form.value.image = response.path;
+      imagePreview.value = getFullImageUrl(response.path);
+      toast.success("Obrázek byl úspěšně nahrán");
     }
   } catch (err) {
-    toast.error("Chyba při nahrávání obrázku: " + err.message);
+    console.error("Error uploading image:", err);
+    toast.error(
+      "Chyba při nahrávání obrázku: " + (err.message || "Neznámá chyba")
+    );
+  } finally {
+    isUploading.value = false;
+    uploadProgress.value = 0;
   }
 };
 
@@ -2414,10 +2551,25 @@ definePageMeta({
   layout: "admin",
   middleware: ["auth"],
 });
+
+// Přidáme nový ref pro progress
+const uploadProgress = ref(0);
+const isUploading = ref(false);
+const posterUploadProgress = ref(0);
+const isPosterUploading = ref(false);
 </script>
 
 <style scoped>
 .material-icons-outlined {
   font-size: 20px;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 </style>
