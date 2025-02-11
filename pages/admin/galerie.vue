@@ -877,20 +877,24 @@ onMounted(async () => {
   await loadLayout();
 });
 
-const handleDelete = async (image: any) => {
-  if (!confirm("Opravdu chcete smazat tuto fotografii?")) return;
+const handleDelete = async (image: GalleryImage) => {
+  try {
+    if (!image.image_url) return;
 
-  const imageUrl = image.image_url;
-  const filename = imageUrl.split("/").pop();
+    const { success: deleteSuccess, error: deleteError } = await deleteImage(
+      image.image_url
+    );
 
-  const { success: deleteSuccess, error: deleteError } = await deleteImage(
-    filename
-  );
-
-  if (deleteSuccess) {
-    success("Fotografie byla úspěšně smazána");
-  } else {
-    showError(deleteError || "Nepodařilo se smazat fotografii");
+    if (deleteSuccess) {
+      success("Fotografie byla úspěšně smazána");
+      // Obnovíme data
+      await fetchImages();
+    } else {
+      showError(deleteError || "Nepodařilo se smazat fotografii");
+    }
+  } catch (err) {
+    console.error("Error deleting image:", err);
+    showError("Nepodařilo se smazat fotografii");
   }
 };
 

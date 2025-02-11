@@ -171,43 +171,61 @@ export const useGallery = () => {
 
   const deleteImage = async (imageUrl: string) => {
     try {
-      loading.value = true
+      loading.value = true;
 
-      // Delete from Storage
-      const fileName = imageUrl.split('/').pop()
-      if (!fileName) throw new Error('Invalid image URL')
+      // Get filename from URL
+      const fileName = imageUrl.split('/').pop();
+      if (!fileName) throw new Error('Invalid image URL');
 
+      // Get image ID from database for later use
+      const { data: imageData } = await supabase
+        .from('gallery')
+        .select('id')
+        .eq('image_url', imageUrl)
+        .single();
+
+      if (!imageData?.id) {
+        throw new Error('Image not found in database');
+      }
+
+      // First try to delete from Storage
       const { error: storageError } = await supabase
         .storage
         .from('gallery')
-        .remove([fileName])
+        .remove([fileName]);
 
-      if (storageError) throw storageError
+      if (storageError) throw storageError;
 
-      // Delete from Database
+      // If storage deletion was successful, delete from Database
       const { error: dbError } = await supabase
         .from('gallery')
         .delete()
-        .eq('image_url', imageUrl)
+        .eq('image_url', imageUrl);
 
-      if (dbError) throw dbError
+      if (dbError) throw dbError;
 
-      // Update local state
-      images.value = images.value.filter((img: GalleryImage) => img.image_url !== imageUrl)
+      // Delete from layout if exists
+      await supabase
+        .from('gallery_layout')
+        .delete()
+        .eq('image_id', imageData.id);
+
+      // Update local states
+      images.value = images.value.filter((img: GalleryImage) => img.image_url !== imageUrl);
+      allImages.value = allImages.value.filter((img: GalleryImage) => img.image_url !== imageUrl);
 
       // Clear cache after successful delete
-      clearCache()
-      await fetchImages()
+      clearCache();
 
-      return { success: true }
+      return { success: true };
     } catch (err) {
-      console.error('Error deleting image:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
-      return { success: false, error: error.value }
+      console.error('Error deleting image:', err);
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      return { success: false, error: error.value };
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const changePage = async (page: number) => {
     if (page === currentPage.value) return
