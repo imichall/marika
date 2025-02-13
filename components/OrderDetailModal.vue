@@ -146,7 +146,7 @@
               </div>
 
               <!-- Platební údaje -->
-              <div v-if="order.payment_status === 'pending'" class="mb-6">
+              <!-- <div v-if="order.payment_status === 'pending'" class="mb-6">
                 <h4 class="text-sm font-medium text-gray-900 mb-2">
                   Platební údaje
                 </h4>
@@ -167,7 +167,7 @@
                   </div>
                 </div>
               </div>
-
+ -->
               <!-- Akce -->
               <div class="flex justify-end gap-3">
                 <button

@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useSupabaseUser } from '#imports'
-import type { User } from '@supabase/supabase-js'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface User {
   email: string;
@@ -14,6 +14,41 @@ export const useAuth = () => {
   const isAuthenticated = ref(false)
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const autoLogoutTimer = ref<NodeJS.Timeout | null>(null)
+  const DEFAULT_TIMEOUT = 30 * 60 * 1000 // 30 minut v milisekundách
+
+  // Resetuje časovač pro automatické odhlášení
+  const resetAutoLogoutTimer = () => {
+    if (autoLogoutTimer.value) {
+      clearTimeout(autoLogoutTimer.value)
+    }
+    if (isAuthenticated.value) {
+      autoLogoutTimer.value = setTimeout(() => {
+        logout()
+      }, DEFAULT_TIMEOUT)
+    }
+  }
+
+  // Přidání event listenerů pro sledování aktivity
+  const setupActivityListeners = () => {
+    if (process.client) {
+      ['mousedown', 'keydown', 'mousemove', 'touchstart'].forEach(eventName => {
+        window.addEventListener(eventName, resetAutoLogoutTimer)
+      })
+    }
+  }
+
+  // Odstranění event listenerů
+  const cleanupActivityListeners = () => {
+    if (process.client) {
+      ['mousedown', 'keydown', 'mousemove', 'touchstart'].forEach(eventName => {
+        window.removeEventListener(eventName, resetAutoLogoutTimer)
+      })
+      if (autoLogoutTimer.value) {
+        clearTimeout(autoLogoutTimer.value)
+      }
+    }
+  }
 
   // Check current session
   const checkUser = async () => {
@@ -53,6 +88,8 @@ export const useAuth = () => {
 
       user.value = authUser
       isAuthenticated.value = true
+      setupActivityListeners()
+      resetAutoLogoutTimer()
       return true
     } catch (err: any) {
       console.error('Error logging in:', err)
@@ -74,6 +111,7 @@ export const useAuth = () => {
 
       user.value = null
       isAuthenticated.value = false
+      cleanupActivityListeners()
     } catch (err: any) {
       console.error('Error logging out:', err)
       error.value = err.message
@@ -84,11 +122,19 @@ export const useAuth = () => {
 
   // Initialize auth state
   if (process.client) {
-    checkUser()
+    checkUser().then(user => {
+      if (user) {
+        setupActivityListeners()
+        resetAutoLogoutTimer()
+      }
+    })
 
     // Watch for auth state changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange((event: string, session: any) => {
       user.value = session?.user ?? null
+      if (!session?.user) {
+        cleanupActivityListeners()
+      }
     })
   }
 
