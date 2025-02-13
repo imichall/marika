@@ -205,37 +205,61 @@ const savePermissions = async () => {
   try {
     saving.value = true;
 
-    // Získáme ID role
-    const { data: role, error: roleError } = await supabase
+    // Nejprve zkontrolujeme/vytvoříme výchozí roli
+    const { data: defaultRole, error: insertError } = await supabase
       .from("user_roles")
+      .insert([
+        {
+          email: `default.${selectedRole.value}@system.local`,
+          role: selectedRole.value,
+        },
+      ])
       .select("id")
-      .eq("role", selectedRole.value)
       .single();
 
+    if (insertError && insertError.code !== "23505") {
+      // Ignorujeme chybu duplicitního záznamu
+      throw insertError;
+    }
+
+    // Získáme ID role (včetně právě vytvořené)
+    const { data: roles, error: roleError } = await supabase
+      .from("user_roles")
+      .select("id")
+      .eq("role", selectedRole.value);
+
     if (roleError) throw roleError;
+    if (!roles || roles.length === 0) {
+      throw new Error(
+        `Nepodařilo se najít nebo vytvořit roli ${selectedRole.value}`
+      );
+    }
 
-    // Smažeme existující oprávnění
-    const { error: deleteError } = await supabase
-      .from("user_permissions")
-      .delete()
-      .eq("role_id", role.id);
-
-    if (deleteError) throw deleteError;
-
-    // Vložíme nová oprávnění
-    const newPermissions = rolePermissions.value[selectedRole.value].map(
-      (permissionId) => ({
-        role_id: role.id,
-        permission_id: permissionId,
-      })
-    );
-
-    if (newPermissions.length > 0) {
-      const { error: insertError } = await supabase
+    // Pro každou roli daného typu
+    for (const role of roles) {
+      // Smažeme existující oprávnění
+      const { error: deleteError } = await supabase
         .from("user_permissions")
-        .insert(newPermissions);
+        .delete()
+        .eq("role_id", role.id);
 
-      if (insertError) throw insertError;
+      if (deleteError) throw deleteError;
+
+      // Vložíme nová oprávnění
+      const newPermissions = rolePermissions.value[selectedRole.value].map(
+        (permissionId) => ({
+          role_id: role.id,
+          permission_id: permissionId,
+        })
+      );
+
+      if (newPermissions.length > 0) {
+        const { error: insertPermError } = await supabase
+          .from("user_permissions")
+          .insert(newPermissions);
+
+        if (insertPermError) throw insertPermError;
+      }
     }
 
     toast.success("Oprávnění byla úspěšně uložena");

@@ -237,6 +237,8 @@ security definer
 set search_path = auth, public
 language plpgsql
 as $$
+declare
+  v_role_id uuid;
 begin
   -- Check if the current user is admin
   if not exists (
@@ -247,11 +249,51 @@ begin
     raise exception 'Unauthorized';
   end if;
 
-  -- Insert or update role
+  -- Delete existing permissions for the user
+  delete from user_permissions up
+  using user_roles ur
+  where ur.email = p_email
+  and ur.id = up.role_id;
+
+  -- Update or insert the role
   insert into public.user_roles (email, role)
   values (p_email, p_role)
   on conflict (email)
-  do update set role = p_role;
+  do update set role = p_role
+  returning id into v_role_id;
+
+  -- If setting admin role, grant all permissions
+  if p_role = 'admin' then
+    insert into user_permissions (role_id, permission_id)
+    select v_role_id, p.id
+    from permissions p
+    on conflict (role_id, permission_id) do nothing;
+  end if;
+
+  -- If setting editor role, grant editor permissions
+  if p_role = 'editor' then
+    insert into user_permissions (role_id, permission_id)
+    select v_role_id, p.id
+    from permissions p
+    where
+      -- Koncerty - plný přístup
+      (p.section = 'concerts' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Galerie - plný přístup
+      or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Reference - plný přístup
+      or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Objednávky - pouze zobrazení a úpravy
+      or (p.section = 'orders' and p.action in ('view', 'edit'))
+      -- Skupiny - plný přístup
+      or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Kontakty - zobrazení a úpravy
+      or (p.section = 'contacts' and p.action in ('view', 'edit'))
+      -- Sociální sítě - zobrazení a úpravy
+      or (p.section = 'social_media' and p.action in ('view', 'edit'))
+      -- Nastavení - pouze základní
+      or (p.section = 'settings' and p.action in ('view', 'edit'))
+    on conflict (role_id, permission_id) do nothing;
+  end if;
 
   return true;
 end;

@@ -25,17 +25,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Získáme roli uživatele a jeho oprávnění
   const { data: userRole, error: roleError } = await supabase
     .from('user_roles')
-    .select(`
-      id,
-      role,
-      user_permissions!inner (
-        permission_id,
-        permissions!inner (
-          section,
-          action
-        )
-      )
-    `)
+    .select('role')
     .eq('email', user.email)
     .single()
 
@@ -44,41 +34,47 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/admin/login')
   }
 
+  // Admin má přístup všude
+  if (userRole.role === 'admin') {
+    return
+  }
+
+  // Pro ostatní role kontrolujeme specifická oprávnění
   // Mapování cest na sekce a požadované akce
   const pathPermissions: PathPermissions = {
     '/admin/koncerty': { section: 'concerts', action: 'view' },
-    '/admin/skupiny': { section: 'choir_groups', action: 'view' },
     '/admin/galerie': { section: 'gallery', action: 'view' },
     '/admin/reference': { section: 'testimonials', action: 'view' },
-    '/admin/kontakty': { section: 'contacts', action: 'view' },
     '/admin/objednavky': { section: 'orders', action: 'view' },
     '/admin/socialni-site': { section: 'social_media', action: 'view' },
+    '/admin/kontakty': { section: 'contacts', action: 'view' },
+    '/admin/skupiny': { section: 'choir_groups', action: 'view' },
     '/admin/nastaveni': { section: 'settings', action: 'view' },
-    '/admin/opravneni': { section: 'users', action: 'edit' },
-    '/admin/uzivatele': { section: 'users', action: 'view' }
+    '/admin/uzivatele': { section: 'users', action: 'view' },
+    '/admin/opravneni': { section: 'users', action: 'edit' }
   }
 
   // Kontrola oprávnění pro aktuální cestu
   const requiredPermission = pathPermissions[to.path]
   if (requiredPermission) {
-    // Admin má přístup všude
-    if (userRole.role === 'admin') {
-      return
-    }
+    // Kontrola oprávnění v databázi
+    const { data: hasPermission, error: permError } = await supabase
+      .rpc('check_permission', {
+        p_email: user.email,
+        p_section: requiredPermission.section,
+        p_action: requiredPermission.action
+      })
 
-    // Pro ostatní role kontrolujeme specifická oprávnění
-    const hasPermission = userRole.user_permissions?.some(
-      (up: any) => up.permissions.section === requiredPermission.section &&
-           up.permissions.action === requiredPermission.action
-    )
-
-    if (!hasPermission) {
-      console.error('Uživatel nemá potřebná oprávnění:', user.email)
+    if (permError || !hasPermission) {
+      console.error('Uživatel nemá potřebná oprávnění:', user.email, requiredPermission)
       return navigateTo('/admin', {
         query: {
           error: 'Nemáte potřebná oprávnění pro přístup do této sekce'
         }
-      } as any)
+      })
     }
+  } else {
+    // Pokud cesta není v seznamu povolených, přesměrujeme na 404
+    return navigateTo('/404')
   }
 })
