@@ -352,6 +352,9 @@
             class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
           >
             {{ mainBranch.version }}
+            <span v-if="mainBranch.tag" class="text-gray-500 ml-1">
+              ({{ mainBranch.tag }})
+            </span>
           </a>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
@@ -386,6 +389,9 @@
             class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
           >
             {{ devBranch.version }}
+            <span v-if="devBranch.tag" class="text-gray-500 ml-1">
+              ({{ devBranch.tag }})
+            </span>
           </a>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">

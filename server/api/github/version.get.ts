@@ -12,23 +12,41 @@ export default defineEventHandler(async (event) => {
 
     // Funkce pro získání informací o větvi
     const getBranchInfo = async (branch: string) => {
-      const response = await fetch(
+      // Získat commit
+      const commitResponse = await fetch(
         `${githubConfig.apiUrl}/repos/${githubConfig.owner}/${githubConfig.repo}/commits/${branch}`,
         { headers }
       )
 
-      if (!response.ok) {
-        throw new Error(`GitHub API responded with status ${response.status} for branch ${branch}`)
+      if (!commitResponse.ok) {
+        throw new Error(`GitHub API responded with status ${commitResponse.status} for branch ${branch}`)
       }
 
-      const commit = await response.json()
+      const commit = await commitResponse.json()
+
+      // Získat tag pro tento commit
+      const tagsResponse = await fetch(
+        `${githubConfig.apiUrl}/repos/${githubConfig.owner}/${githubConfig.repo}/tags`,
+        { headers }
+      )
+
+      let tag = null
+      if (tagsResponse.ok) {
+        const tags = await tagsResponse.json()
+        const matchingTag = tags.find((t: any) => t.commit.sha === commit.sha)
+        if (matchingTag) {
+          tag = matchingTag.name
+        }
+      }
+
       return {
         version: commit.sha.substring(0, 7),
         lastCommit: commit.commit.message,
         author: commit.commit.author.name,
         date: commit.commit.author.date,
         url: commit.html_url,
-        branch
+        branch,
+        tag
       }
     }
 

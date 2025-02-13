@@ -7,6 +7,7 @@ interface BranchInfo {
   date: string
   url: string
   branch: string
+  tag?: string
 }
 
 export const useVersion = () => {
