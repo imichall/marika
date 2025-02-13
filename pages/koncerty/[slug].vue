@@ -292,9 +292,10 @@
 
                   <div class="bg-gray-50 p-4 rounded-xl">
                     <p class="text-gray-600">
-                      Pro nákup vstupenek budete přesměrováni na stránky
-                      poskytovatele {{ selectedConcert?.ticket?.provider }}, kde
-                      můžete vstupenky bezpečně zakoupit.
+                      Tento koncert není v naší režii. Prosíme, obraťte se na
+                      pořadatele koncertu
+                      <strong>{{ selectedConcert?.ticket?.provider }}</strong
+                      >.
                     </p>
                   </div>
 
