@@ -58,7 +58,7 @@
                 target="_blank"
                 class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
               >
-                <span class="material-icons-outlined mr-2">play_circle</span>
+                <span class="material-icons-outlined mr-2">headphones</span>
                 Poslechnout
               </a>
             </div>
