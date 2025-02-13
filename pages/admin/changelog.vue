@@ -25,12 +25,17 @@
               >main</span
             >
             <h2 class="text-xl font-semibold">{{ mainBranch.version }}</h2>
+            <span
+              v-if="mainBranch.tag"
+              class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
+            >
+              {{ mainBranch.tag }}
+            </span>
             <a
-              :href="mainBranch.url"
-              target="_blank"
+              :href="`#${mainBranch.tag || mainBranch.version}`"
               class="text-blue-500 hover:text-blue-600"
             >
-              <span class="material-icons-outlined">open_in_new</span>
+              <span class="material-icons-outlined">link</span>
             </a>
           </div>
         </div>
@@ -54,6 +59,7 @@
               v-for="entry in mainEntries"
               :key="entry.id"
               class="border-l-2 border-green-500 pl-4 relative group"
+              :id="entry.version"
             >
               <div
                 v-if="canEdit"
@@ -95,12 +101,17 @@
               >dev</span
             >
             <h2 class="text-xl font-semibold">{{ devBranch.version }}</h2>
+            <span
+              v-if="devBranch.tag"
+              class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full"
+            >
+              {{ devBranch.tag }}
+            </span>
             <a
-              :href="devBranch.url"
-              target="_blank"
+              :href="`#${devBranch.tag || devBranch.version}`"
               class="text-blue-500 hover:text-blue-600"
             >
-              <span class="material-icons-outlined">open_in_new</span>
+              <span class="material-icons-outlined">link</span>
             </a>
           </div>
         </div>
@@ -124,6 +135,7 @@
               v-for="entry in devEntries"
               :key="entry.id"
               class="border-l-2 border-yellow-500 pl-4 relative group"
+              :id="entry.version"
             >
               <div
                 v-if="canEdit"

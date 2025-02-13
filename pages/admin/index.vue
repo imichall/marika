@@ -346,16 +346,15 @@
             class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"
             >main</span
           >
-          <a
-            :href="mainBranch.url"
-            target="_blank"
+          <NuxtLink
+            :to="`/admin/changelog#${mainBranch.tag || mainBranch.version}`"
             class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
           >
             {{ mainBranch.version }}
             <span v-if="mainBranch.tag" class="text-gray-500 ml-1">
               ({{ mainBranch.tag }})
             </span>
-          </a>
+          </NuxtLink>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
             <span class="material-icons-outlined text-gray-400 text-sm"
@@ -383,16 +382,15 @@
             class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"
             >dev</span
           >
-          <a
-            :href="devBranch.url"
-            target="_blank"
+          <NuxtLink
+            :to="`/admin/changelog#${devBranch.tag || devBranch.version}`"
             class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
           >
             {{ devBranch.version }}
             <span v-if="devBranch.tag" class="text-gray-500 ml-1">
               ({{ devBranch.tag }})
             </span>
-          </a>
+          </NuxtLink>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
             <span class="material-icons-outlined text-gray-400 text-sm"
