@@ -1,13 +1,29 @@
 import { ref } from 'vue'
 
+interface BranchInfo {
+  version: string
+  lastCommit: string
+  author: string
+  date: string
+  url: string
+  branch: string
+}
+
 export const useVersion = () => {
-  const version = ref('')
-  const lastCommit = ref('')
-  const author = ref('')
-  const date = ref('')
-  const commitUrl = ref('')
+  const mainBranch = ref<BranchInfo | null>(null)
+  const devBranch = ref<BranchInfo | null>(null)
   const loading = ref(false)
   const error = ref(null)
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('cs-CZ', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 
   const fetchGitHubInfo = async () => {
     loading.value = true
@@ -20,33 +36,33 @@ export const useVersion = () => {
       }
 
       const data = await response.json()
-      version.value = data.version
-      lastCommit.value = data.lastCommit
-      author.value = data.author
-      date.value = new Date(data.date).toLocaleDateString('cs-CZ', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-      commitUrl.value = data.url
+
+      if (data.main) {
+        mainBranch.value = {
+          ...data.main,
+          date: formatDate(data.main.date)
+        }
+      }
+
+      if (data.dev) {
+        devBranch.value = {
+          ...data.dev,
+          date: formatDate(data.dev.date)
+        }
+      }
     } catch (err: any) {
       console.error('Chyba při načítání informací z GitHubu:', err)
       error.value = err.message
-      version.value = 'N/A'
-      lastCommit.value = 'Informace nejsou dostupné'
+      mainBranch.value = null
+      devBranch.value = null
     } finally {
       loading.value = false
     }
   }
 
   return {
-    version,
-    lastCommit,
-    author,
-    date,
-    commitUrl,
+    mainBranch,
+    devBranch,
     loading,
     error,
     fetchGitHubInfo

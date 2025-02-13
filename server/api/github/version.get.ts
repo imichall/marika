@@ -10,29 +10,39 @@ export default defineEventHandler(async (event) => {
       headers['Authorization'] = `Bearer ${githubConfig.token}`
     }
 
-    const response = await fetch(
-      `${githubConfig.apiUrl}/repos/${githubConfig.owner}/${githubConfig.repo}/commits`,
-      { headers }
-    )
+    // Funkce pro získání informací o větvi
+    const getBranchInfo = async (branch: string) => {
+      const response = await fetch(
+        `${githubConfig.apiUrl}/repos/${githubConfig.owner}/${githubConfig.repo}/commits/${branch}`,
+        { headers }
+      )
 
-    if (!response.ok) {
-      throw new Error(`GitHub API responded with status ${response.status}`)
-    }
+      if (!response.ok) {
+        throw new Error(`GitHub API responded with status ${response.status} for branch ${branch}`)
+      }
 
-    const commits = await response.json()
-
-    if (commits.length > 0) {
-      const latestCommit = commits[0]
+      const commit = await response.json()
       return {
-        version: latestCommit.sha.substring(0, 7),
-        lastCommit: latestCommit.commit.message,
-        author: latestCommit.commit.author.name,
-        date: latestCommit.commit.author.date,
-        url: latestCommit.html_url
+        version: commit.sha.substring(0, 7),
+        lastCommit: commit.commit.message,
+        author: commit.commit.author.name,
+        date: commit.commit.author.date,
+        url: commit.html_url,
+        branch
       }
     }
 
-    throw new Error('No commits found')
+    // Získání informací o obou větvích
+    const [mainInfo, devInfo] = await Promise.all([
+      getBranchInfo('main'),
+      getBranchInfo('dev').catch(() => null) // Dev větev nemusí existovat
+    ])
+
+    return {
+      main: mainInfo,
+      dev: devInfo
+    }
+
   } catch (error: any) {
     console.error('Error fetching GitHub info:', error)
     throw createError({

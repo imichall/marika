@@ -319,34 +319,94 @@
     </div>
 
     <!-- Verze aplikace -->
-    <div class="mt-12 mb-12 text-center text-sm text-gray-500">
-      <div class="flex items-center justify-center gap-2 flex-wrap">
-        <a
-          v-if="commitUrl"
-          :href="commitUrl"
-          target="_blank"
-          class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+    <div class="mt-12 mb-12 text-center">
+      <div class="inline-flex items-center justify-center gap-2 mb-6">
+        <h2
+          class="text-xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
         >
-          Verze: {{ version }}
-        </a>
-        <span v-else>Verze: {{ version }}</span>
-
-        <template v-if="author && date">
+          Verze aplikace
+        </h2>
+      </div>
+      <div class="space-y-4 text-sm text-gray-500">
+        <!-- Main branch -->
+        <div
+          v-if="mainBranch"
+          class="flex items-center justify-center gap-2 flex-wrap"
+        >
+          <span
+            class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+            >main</span
+          >
+          <a
+            :href="mainBranch.url"
+            target="_blank"
+            class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+          >
+            {{ mainBranch.version }}
+          </a>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
             <span class="material-icons-outlined text-gray-400 text-sm"
               >person</span
             >
-            {{ author }}
+            {{ mainBranch.author }}
           </span>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
             <span class="material-icons-outlined text-gray-400 text-sm"
               >schedule</span
             >
-            {{ date }}
+            {{ mainBranch.date }}
           </span>
-        </template>
+          <span class="mx-2">•</span>
+          <span class="italic">{{ mainBranch.lastCommit }}</span>
+        </div>
+
+        <!-- Dev branch -->
+        <div
+          v-if="devBranch"
+          class="flex items-center justify-center gap-2 flex-wrap"
+        >
+          <span
+            class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"
+            >dev</span
+          >
+          <a
+            :href="devBranch.url"
+            target="_blank"
+            class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+          >
+            {{ devBranch.version }}
+          </a>
+          <span class="mx-2">•</span>
+          <span class="flex items-center gap-1">
+            <span class="material-icons-outlined text-gray-400 text-sm"
+              >person</span
+            >
+            {{ devBranch.author }}
+          </span>
+          <span class="mx-2">•</span>
+          <span class="flex items-center gap-1">
+            <span class="material-icons-outlined text-gray-400 text-sm"
+              >schedule</span
+            >
+            {{ devBranch.date }}
+          </span>
+          <span class="mx-2">•</span>
+          <span class="italic">{{ devBranch.lastCommit }}</span>
+        </div>
+
+        <!-- Loading state -->
+        <div v-if="versionLoading" class="flex justify-center">
+          <div
+            class="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 border-t-transparent"
+          ></div>
+        </div>
+
+        <!-- Error state -->
+        <div v-if="error" class="text-red-500">
+          {{ error }}
+        </div>
       </div>
     </div>
   </div>
@@ -372,6 +432,9 @@ const {
   commitUrl,
   author,
   date,
+  mainBranch,
+  devBranch,
+  error,
 } = useVersion();
 
 // Načtení dat při mounted
