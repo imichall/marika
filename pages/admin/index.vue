@@ -317,6 +317,38 @@
         </div>
       </NuxtLink>
     </div>
+
+    <!-- Verze aplikace -->
+    <div class="mt-12 mb-12 text-center text-sm text-gray-500">
+      <div class="flex items-center justify-center gap-2 flex-wrap">
+        <a
+          v-if="commitUrl"
+          :href="commitUrl"
+          target="_blank"
+          class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
+        >
+          Verze: {{ version }}
+        </a>
+        <span v-else>Verze: {{ version }}</span>
+
+        <template v-if="author && date">
+          <span class="mx-2">•</span>
+          <span class="flex items-center gap-1">
+            <span class="material-icons-outlined text-gray-400 text-sm"
+              >person</span
+            >
+            {{ author }}
+          </span>
+          <span class="mx-2">•</span>
+          <span class="flex items-center gap-1">
+            <span class="material-icons-outlined text-gray-400 text-sm"
+              >schedule</span
+            >
+            {{ date }}
+          </span>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -332,10 +364,19 @@ const testimonials = useTestimonials()?.testimonials || [];
 const galleryImages = useGallery()?.galleryImages || [];
 const { socialMedia } = useSocialMedia();
 const { orders, getAllOrders } = useTicketOrders();
+const {
+  version,
+  lastCommit,
+  loading: versionLoading,
+  fetchGitHubInfo,
+  commitUrl,
+  author,
+  date,
+} = useVersion();
 
 // Načtení dat při mounted
 onMounted(async () => {
-  await getAllOrders();
+  await Promise.all([getAllOrders(), fetchGitHubInfo()]);
 });
 
 // Přidám computed properties pro počty objednávek
