@@ -279,6 +279,38 @@
         </div>
       </NuxtLink>
 
+      <!-- Uživatelé -->
+      <NuxtLink
+        to="/admin/uzivatele"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Uživatelé</h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-violet-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-600">Správa registrovaných uživatelů</p>
+        <div class="mt-4 flex items-center">
+          <span
+            class="px-3 py-1 bg-violet-100 text-violet-800 rounded-full text-sm"
+          >
+            Zobrazit
+          </span>
+        </div>
+      </NuxtLink>
+
       <!-- Nastavení -->
       <NuxtLink
         to="/admin/system"
