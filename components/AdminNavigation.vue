@@ -68,6 +68,29 @@
             <span>Nastavení</span>
           </NuxtLink>
 
+          <!-- Oprávnění - pouze pro adminy -->
+          <NuxtLink
+            v-if="currentUserRole === 'admin'"
+            to="/admin/opravneni"
+            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+              />
+            </svg>
+            <span>Oprávnění</span>
+          </NuxtLink>
+
           <!-- Notifikace -->
           <div class="relative">
             <button
@@ -137,16 +160,38 @@
 </template>
 
 <script setup>
+import { ref, onMounted, computed } from "vue";
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useTicketOrders } from "~/composables/useTicketOrders";
-import { ref, onMounted, computed } from "vue";
 import NotificationPanel from "~/components/NotificationPanel.vue";
+import { useSupabaseClient } from "#imports";
 
 const { logout } = useAuth();
 const router = useRouter();
 const { orders, getAllOrders, startAutoRefresh } = useTicketOrders();
 const showNotifications = ref(false);
+const currentUserRole = ref("viewer");
+
+// Načtení role uživatele
+const fetchUserRole = async () => {
+  try {
+    const supabase = useSupabaseClient();
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", user.data.user.email)
+      .single();
+
+    if (error) throw error;
+    currentUserRole.value = data.role;
+  } catch (err) {
+    console.error("Error fetching user role:", err);
+  }
+};
 
 // Počet čekajících objednávek
 const pendingOrders = computed(() => {
@@ -186,6 +231,7 @@ const handleOrderClick = (orderId) => {
 onMounted(() => {
   getAllOrders();
   startAutoRefresh(30000);
+  fetchUserRole();
 });
 </script>
 

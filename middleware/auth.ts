@@ -23,15 +23,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/admin/login')
   }
 
-  // Kontrola, zda je uživatel v admin_users tabulce
-  const { data: adminUser, error: adminError } = await supabase
-    .from('admin_users')
-    .select('*')
+  // Kontrola, zda je uživatel v user_roles tabulce a má roli admin nebo editor
+  const { data: userRole, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
     .eq('email', user.value.email)
     .single()
 
-  if (adminError || !adminUser) {
-    console.error('Uživatel není administrátor:', user.value.email)
+  if (roleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'editor')) {
+    console.error('Uživatel nemá potřebná oprávnění:', user.value.email)
     return navigateTo('/admin/login')
   }
 
@@ -49,7 +49,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/system',
     '/admin/login',
     '/admin/changelog',
-    '/admin/uzivatele'
+    '/admin/uzivatele',
+    '/admin/opravneni'
   ]
 
   // Normalizace cesty - odstranění trailing slash

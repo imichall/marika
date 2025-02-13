@@ -139,24 +139,24 @@ export const useAuth = () => {
   }
 
   const isAdmin = async () => {
-    if (!user.value?.email) return false
+    if (!user.value?.email) return false;
 
     try {
       const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
+        .from('user_roles')
+        .select('role')
         .eq('email', user.value.email)
-        .single()
+        .single();
 
       if (error) {
-        console.error('Error checking admin status:', error)
-        return false
+        console.error('Error checking admin status:', error);
+        return false;
       }
 
-      return !!data
+      return data?.role === 'admin';
     } catch (err) {
-      console.error('Error in isAdmin check:', err)
-      return false
+      console.error('Error in isAdmin check:', err);
+      return false;
     }
   }
 

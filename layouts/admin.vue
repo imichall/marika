@@ -14,14 +14,20 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ["auth", "permission"],
+});
+
 import AdminNavigation from "~/components/AdminNavigation.vue";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
+import { useSupabaseClient } from "#imports";
 import ToastNotifications from "~/components/ToastNotifications.vue";
 
 const { user, checkUser } = useAuth();
 const router = useRouter();
+const supabase = useSupabaseClient();
 const isAuthenticated = ref(false);
 
 onMounted(async () => {
@@ -32,15 +38,18 @@ onMounted(async () => {
     return;
   }
 
-  // Kontrola, zda je uživatel v admin_users tabulce
-  const supabase = useSupabaseClient();
-  const { data: adminUser, error: adminError } = await supabase
-    .from("admin_users")
-    .select("*")
+  // Kontrola, zda je uživatel v user_roles tabulce a má roli admin nebo editor
+  const { data: userRole, error: roleError } = await supabase
+    .from("user_roles")
+    .select("role")
     .eq("email", user.value.email)
     .single();
 
-  if (adminError || !adminUser) {
+  if (
+    roleError ||
+    !userRole ||
+    (userRole.role !== "admin" && userRole.role !== "editor")
+  ) {
     console.error("Uživatel není administrátor:", user.value.email);
     router.push("/admin/login");
     return;
@@ -59,14 +68,16 @@ watch(
       return;
     }
 
-    const supabase = useSupabaseClient();
-    const { data: adminUser, error: adminError } = await supabase
-      .from("admin_users")
-      .select("*")
+    const { data: userRole, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
       .eq("email", newUser.email)
       .single();
 
-    isAuthenticated.value = !adminError && !!adminUser;
+    isAuthenticated.value =
+      !roleError &&
+      userRole &&
+      (userRole.role === "admin" || userRole.role === "editor");
     if (!isAuthenticated.value) {
       router.push("/admin/login");
     }

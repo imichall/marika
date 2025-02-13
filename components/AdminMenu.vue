@@ -36,20 +36,50 @@
         >
           Správa kontaktů
         </NuxtLink>
+        <NuxtLink
+          v-if="currentUserRole === 'admin'"
+          to="/admin/opravneni"
+          class="hover:bg-gray-100 px-4 py-2 block"
+        >
+          Oprávnění
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useAuth } from "~/composables/useAuth";
+import { useSupabaseClient } from "#imports";
 
 const { isAuthenticated } = useAuth();
 const isOpen = ref(false);
+const currentUserRole = ref("viewer");
+
+// Načtení role uživatele
+const fetchUserRole = async () => {
+  try {
+    const supabase = useSupabaseClient();
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", user.data.user.email)
+      .single();
+
+    if (error) throw error;
+    currentUserRole.value = data.role;
+  } catch (err) {
+    console.error("Error fetching user role:", err);
+  }
+};
 
 // Zavřít menu při kliknutí mimo
 onMounted(() => {
+  fetchUserRole();
   document.addEventListener("click", (e) => {
     const target = e.target;
     if (!target.closest(".admin-menu")) {
