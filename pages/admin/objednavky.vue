@@ -363,7 +363,11 @@
                       <td
                         class="px-6 py-4 whitespace-nowrap text-right text-sm"
                       >
-                        <Menu as="div" class="relative inline-block text-left">
+                        <Menu
+                          as="div"
+                          @click.stop
+                          class="relative inline-block text-left"
+                        >
                           <MenuButton
                             class="p-1 rounded-full hover:bg-gray-100"
                           >
@@ -396,7 +400,9 @@
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
                                   <button
-                                    @click="updateStatus(order.id, 'completed')"
+                                    @click.stop="
+                                      updateStatus(order.id, 'completed')
+                                    "
                                     :class="[
                                       active ? 'bg-gray-100' : '',
                                       'flex w-full items-center px-4 py-2 text-sm text-gray-700',
@@ -421,7 +427,9 @@
                                 </MenuItem>
                                 <MenuItem v-slot="{ active }">
                                   <button
-                                    @click="updateStatus(order.id, 'cancelled')"
+                                    @click.stop="
+                                      updateStatus(order.id, 'cancelled')
+                                    "
                                     :class="[
                                       active ? 'bg-gray-100' : '',
                                       'flex w-full items-center px-4 py-2 text-sm text-gray-700',
