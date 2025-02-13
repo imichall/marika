@@ -1,83 +1,121 @@
 <template>
-  <div class="container mx-auto px-4 mt-[100px]">
-    <!-- Breadcrumbs -->
-    <AdminBreadcrumbs />
+  <div class="min-h-screen bg-gray-50/50">
+    <div class="container mx-auto px-4 py-8">
+      <!-- Breadcrumbs -->
+      <AdminBreadcrumbs />
 
-    <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Správa skupin</h1>
-      <button
-        @click="showAddModal = true"
-        class="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200"
-        :disabled="loading"
-      >
-        Přidat skupinu
-      </button>
-    </div>
+      <div class="flex justify-between items-center mb-8">
+        <h1
+          class="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
+        >
+          Správa skupin
+        </h1>
+        <button
+          @click="showAddModal = true"
+          class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
+          :disabled="loading"
+        >
+          <span class="material-icons-outlined">add_circle</span>
+          Přidat skupinu
+        </button>
+      </div>
 
-    <div v-if="loading" class="text-center py-8">
-      <p>Načítání...</p>
-    </div>
+      <div v-if="loading" class="flex items-center justify-center py-12">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"
+        ></div>
+      </div>
 
-    <div v-else-if="error" class="text-center py-8 text-red-600">
-      <p>{{ error }}</p>
-    </div>
-
-    <!-- Seznam skupin -->
-    <div v-else class="grid grid-cols-1 gap-8">
       <div
-        v-for="group in groups"
-        :key="group.id"
-        class="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100"
+        v-else-if="error"
+        class="flex items-center justify-center py-12 text-red-600"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-          <div class="relative">
-            <img
-              v-if="group.image"
-              :src="getFullImageUrl(group.image)"
-              :alt="group.name"
-              class="w-full h-64 object-cover rounded-lg"
-            />
-            <div
-              v-else
-              class="w-full h-64 bg-gray-100 flex items-center justify-center rounded-lg"
-            >
-              <span class="material-icons-outlined text-4xl text-gray-300">
-                image
-              </span>
+        <div class="flex items-center gap-2">
+          <span class="material-icons-outlined">error_outline</span>
+          <p>{{ error }}</p>
+        </div>
+      </div>
+
+      <!-- Seznam skupin -->
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div
+          v-for="group in groups"
+          :key="group.id"
+          class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-green-100 transform hover:-translate-y-1"
+        >
+          <div class="p-6 space-y-6">
+            <div class="relative aspect-video overflow-hidden rounded-xl">
+              <img
+                v-if="group.image"
+                :src="getFullImageUrl(group.image)"
+                :alt="group.name"
+                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+              />
+              <div
+                v-else
+                class="w-full h-full bg-gray-100 flex items-center justify-center"
+              >
+                <span class="material-icons-outlined text-5xl text-gray-300">
+                  image
+                </span>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <h3 class="text-2xl font-bold text-gray-800">{{ group.name }}</h3>
+              <p class="text-gray-600 line-clamp-3">{{ group.description }}</p>
+
+              <!-- Tlačítko pro poslech -->
+              <div v-if="group.button_link" class="pt-2">
+                <a
+                  :href="group.button_link"
+                  target="_blank"
+                  class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-xl hover:from-purple-700 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/30"
+                >
+                  <span class="material-icons-outlined mr-2">headphones</span>
+                  Poslechnout
+                </a>
+              </div>
+
+              <div class="flex justify-end gap-3 pt-4">
+                <button
+                  @click="editGroup(group)"
+                  class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                >
+                  <span class="material-icons-outlined mr-2">edit</span>
+                  Upravit
+                </button>
+                <button
+                  @click="handleDelete(group.id)"
+                  class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                >
+                  <span class="material-icons-outlined mr-2">delete</span>
+                  Smazat
+                </button>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="flex flex-col">
-            <h3 class="text-2xl font-bold mb-4">{{ group.name }}</h3>
-            <p class="text-gray-600 mb-6">{{ group.description }}</p>
-
-            <!-- Přidáme tlačítko pro poslech, pokud je nastavený odkaz -->
-            <div v-if="group.button_link" class="mb-4">
-              <a
-                :href="group.button_link"
-                target="_blank"
-                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
-              >
-                <span class="material-icons-outlined mr-2">headphones</span>
-                Poslechnout
-              </a>
-            </div>
-
-            <div class="mt-auto flex justify-end gap-3">
-              <button
-                @click="editGroup(group)"
-                class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors duration-200"
-              >
-                Upravit
-              </button>
-              <button
-                @click="handleDelete(group.id)"
-                class="inline-flex items-center px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-200"
-              >
-                Smazat
-              </button>
-            </div>
-          </div>
+        <!-- Prázdný stav -->
+        <div
+          v-if="groups.length === 0"
+          class="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl border border-dashed border-gray-300"
+        >
+          <span class="material-icons-outlined text-6xl text-gray-400 mb-4"
+            >group_off</span
+          >
+          <h3 class="text-xl font-medium text-gray-900 mb-2">Žádné skupiny</h3>
+          <p class="text-gray-500 text-center mb-6">
+            Zatím nebyly přidány žádné skupiny. Začněte přidáním první skupiny.
+          </p>
+          <button
+            @click="showAddModal = true"
+            class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            <span class="material-icons-outlined">add_circle</span>
+            Přidat první skupinu
+          </button>
         </div>
       </div>
     </div>
