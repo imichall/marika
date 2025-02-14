@@ -37,6 +37,7 @@
     >
       <!-- Koncerty -->
       <NuxtLink
+        v-if="permissions.concerts"
         to="/admin/koncerty"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -69,6 +70,7 @@
 
       <!-- Skupiny -->
       <NuxtLink
+        v-if="permissions.choir_groups"
         to="/admin/skupiny"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -101,6 +103,7 @@
 
       <!-- Galerie -->
       <NuxtLink
+        v-if="permissions.gallery"
         to="/admin/galerie"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -126,6 +129,7 @@
 
       <!-- Reference -->
       <NuxtLink
+        v-if="permissions.testimonials"
         to="/admin/reference"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -158,6 +162,7 @@
 
       <!-- Sociální sítě -->
       <NuxtLink
+        v-if="permissions.social_media"
         to="/admin/socialni-site"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -190,6 +195,7 @@
 
       <!-- Objednávky vstupenek -->
       <NuxtLink
+        v-if="permissions.orders"
         to="/admin/objednavky"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -274,6 +280,7 @@
 
       <!-- Kontakty -->
       <NuxtLink
+        v-if="permissions.contacts"
         to="/admin/kontakty"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -306,6 +313,7 @@
 
       <!-- Uživatelé -->
       <NuxtLink
+        v-if="permissions.users"
         to="/admin/uzivatele"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -338,6 +346,7 @@
 
       <!-- Nastavení -->
       <NuxtLink
+        v-if="permissions.settings"
         to="/admin/system"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -403,15 +412,12 @@
             class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"
             >main</span
           >
-          <NuxtLink
-            :to="`/admin/changelog#${mainBranch.tag || mainBranch.version}`"
-            class="text-blue-500 hover:text-blue-600 transition-colors duration-200"
-          >
+          <span class="text-gray-500">
             {{ mainBranch.version }}
             <span v-if="mainBranch.tag" class="text-gray-500 ml-1">
               ({{ mainBranch.tag }})
             </span>
-          </NuxtLink>
+          </span>
           <span class="mx-2">•</span>
           <span class="flex items-center gap-1">
             <span class="material-icons-outlined text-gray-400 text-sm"
@@ -490,9 +496,12 @@ definePageMeta({
 
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import { useRoute, useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { useSupabaseClient } from "#imports";
 
 const route = useRoute();
 const router = useRouter();
+const supabase = useSupabaseClient();
 
 const { concerts } = useConcerts();
 const testimonials = useTestimonials()?.testimonials || [];
@@ -512,9 +521,92 @@ const {
   error,
 } = useVersion();
 
+// Stav oprávnění
+const permissions = ref({
+  concerts: false,
+  choir_groups: false,
+  gallery: false,
+  testimonials: false,
+  orders: false,
+  social_media: false,
+  contacts: false,
+  settings: false,
+  users: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Výpis informací o uživateli
+    console.log("Přihlášený uživatel:", user.data.user);
+
+    // Získání role uživatele
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", user.data.user.email)
+      .single();
+
+    console.log("Role uživatele:", userRole);
+
+    // Získání všech oprávnění uživatele
+    const { data: userPermissions } = await supabase
+      .from("user_permissions")
+      .select(
+        `
+        permission_id,
+        permissions:permission_id (
+          section,
+          action,
+          description
+        )
+      `
+      )
+      .eq(
+        "role_id",
+        (
+          await supabase
+            .from("user_roles")
+            .select("id")
+            .eq("email", user.data.user.email)
+            .single()
+        ).data.id
+      );
+
+    console.log("Oprávnění uživatele:", userPermissions);
+
+    // Kontrola oprávnění pro každou sekci
+    const sections = [
+      "concerts",
+      "choir_groups",
+      "gallery",
+      "testimonials",
+      "orders",
+      "social_media",
+      "contacts",
+      "settings",
+      "users",
+    ];
+
+    for (const section of sections) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: section,
+        p_action: "view",
+      });
+      permissions.value[section] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
 // Načtení dat při mounted
 onMounted(async () => {
-  await Promise.all([getAllOrders(), fetchGitHubInfo()]);
+  await Promise.all([getAllOrders(), fetchGitHubInfo(), loadPermissions()]);
 });
 
 // Přidám computed properties pro počty objednávek

@@ -1831,6 +1831,37 @@ const {
 const toast = useToast();
 
 const supabase = useSupabaseClient();
+const permissions = ref({
+  create: false,
+  edit: false,
+  delete: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["create", "edit", "delete"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "concerts",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
+// Načtení dat při mounted
+onMounted(async () => {
+  await Promise.all([fetchConcerts(), loadPermissions()]);
+});
 
 const showAddModal = ref(false);
 const editingConcert = ref(null);

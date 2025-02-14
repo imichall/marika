@@ -74,7 +74,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
       })
     }
   } else {
-    // Pokud cesta není v seznamu povolených, přesměrujeme na 404
-    return navigateTo('/404')
+    // Pokud cesta není v seznamu povolených, přesměrujeme na hlavní admin stránku
+    return navigateTo('/admin', {
+      query: {
+        error: 'Tato sekce není pro vás dostupná'
+      }
+    })
   }
 })

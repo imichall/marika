@@ -276,22 +276,10 @@ begin
     select v_role_id, p.id
     from permissions p
     where
-      -- Koncerty - plný přístup
-      (p.section = 'concerts' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Galerie - plný přístup
-      or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Reference - plný přístup
-      or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Objednávky - pouze zobrazení a úpravy
-      or (p.section = 'orders' and p.action in ('view', 'edit'))
-      -- Skupiny - plný přístup
-      or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Kontakty - zobrazení a úpravy
-      or (p.section = 'contacts' and p.action in ('view', 'edit'))
-      -- Sociální sítě - zobrazení a úpravy
-      or (p.section = 'social_media' and p.action in ('view', 'edit'))
-      -- Nastavení - pouze základní
-      or (p.section = 'settings' and p.action in ('view', 'edit'))
+      -- Koncerty - pouze zobrazení
+      (p.section = 'concerts' and p.action = 'view')
+      -- Skupiny - pouze zobrazení
+      or (p.section = 'choir_groups' and p.action = 'view')
     on conflict (role_id, permission_id) do nothing;
   end if;
 
