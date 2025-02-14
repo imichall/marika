@@ -26,7 +26,7 @@
     <div v-else class="grid gap-6">
       <!-- Basic settings -->
       <div
-        v-if="canEditSettings"
+        v-if="permissions.edit"
         class="bg-white rounded-xl shadow-sm overflow-hidden p-6"
       >
         <div class="mb-6">
@@ -88,7 +88,7 @@
 
       <!-- Advanced settings -->
       <div
-        v-if="canManageSettings"
+        v-if="permissions.manage"
         class="bg-white rounded-xl shadow-sm overflow-hidden p-6"
       >
         <div class="mb-6">
@@ -139,7 +139,10 @@
       </div>
 
       <!-- Save button -->
-      <div v-if="canEditSettings || canManageSettings" class="flex justify-end">
+      <div
+        v-if="permissions.edit || permissions.manage"
+        class="flex justify-end"
+      >
         <button
           @click="saveSettings"
           class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200 disabled:opacity-50"
@@ -149,6 +152,26 @@
           Uložit změny
         </button>
       </div>
+
+      <!-- Tlačítko pro úpravu -->
+      <button
+        v-if="permissions.edit"
+        @click="editSettings"
+        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+      >
+        <span class="material-icons-outlined mr-2">edit</span>
+        Upravit nastavení
+      </button>
+
+      <!-- Tlačítko pro správu -->
+      <button
+        v-if="permissions.manage"
+        @click="manageSettings"
+        class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200"
+      >
+        <span class="material-icons-outlined mr-2">settings</span>
+        Spravovat systém
+      </button>
     </div>
   </div>
 </template>
@@ -179,45 +202,39 @@ const settings = ref({
   cache_ttl: 60,
 });
 
-// Oprávnění
-const canEditSettings = ref(false);
-const canManageSettings = ref(false);
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  edit: false,
+  manage: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "edit", "manage"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "settings",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
 
 // Načtení nastavení
-const fetchSettings = async () => {
+const loadSettings = async () => {
   try {
     loading.value = true;
     error.value = null;
-
-    // Načtení oprávnění
-    const user = await supabase.auth.getUser();
-    if (!user.data?.user) throw new Error("Uživatel není přihlášen");
-
-    const { data: perms, error: permsError } = await supabase
-      .from("user_permissions")
-      .select(
-        `
-        permission_id,
-        permissions:permission_id (
-          section,
-          action
-        )
-      `
-      )
-      .eq("role_id", user.data.user.id);
-
-    if (permsError) throw permsError;
-
-    // Kontrola oprávnění
-    canEditSettings.value = perms.some(
-      (p) =>
-        p.permissions.section === "settings" && p.permissions.action === "edit"
-    );
-    canManageSettings.value = perms.some(
-      (p) =>
-        p.permissions.section === "settings" &&
-        p.permissions.action === "manage"
-    );
 
     // Načtení nastavení
     const { data: settingsData, error: settingsError } = await supabase
@@ -259,6 +276,6 @@ const saveSettings = async () => {
 };
 
 onMounted(async () => {
-  await fetchSettings();
+  await Promise.all([loadPermissions(), loadSettings()]);
 });
 </script>

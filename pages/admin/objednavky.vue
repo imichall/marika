@@ -400,6 +400,7 @@
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
                                   <button
+                                    v-if="permissions.edit"
                                     @click.stop="
                                       updateStatus(order.id, 'completed')
                                     "
@@ -427,6 +428,7 @@
                                 </MenuItem>
                                 <MenuItem v-slot="{ active }">
                                   <button
+                                    v-if="permissions.edit"
                                     @click.stop="
                                       updateStatus(order.id, 'cancelled')
                                     "
@@ -570,9 +572,36 @@ watch(selectedTab, (newValue) => {
   }
 });
 
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  edit: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "edit"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "orders",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
 // Načtení dat
 onMounted(async () => {
-  await Promise.all([getAllOrders(), fetchConcerts()]);
+  await Promise.all([loadPermissions(), getAllOrders(), fetchConcerts()]);
   // Po načtení dat zkontrolujeme, jestli máme otevřít detail
   const orderId = route.query.order;
   if (orderId) {

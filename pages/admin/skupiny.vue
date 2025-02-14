@@ -11,6 +11,7 @@
           Správa skupin
         </h1>
         <button
+          v-if="permissions.create"
           @click="showAddModal = true"
           class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-500/30"
           :disabled="loading"
@@ -79,6 +80,7 @@
 
               <div class="flex justify-end gap-3 pt-4">
                 <button
+                  v-if="permissions.edit"
                   @click="editGroup(group)"
                   class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
@@ -86,6 +88,7 @@
                   Upravit
                 </button>
                 <button
+                  v-if="permissions.delete"
                   @click="handleDelete(group.id)"
                   class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
@@ -110,6 +113,7 @@
             Zatím nebyly přidány žádné skupiny. Začněte přidáním první skupiny.
           </p>
           <button
+            v-if="permissions.create"
             @click="showAddModal = true"
             class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
@@ -434,8 +438,37 @@ const selectedSocialMedia = ref([]);
 
 const availableSocialMedia = ref([]);
 
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  create: false,
+  edit: false,
+  delete: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "create", "edit", "delete"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "choir_groups",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
 onMounted(async () => {
-  fetchGroups();
+  await Promise.all([loadPermissions(), fetchGroups()]);
   await loadAvailableSocialMedia();
 });
 

@@ -96,13 +96,22 @@
                   >
                     {{ getRoleName(user.role) }}
                   </span>
-                  <button
-                    v-if="currentUserRole === 'admin'"
-                    @click="editUser(user)"
-                    class="p-1 text-gray-400 hover:text-blue-500 transition-colors duration-200"
-                  >
-                    <span class="material-icons-outlined text-sm">edit</span>
-                  </button>
+                  <div class="flex items-center space-x-2">
+                    <button
+                      v-if="permissions.edit"
+                      @click="editUser(user)"
+                      class="p-1 text-blue-500 hover:text-blue-600"
+                    >
+                      <span class="material-icons-outlined">edit</span>
+                    </button>
+                    <button
+                      v-if="permissions.edit"
+                      @click="deleteUser(user)"
+                      class="p-1 text-red-500 hover:text-red-600"
+                    >
+                      <span class="material-icons-outlined">delete</span>
+                    </button>
+                  </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -190,6 +199,16 @@
         </div>
       </form>
     </Modal>
+
+    <!-- Tlačítko pro přidání -->
+    <button
+      v-if="permissions.edit"
+      @click="openAddModal"
+      class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200"
+    >
+      <span class="material-icons-outlined mr-2">add</span>
+      Přidat uživatele
+    </button>
   </div>
 </template>
 
@@ -217,8 +236,32 @@ const editForm = ref({
   role: "viewer",
 });
 
-// Získání role aktuálního uživatele
-const currentUserRole = ref("viewer");
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  edit: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "edit"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "users",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
 
 // Načtení uživatelů
 const fetchUsers = async () => {
@@ -252,37 +295,6 @@ const formatDate = (dateString) => {
   });
 };
 
-// Získání role aktuálního uživatele
-const fetchCurrentUserRole = async () => {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user?.email) return;
-
-    const { data, error } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("email", user.email)
-      .single();
-
-    if (error) throw error;
-    currentUserRole.value = data?.role || "viewer";
-  } catch (err) {
-    console.error("Error fetching current user role:", err);
-  }
-};
-
-// Překlad rolí do češtiny
-const getRoleName = (role) => {
-  const roles = {
-    admin: "Administrátor",
-    editor: "Editor",
-    viewer: "Prohlížeč",
-  };
-  return roles[role] || role;
-};
-
 // Editace uživatele
 const editUser = (user) => {
   editingUser.value = user;
@@ -313,6 +325,6 @@ const saveUser = async () => {
 };
 
 onMounted(async () => {
-  await Promise.all([fetchUsers(), fetchCurrentUserRole()]);
+  await Promise.all([loadPermissions(), fetchUsers()]);
 });
 </script>

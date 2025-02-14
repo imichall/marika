@@ -79,6 +79,7 @@
             <!-- Akční tlačítka -->
             <div class="flex space-x-2">
               <button
+                v-if="permissions.edit"
                 @click="editContact(contact)"
                 class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                 title="Upravit"
@@ -473,6 +474,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
 
 const {
   contacts,
@@ -488,6 +490,8 @@ const { settings, fetchSettings } = useSettings();
 
 const toast = useToast();
 
+const supabase = useSupabaseClient();
+
 const showAddModal = ref(false);
 const showDeleteModal = ref(false);
 const editingContact = ref(null);
@@ -501,6 +505,31 @@ const form = reactive({
   email: "",
   bank_account: "",
 });
+
+const permissions = ref({
+  view: false,
+  edit: false,
+});
+
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "edit"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "contacts",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
 
 const getBankAccount = (groupName) => {
   const normalizedName = groupName.replace(", z.s.", "").toLowerCase();
@@ -552,7 +581,7 @@ const bankAccounts = computed(() => {
 });
 
 onMounted(async () => {
-  await Promise.all([fetchContacts(), fetchSettings()]);
+  await Promise.all([loadPermissions(), fetchContacts(), fetchSettings()]);
   console.log("Settings loaded:", settings.value);
 });
 

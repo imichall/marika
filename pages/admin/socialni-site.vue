@@ -8,6 +8,7 @@
         <p class="text-gray-600 mt-2">Spravujte odkazy na sociální sítě</p>
       </div>
       <button
+        v-if="permissions.edit"
         @click="resetForm"
         class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg"
       >
@@ -29,6 +30,7 @@
           class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2"
         >
           <button
+            v-if="permissions.edit"
             @click="editItem(item)"
             class="p-2 text-gray-600 hover:text-primary bg-white rounded-full hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow-md"
             title="Upravit"
@@ -41,6 +43,7 @@
             </svg>
           </button>
           <button
+            v-if="permissions.edit"
             @click="deleteItem(item)"
             class="p-2 text-gray-600 hover:text-red-600 bg-white rounded-full hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow-md"
             title="Smazat"
@@ -430,6 +433,7 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
 
 interface SocialMedia {
   id: string;
@@ -466,6 +470,7 @@ const {
 
 const toast = useToast();
 const { groups, fetchGroups } = useChoirGroups();
+const supabase = useSupabaseClient();
 
 const platforms = [
   { value: "facebook", label: "Facebook" },
@@ -485,6 +490,33 @@ const isAdding = ref(false);
 
 const showDeleteModal = ref(false);
 const itemToDelete = ref<SocialMedia | null>(null);
+
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  edit: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "edit"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "social_media",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
 
 const getIconColor = (platform: string) => {
   const colors: Record<string, string> = {
@@ -586,8 +618,7 @@ const cancelDelete = () => {
   itemToDelete.value = null;
 };
 
-// Načteme data při mounted
 onMounted(async () => {
-  await Promise.all([fetchSocialMedia(), fetchGroups()]);
+  await Promise.all([loadPermissions(), fetchGroups()]);
 });
 </script>

@@ -13,6 +13,7 @@
           Obnovit
         </button>
         <button
+          v-if="permissions.create"
           @click="zobrazitModalNahraniFotek = true"
           class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
           :disabled="nacitani"
@@ -68,6 +69,7 @@
           >
             <div class="absolute top-2 right-2 flex gap-2">
               <button
+                v-if="permissions.edit"
                 @click.stop="handleDelete(image)"
                 class="bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
                 title="Smazat fotografii"
@@ -874,6 +876,35 @@ const layoutImages = ref<LayoutImage[]>([
 
 const hasUnsavedChanges = ref(false);
 
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  create: false,
+  edit: false,
+  delete: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "create", "edit", "delete"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "gallery",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
 // Funkce pro získání obrázku podle ID
 const getImageById = (id: number | null) => {
   if (!id) return null;
@@ -881,19 +912,7 @@ const getImageById = (id: number | null) => {
 };
 
 onMounted(async () => {
-  // Načteme všechny obrázky do allImages
-  const { data } = await supabase
-    .from("gallery")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (data) {
-    allImages.value = data;
-  }
-
-  // Načteme první stránku galerie
-  await fetchImages();
-  await loadLayout();
+  await Promise.all([loadPermissions(), loadGallery()]);
 });
 
 const handleDelete = async (image: GalleryImage) => {

@@ -37,7 +37,7 @@
     >
       <!-- Koncerty -->
       <NuxtLink
-        v-if="permissions.concerts"
+        v-if="permissions.concerts.view"
         to="/admin/koncerty"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -70,7 +70,7 @@
 
       <!-- Skupiny -->
       <NuxtLink
-        v-if="permissions.choir_groups"
+        v-if="permissions.choir_groups.view"
         to="/admin/skupiny"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -103,7 +103,7 @@
 
       <!-- Galerie -->
       <NuxtLink
-        v-if="permissions.gallery"
+        v-if="permissions.gallery.view"
         to="/admin/galerie"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -129,7 +129,7 @@
 
       <!-- Reference -->
       <NuxtLink
-        v-if="permissions.testimonials"
+        v-if="permissions.testimonials.view"
         to="/admin/reference"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -162,7 +162,7 @@
 
       <!-- Sociální sítě -->
       <NuxtLink
-        v-if="permissions.social_media"
+        v-if="permissions.social_media.view"
         to="/admin/socialni-site"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -195,7 +195,7 @@
 
       <!-- Objednávky vstupenek -->
       <NuxtLink
-        v-if="permissions.orders"
+        v-if="permissions.orders.view"
         to="/admin/objednavky"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -280,7 +280,7 @@
 
       <!-- Kontakty -->
       <NuxtLink
-        v-if="permissions.contacts"
+        v-if="permissions.contacts.view"
         to="/admin/kontakty"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -313,7 +313,7 @@
 
       <!-- Uživatelé -->
       <NuxtLink
-        v-if="permissions.users"
+        v-if="permissions.users.view"
         to="/admin/uzivatele"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -346,7 +346,7 @@
 
       <!-- Nastavení -->
       <NuxtLink
-        v-if="permissions.settings"
+        v-if="permissions.settings.view"
         to="/admin/system"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
@@ -523,15 +523,51 @@ const {
 
 // Stav oprávnění
 const permissions = ref({
-  concerts: false,
-  choir_groups: false,
-  gallery: false,
-  testimonials: false,
-  orders: false,
-  social_media: false,
-  contacts: false,
-  settings: false,
-  users: false,
+  concerts: {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  choir_groups: {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  gallery: {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  testimonials: {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
+  orders: {
+    view: false,
+    edit: false,
+  },
+  social_media: {
+    view: false,
+    edit: false,
+  },
+  contacts: {
+    view: false,
+    edit: false,
+  },
+  settings: {
+    view: false,
+    edit: false,
+    manage: false,
+  },
+  users: {
+    view: false,
+    edit: false,
+  },
 });
 
 // Načtení oprávnění
@@ -578,26 +614,29 @@ const loadPermissions = async () => {
 
     console.log("Oprávnění uživatele:", userPermissions);
 
-    // Kontrola oprávnění pro každou sekci
-    const sections = [
-      "concerts",
-      "choir_groups",
-      "gallery",
-      "testimonials",
-      "orders",
-      "social_media",
-      "contacts",
-      "settings",
-      "users",
-    ];
+    // Definice akcí pro každou sekci
+    const sectionActions = {
+      concerts: ["view", "create", "edit", "delete"],
+      choir_groups: ["view", "create", "edit", "delete"],
+      gallery: ["view", "create", "edit", "delete"],
+      testimonials: ["view", "create", "edit", "delete"],
+      orders: ["view", "edit"],
+      social_media: ["view", "edit"],
+      contacts: ["view", "edit"],
+      settings: ["view", "edit", "manage"],
+      users: ["view", "edit"],
+    };
 
-    for (const section of sections) {
-      const { data: hasPermission } = await supabase.rpc("check_permission", {
-        p_email: user.data.user.email,
-        p_section: section,
-        p_action: "view",
-      });
-      permissions.value[section] = hasPermission;
+    // Kontrola oprávnění pro každou sekci a její akce
+    for (const [section, actions] of Object.entries(sectionActions)) {
+      for (const action of actions) {
+        const { data: hasPermission } = await supabase.rpc("check_permission", {
+          p_email: user.data.user.email,
+          p_section: section,
+          p_action: action,
+        });
+        permissions.value[section][action] = hasPermission;
+      }
     }
   } catch (err) {
     console.error("Error loading permissions:", err);

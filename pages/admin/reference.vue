@@ -6,9 +6,11 @@
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa referencí</h1>
       <button
+        v-if="permissions.create"
         @click="showAddModal = true"
-        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+        class="bg-violet-600 text-white px-4 py-2 rounded-md hover:bg-violet-700"
       >
+        <span class="material-icons-outlined mr-2">add</span>
         Přidat referenci
       </button>
     </div>
@@ -29,16 +31,18 @@
           </div>
           <div class="flex gap-2">
             <button
+              v-if="permissions.edit"
               @click="editTestimonial(testimonial)"
-              class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              class="p-1 text-blue-500 hover:text-blue-600"
             >
-              Upravit
+              <span class="material-icons-outlined">edit</span>
             </button>
             <button
+              v-if="permissions.delete"
               @click="deleteTestimonial(testimonial.id)"
-              class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+              class="p-1 text-red-500 hover:text-red-600"
             >
-              Smazat
+              <span class="material-icons-outlined">delete</span>
             </button>
           </div>
         </div>
@@ -114,9 +118,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useToast } from "~/composables/useToast";
 import { useTestimonials } from "~/composables/useTestimonials";
+import { useSupabaseClient } from "#imports";
 
 definePageMeta({
   layout: "admin",
@@ -124,6 +129,7 @@ definePageMeta({
 });
 
 const toast = useToast();
+const supabase = useSupabaseClient();
 const {
   testimonials,
   addTestimonial,
@@ -211,4 +217,37 @@ const deleteTestimonial = async (id) => {
     toast.error("Chyba při mazání reference: " + err.message);
   }
 };
+
+// Stav oprávnění
+const permissions = ref({
+  view: false,
+  create: false,
+  edit: false,
+  delete: false,
+});
+
+// Načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "create", "edit", "delete"];
+    for (const action of actions) {
+      const { data: hasPermission } = await supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "testimonials",
+        p_action: action,
+      });
+      permissions.value[action] = hasPermission;
+    }
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
+
+onMounted(async () => {
+  await Promise.all([loadPermissions(), loadTestimonials()]);
+});
 </script>
