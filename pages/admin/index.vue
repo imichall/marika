@@ -576,19 +576,24 @@ const loadPermissions = async () => {
     const user = await supabase.auth.getUser();
     if (!user.data?.user?.email) return;
 
-    // Výpis informací o uživateli
-    console.log("Přihlášený uživatel:", user.data.user);
-
     // Získání role uživatele
     const { data: userRole } = await supabase
       .from("user_roles")
-      .select("role")
+      .select("id, role")
       .eq("email", user.data.user.email)
       .single();
 
-    console.log("Role uživatele:", userRole);
+    // Pro adminy nastavíme všechna oprávnění na true
+    if (userRole.role === "admin") {
+      Object.keys(permissions.value).forEach((section) => {
+        Object.keys(permissions.value[section]).forEach((action) => {
+          permissions.value[section][action] = true;
+        });
+      });
+      return;
+    }
 
-    // Získání všech oprávnění uživatele
+    // Pro ostatní role načteme oprávnění z databáze
     const { data: userPermissions } = await supabase
       .from("user_permissions")
       .select(
@@ -596,48 +601,27 @@ const loadPermissions = async () => {
         permission_id,
         permissions:permission_id (
           section,
-          action,
-          description
+          action
         )
       `
       )
-      .eq(
-        "role_id",
-        (
-          await supabase
-            .from("user_roles")
-            .select("id")
-            .eq("email", user.data.user.email)
-            .single()
-        ).data.id
-      );
+      .eq("role_id", userRole.id);
 
-    console.log("Oprávnění uživatele:", userPermissions);
+    // Resetujeme všechna oprávnění na false
+    Object.keys(permissions.value).forEach((section) => {
+      Object.keys(permissions.value[section]).forEach((action) => {
+        permissions.value[section][action] = false;
+      });
+    });
 
-    // Definice akcí pro každou sekci
-    const sectionActions = {
-      concerts: ["view", "create", "edit", "delete"],
-      choir_groups: ["view", "create", "edit", "delete"],
-      gallery: ["view", "create", "edit", "delete"],
-      testimonials: ["view", "create", "edit", "delete"],
-      orders: ["view", "edit"],
-      social_media: ["view", "edit"],
-      contacts: ["view", "edit"],
-      settings: ["view", "edit", "manage"],
-      users: ["view", "edit"],
-    };
-
-    // Kontrola oprávnění pro každou sekci a její akce
-    for (const [section, actions] of Object.entries(sectionActions)) {
-      for (const action of actions) {
-        const { data: hasPermission } = await supabase.rpc("check_permission", {
-          p_email: user.data.user.email,
-          p_section: section,
-          p_action: action,
-        });
-        permissions.value[section][action] = hasPermission;
+    // Nastavíme oprávnění podle dat z databáze
+    userPermissions?.forEach((permission) => {
+      const section = permission.permissions.section;
+      const action = permission.permissions.action;
+      if (permissions.value[section]) {
+        permissions.value[section][action] = true;
       }
-    }
+    });
   } catch (err) {
     console.error("Error loading permissions:", err);
   }
