@@ -845,6 +845,7 @@ const {
   changePage,
   fetchAllVisibleImages,
   allImages,
+  uploadImage,
 } = useGallery();
 const { success, error: showError } = useToast();
 
@@ -912,7 +913,7 @@ const getImageById = (id: number | null) => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadPermissions(), loadGallery()]);
+  await Promise.all([loadPermissions(), fetchImages(), loadLayout()]);
 });
 
 const handleDelete = async (image: GalleryImage) => {
