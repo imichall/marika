@@ -5,6 +5,7 @@
 
     <!-- Collapsible Add/Edit Concert Section -->
     <div
+      v-if="permissions.create"
       class="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
     >
       <div
@@ -743,6 +744,7 @@
       </h1>
       <div class="flex gap-4">
         <button
+          v-if="permissions.create"
           @click="isFormVisible ? resetForm() : (isFormVisible = true)"
           class="group relative px-6 py-3 bg-gradient-to-br from-red-500 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
           :disabled="loading"
@@ -1054,8 +1056,10 @@
                 class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-1"
               >
                 <button
+                  v-if="permissions.edit"
                   @click="editConcert(concert)"
-                  class="inline-flex items-center justify-center w-8 h-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-150"
+                  class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                  title="Upravit"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1073,8 +1077,10 @@
                   </svg>
                 </button>
                 <button
+                  v-if="permissions.delete"
                   @click="handleDelete(concert.id)"
-                  class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
+                  class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                  title="Smazat"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1103,6 +1109,7 @@
                   >
                   <p class="text-lg">Zatím nejsou přidány žádné koncerty</p>
                   <button
+                    v-if="permissions.create"
                     @click="
                       isFormVisible ? resetForm() : (isFormVisible = true)
                     "
@@ -1184,6 +1191,7 @@
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Odkazy na vstupenky</h2>
         <button
+          v-if="permissions.create"
           @click="showTicketModal = true"
           class="group relative px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl hover:from-blue-600 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
         >
@@ -1276,6 +1284,7 @@
                 >
                   <div class="flex justify-end space-x-2">
                     <button
+                      v-if="permissions.edit"
                       @click="editTicket(ticket)"
                       class="inline-flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors duration-150"
                     >
@@ -1295,6 +1304,7 @@
                       </svg>
                     </button>
                     <button
+                      v-if="permissions.delete"
                       @click="handleDeleteTicket(ticket.id)"
                       class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
                     >
@@ -1589,6 +1599,7 @@
                         >
                           <div class="flex justify-end space-x-2">
                             <button
+                              v-if="permissions.edit"
                               @click="editTicket(ticket)"
                               class="inline-flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors duration-150"
                             >
@@ -1608,6 +1619,7 @@
                               </svg>
                             </button>
                             <button
+                              v-if="permissions.delete"
                               @click="handleDeleteTicket(ticket.id)"
                               class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
                             >

@@ -12,6 +12,7 @@
         </p>
       </div>
       <button
+        v-if="permissions.create"
         @click="showAddModal = true"
         class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
         :disabled="loading"
@@ -100,6 +101,7 @@
                 </svg>
               </button>
               <button
+                v-if="permissions.delete"
                 @click="handleDelete(contact.id)"
                 class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                 title="Smazat"
@@ -509,6 +511,7 @@ const form = reactive({
 const permissions = ref({
   view: false,
   edit: false,
+  delete: false,
 });
 
 const loadPermissions = async () => {
@@ -517,7 +520,7 @@ const loadPermissions = async () => {
     if (!user.data?.user?.email) return;
 
     // Kontrola oprávnění pro každou akci
-    const actions = ["view", "edit"];
+    const actions = ["view", "edit", "delete"];
     for (const action of actions) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
