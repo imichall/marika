@@ -1,3 +1,6 @@
+-- Nejprve odstraníme starou verzi funkce
+drop function if exists setup_editor_permissions();
+
 -- Funkce pro přidání oprávnění editorovi
 create or replace function setup_editor_permissions()
 returns table (
@@ -30,8 +33,8 @@ begin
         or (p.section = 'orders' and p.action in ('view', 'edit'))
         -- Skupiny - plný přístup
         or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
-        -- Kontakty - zobrazení a úpravy
-        or (p.section = 'contacts' and p.action in ('view', 'edit'))
+        -- Kontakty - plný přístup
+        or (p.section = 'contacts' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Sociální sítě - zobrazení a úpravy
         or (p.section = 'social_media' and p.action in ('view', 'edit'))
         -- Nastavení - pouze základní

@@ -295,6 +295,16 @@ const formatDate = (dateString) => {
   });
 };
 
+// Překlad rolí do češtiny
+const getRoleName = (role) => {
+  const roles = {
+    admin: "Administrátor",
+    editor: "Editor",
+    viewer: "Prohlížeč",
+  };
+  return roles[role] || role;
+};
+
 // Editace uživatele
 const editUser = (user) => {
   editingUser.value = user;
