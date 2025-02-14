@@ -431,6 +431,37 @@
                                 </MenuItem>
                                 <MenuItem
                                   v-if="
+                                    permissions.edit &&
+                                    order.payment_status === 'pending'
+                                  "
+                                  v-slot="{ active }"
+                                >
+                                  <button
+                                    @click.stop="editOrder(order)"
+                                    :class="[
+                                      active ? 'bg-gray-100' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                    ]"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      class="h-4 w-4 mr-2 text-gray-500"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                      />
+                                    </svg>
+                                    Upravit objednávku
+                                  </button>
+                                </MenuItem>
+                                <MenuItem
+                                  v-if="
                                     permissions.complete &&
                                     order.payment_status === 'pending'
                                   "
@@ -629,7 +660,9 @@ const permissions = ref({
 // Načtení oprávnění
 const loadPermissions = async () => {
   try {
+    const supabase = useSupabaseClient();
     const user = await supabase.auth.getUser();
+    console.log("Current user:", user.data?.user);
     if (!user.data?.user?.email) return;
 
     // Kontrola oprávnění pro každou akci
@@ -640,8 +673,10 @@ const loadPermissions = async () => {
         p_section: "orders",
         p_action: action,
       });
+      console.log(`Permission check for ${action}:`, hasPermission);
       permissions.value[action] = hasPermission;
     }
+    console.log("Final permissions state:", permissions.value);
   } catch (err) {
     console.error("Error loading permissions:", err);
   }
