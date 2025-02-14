@@ -132,6 +132,24 @@
           <!-- Oddělovač -->
           <div class="h-6 w-px bg-gray-200"></div>
 
+          <!-- Informace o uživateli -->
+          <div class="flex items-center space-x-2">
+            <span class="material-icons-outlined text-gray-400"
+              >account_circle</span
+            >
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-gray-900">{{
+                user?.email
+              }}</span>
+              <span class="text-xs text-gray-500">{{
+                getRoleName(currentUserRole)
+              }}</span>
+            </div>
+          </div>
+
+          <!-- Oddělovač -->
+          <div class="h-6 w-px bg-gray-200"></div>
+
           <!-- Logout tlačítko -->
           <button
             @click="handleLogout"
@@ -167,11 +185,21 @@ import { useTicketOrders } from "~/composables/useTicketOrders";
 import NotificationPanel from "~/components/NotificationPanel.vue";
 import { useSupabaseClient } from "#imports";
 
-const { logout } = useAuth();
+const { logout, user } = useAuth();
 const router = useRouter();
 const { orders, getAllOrders, startAutoRefresh } = useTicketOrders();
 const showNotifications = ref(false);
 const currentUserRole = ref("viewer");
+
+// Překlad rolí do češtiny
+const getRoleName = (role) => {
+  const roles = {
+    admin: "Administrátor",
+    editor: "Editor",
+    viewer: "Prohlížeč",
+  };
+  return roles[role] || role;
+};
 
 // Načtení role uživatele
 const fetchUserRole = async () => {
