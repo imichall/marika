@@ -29,8 +29,8 @@ begin
         or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Reference - plný přístup
         or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
-        -- Objednávky - pouze zobrazení a úpravy
-        or (p.section = 'orders' and p.action in ('view', 'edit'))
+        -- Objednávky - rozšířená oprávnění
+        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel'))
         -- Skupiny - plný přístup
         or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Kontakty - plný přístup
@@ -39,7 +39,7 @@ begin
         or (p.section = 'social_media' and p.action in ('view', 'edit'))
         -- Nastavení - pouze základní
         or (p.section = 'settings' and p.action in ('view', 'edit'))
-      on conflict (role_id, permission_id) do nothing
+      on conflict on constraint user_permissions_role_id_permission_id_key do nothing
       returning 1
     )
     select count(*) into v_count from inserted;

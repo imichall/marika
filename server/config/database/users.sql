@@ -10,7 +10,7 @@ drop type if exists permission_action_type cascade;
 
 -- Create types
 create type user_role_type as enum ('admin', 'editor', 'viewer');
-create type permission_action_type as enum ('view', 'create', 'edit', 'delete', 'manage');
+create type permission_action_type as enum ('view', 'create', 'edit', 'delete', 'manage', 'complete', 'cancel');
 
 -- Create roles table
 create table user_roles (
@@ -163,7 +163,7 @@ create trigger update_user_permissions_updated_at
     for each row
     execute function update_updated_at_column();
 
--- Function to check permission
+-- Create function to check if user has permission
 create or replace function check_permission(
   p_email varchar(255),
   p_section varchar(50),
@@ -174,7 +174,20 @@ security definer
 set search_path = auth, public
 language plpgsql
 as $$
+declare
+  v_role user_role_type;
 begin
+  -- Získání role uživatele
+  select role into v_role
+  from user_roles
+  where email = p_email;
+
+  -- Admin má vždy všechna oprávnění
+  if v_role = 'admin' then
+    return true;
+  end if;
+
+  -- Pro ostatní role kontrolujeme specifická oprávnění
   return exists (
     select 1
     from user_roles ur
@@ -276,10 +289,22 @@ begin
     select v_role_id, p.id
     from permissions p
     where
-      -- Koncerty - pouze zobrazení
-      (p.section = 'concerts' and p.action = 'view')
-      -- Skupiny - pouze zobrazení
-      or (p.section = 'choir_groups' and p.action = 'view')
+      -- Koncerty - plná správa
+      (p.section = 'concerts' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Galerie - plná správa
+      or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Reference - plná správa
+      or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Objednávky - rozšířená oprávnění
+      or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel'))
+      -- Sociální sítě - základní správa
+      or (p.section = 'social_media' and p.action in ('view', 'edit'))
+      -- Kontakty - plná správa
+      or (p.section = 'contacts' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Skupiny - plná správa
+      or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
+      -- Nastavení - základní správa
+      or (p.section = 'settings' and p.action in ('view', 'edit'))
     on conflict (role_id, permission_id) do nothing;
   end if;
 
@@ -303,6 +328,8 @@ insert into permissions (section, action, description) values
   ('testimonials', 'delete', 'Mazání referencí'),
   ('orders', 'view', 'Zobrazení objednávek'),
   ('orders', 'edit', 'Správa objednávek'),
+  ('orders', 'complete', 'Označení objednávky jako dokončené'),
+  ('orders', 'cancel', 'Zrušení objednávky'),
   ('social_media', 'view', 'Zobrazení sociálních sítí'),
   ('social_media', 'edit', 'Správa sociálních sítí'),
   ('contacts', 'view', 'Zobrazení kontaktů'),
@@ -317,7 +344,9 @@ insert into permissions (section, action, description) values
   ('settings', 'edit', 'Úprava základního nastavení'),
   ('settings', 'manage', 'Správa pokročilého nastavení'),
   ('users', 'view', 'Zobrazení uživatelů'),
-  ('users', 'edit', 'Správa uživatelů')
+  ('users', 'create', 'Vytváření uživatelů'),
+  ('users', 'edit', 'Úprava uživatelů'),
+  ('users', 'delete', 'Mazání uživatelů')
 on conflict (section, action) do nothing;
 
 -- Create trigger function for auto-creating user_roles

@@ -100,16 +100,22 @@
                     <button
                       v-if="permissions.edit"
                       @click="editUser(user)"
-                      class="p-1 text-blue-500 hover:text-blue-600"
+                      class="text-blue-600 hover:text-blue-800"
                     >
-                      <span class="material-icons-outlined">edit</span>
+                      <Icon
+                        name="heroicons:pencil-square"
+                        class="text-[20px] leading-none"
+                      />
                     </button>
                     <button
-                      v-if="permissions.edit"
+                      v-if="permissions.delete"
                       @click="deleteUser(user)"
-                      class="p-1 text-red-500 hover:text-red-600"
+                      class="text-red-600 hover:text-red-800"
                     >
-                      <span class="material-icons-outlined">delete</span>
+                      <Icon
+                        name="heroicons:trash"
+                        class="text-[20px] leading-none"
+                      />
                     </button>
                   </div>
                 </div>
@@ -154,119 +160,122 @@
       </div>
     </div>
 
-    <!-- Modal pro editaci uživatele -->
-    <Modal
-      v-model="showEditModal"
-      :title="'Upravit uživatele ' + (editingUser?.email || '')"
-    >
-      <form @submit.prevent="saveUser" class="space-y-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Role</label
-          >
-          <select
-            v-model="editForm.role"
-            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="admin">Administrátor</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Prohlížeč</option>
-          </select>
-          <p class="mt-1 text-sm text-gray-500">
-            Administrátor má plný přístup, Editor může upravovat obsah,
-            Prohlížeč může pouze číst
-          </p>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t">
-          <button
-            type="button"
-            @click="showEditModal = false"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-          >
-            Zrušit
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            :disabled="loading"
-          >
-            <span v-if="loading" class="inline-block animate-spin mr-2"
-              >⌛</span
-            >
-            Uložit změny
-          </button>
-        </div>
-      </form>
-    </Modal>
-
-    <!-- Modal pro přidání uživatele -->
-    <Modal v-model="showAddModal" title="Přidat nového uživatele">
-      <form @submit.prevent="createUser" class="space-y-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Email</label
-          >
-          <input
-            v-model="addForm.email"
-            type="email"
-            required
-            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            placeholder="email@example.com"
+    <!-- Modal pro přidání/úpravu uživatele -->
+    <TransitionRoot appear :show="showAddModal" as="template">
+      <Dialog as="div" @close="showAddModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
           />
-        </div>
+        </TransitionChild>
 
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Heslo</label
-          >
-          <input
-            v-model="addForm.password"
-            type="password"
-            required
-            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            placeholder="********"
-          />
-          <p class="mt-1 text-sm text-gray-500">
-            Heslo musí mít alespoň 8 znaků
-          </p>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Role</label
-          >
-          <select
-            v-model="addForm.role"
-            class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="admin">Administrátor</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Prohlížeč</option>
-          </select>
-        </div>
-
-        <div class="flex justify-end gap-3 pt-4 border-t">
-          <button
-            type="button"
-            @click="showAddModal = false"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-          >
-            Zrušit
-          </button>
-          <button
-            type="submit"
-            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            :disabled="loading"
-          >
-            <span v-if="loading" class="inline-block animate-spin mr-2"
-              >⌛</span
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
             >
-            Vytvořit uživatele
-          </button>
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+              >
+                <div class="flex items-center justify-between mb-6">
+                  <DialogTitle
+                    as="h3"
+                    class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
+                  >
+                    {{ editingUser ? "Upravit uživatele" : "Přidat uživatele" }}
+                  </DialogTitle>
+                  <button
+                    @click="showAddModal = false"
+                    class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <span class="material-icons-outlined">close</span>
+                  </button>
+                </div>
+
+                <form @submit.prevent="handleSubmit" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      v-model="form.email"
+                      type="email"
+                      required
+                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
+                      :disabled="editingUser"
+                    />
+                  </div>
+
+                  <div v-if="!editingUser">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Heslo
+                    </label>
+                    <input
+                      v-model="form.password"
+                      type="password"
+                      required
+                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Role
+                    </label>
+                    <select
+                      v-model="form.role"
+                      required
+                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
+                    >
+                      <option value="admin">Administrátor</option>
+                      <option value="editor">Editor</option>
+                      <option value="viewer">Prohlížeč</option>
+                    </select>
+                  </div>
+
+                  <div class="flex justify-end space-x-3 pt-4">
+                    <button
+                      type="button"
+                      @click="showAddModal = false"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200"
+                      :disabled="loading"
+                    >
+                      <span
+                        v-if="loading"
+                        class="inline-block animate-spin mr-2"
+                        >⌛</span
+                      >
+                      {{ editingUser ? "Uložit" : "Přidat" }}
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
         </div>
-      </form>
-    </Modal>
+      </Dialog>
+    </TransitionRoot>
 
     <!-- Modal pro správu rolí -->
     <Modal v-model="showRolesModal" title="Správa rolí">
@@ -333,17 +342,21 @@
       <button
         v-if="permissions.edit"
         @click="showAddModal = true"
-        class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200"
       >
-        <span class="material-icons-outlined mr-2">add</span>
+        <span class="material-icons-outlined text-[20px] leading-none"
+          >add</span
+        >
         Přidat uživatele
       </button>
       <button
         v-if="permissions.edit"
         @click="openRolesModal"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
       >
-        <span class="material-icons-outlined mr-2">admin_panel_settings</span>
+        <span class="material-icons-outlined text-[20px] leading-none"
+          >admin_panel_settings</span
+        >
         Správa rolí
       </button>
     </div>
@@ -356,28 +369,48 @@ definePageMeta({
   middleware: ["auth"],
 });
 
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import Modal from "~/components/Modal.vue";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
 
 const supabase = useSupabaseClient();
 const toast = useToast();
 
+// Všechny refs přesuneme na začátek
 const users = ref([]);
 const loading = ref(true);
 const error = ref(null);
-
+const showAddModal = ref(false);
+const showRolesModal = ref(false);
 const showEditModal = ref(false);
 const editingUser = ref(null);
-const editForm = ref({
+
+const form = ref({
+  email: "",
+  password: "",
+  role: "viewer",
+});
+
+const addForm = ref({
+  email: "",
+  password: "",
   role: "viewer",
 });
 
 // Stav oprávnění
 const permissions = ref({
   view: false,
+  create: false,
   edit: false,
+  delete: false,
 });
 
 // Stav oprávnění rolí
@@ -387,6 +420,13 @@ const rolePermissions = ref({
   viewer: [],
 });
 
+// Watch pro zavření modalu
+watch(showAddModal, (newValue) => {
+  if (!newValue) {
+    resetForm();
+  }
+});
+
 // Načtení oprávnění
 const loadPermissions = async () => {
   try {
@@ -394,7 +434,7 @@ const loadPermissions = async () => {
     if (!user.data?.user?.email) return;
 
     // Kontrola oprávnění pro každou akci
-    const actions = ["view", "edit"];
+    const actions = ["view", "create", "edit", "delete"];
     for (const action of actions) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
@@ -467,43 +507,74 @@ const getRoleName = (role) => {
   return roles[role] || role;
 };
 
-// Editace uživatele
-const editUser = (user) => {
-  editingUser.value = user;
-  editForm.value.role = user.role;
-  showEditModal.value = true;
+// Funkce pro reset formuláře
+const resetForm = () => {
+  form.value = {
+    email: "",
+    password: "",
+    role: "viewer",
+  };
+  editingUser.value = null;
 };
 
-// Uložení změn uživatele
-const saveUser = async () => {
+// Funkce pro editaci uživatele
+const editUser = (user) => {
+  editingUser.value = user;
+  form.value = {
+    email: user.email,
+    password: "",
+    role: user.role,
+  };
+  showAddModal.value = true;
+};
+
+// Společná funkce pro vytvoření/úpravu uživatele
+const handleSubmit = async () => {
   try {
     loading.value = true;
-    const { error: updateError } = await supabase.rpc("update_user_role", {
-      p_email: editingUser.value.email,
-      p_role: editForm.value.role,
-    });
 
-    if (updateError) throw updateError;
+    if (editingUser.value) {
+      // Úprava existujícího uživatele
+      const { error: updateError } = await supabase.rpc("update_user_role", {
+        p_email: form.value.email,
+        p_role: form.value.role,
+      });
 
-    toast.success("Uživatel byl úspěšně upraven");
-    showEditModal.value = false;
+      if (updateError) throw updateError;
+      toast.success("Uživatel byl úspěšně upraven");
+    } else {
+      // Vytvoření nového uživatele
+      const { error: authError } = await supabase.auth.admin.createUser({
+        email: form.value.email,
+        password: form.value.password,
+        email_confirm: true,
+      });
+
+      if (authError) throw authError;
+
+      const { error: roleError } = await supabase.rpc("update_user_role", {
+        p_email: form.value.email,
+        p_role: form.value.role,
+      });
+
+      if (roleError) throw roleError;
+      toast.success("Uživatel byl úspěšně vytvořen");
+    }
+
+    showAddModal.value = false;
+    resetForm();
     await fetchUsers();
   } catch (err) {
-    console.error("Error updating user:", err);
-    toast.error("Nepodařilo se upravit uživatele");
+    console.error("Error handling user:", err);
+    toast.error(
+      editingUser.value
+        ? "Nepodařilo se upravit uživatele"
+        : "Nepodařilo se vytvořit uživatele"
+    );
   } finally {
     loading.value = false;
   }
 };
-
-// Přidání nových refs a funkcí do script setup
-const showAddModal = ref(false);
-const showRolesModal = ref(false);
-const addForm = ref({
-  email: "",
-  password: "",
-  role: "viewer",
-});
 
 // Sekce a akce pro oprávnění
 const sections = [
@@ -567,9 +638,22 @@ const openRolesModal = async () => {
 
 // Kontrola oprávnění pro roli
 const hasPermission = (role, section, action) => {
-  if (role === "admin") return true;
-  return rolePermissions.value[role]?.some(
-    (p) => p.section === section && p.action === action
+  // Pokud je to volání s třemi parametry (pro kontrolu role)
+  if (action) {
+    if (role === "admin") return true;
+    return rolePermissions.value[role]?.some(
+      (p) => p.section === section && p.action === action
+    );
+  }
+
+  // Pokud je to volání se dvěma parametry (pro přímou kontrolu oprávnění)
+  const section2 = role;
+  const action2 = section;
+  return (
+    permissions.value[action2] &&
+    rolePermissions.value[editingUser.value?.role]?.some(
+      (p) => p.section === section2 && p.action === action2
+    )
   );
 };
 
@@ -644,9 +728,9 @@ const getAvailableActions = (section) => {
   const defaultActions = ["view", "create", "edit", "delete"];
   const specialActions = {
     settings: ["view", "edit", "manage"],
-    orders: ["view", "edit"],
+    orders: ["view", "edit", "complete", "cancel"],
     social_media: ["view", "edit"],
-    users: ["view", "edit"],
+    users: ["view", "create", "edit", "delete"],
   };
   return specialActions[section] || defaultActions;
 };

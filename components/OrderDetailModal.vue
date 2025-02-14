@@ -57,6 +57,33 @@
                 </button>
               </div>
 
+              <!-- Stav objednávky -->
+              <div v-if="canEdit" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-medium mb-2">Stav objednávky</h4>
+                <div class="flex gap-2">
+                  <button
+                    v-if="
+                      permissions.complete && order.payment_status === 'pending'
+                    "
+                    @click="$emit('update-status', order.id, 'completed')"
+                    class="px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                    :class="getStatusButtonClass('completed')"
+                  >
+                    {{ getStatusLabel("completed") }}
+                  </button>
+                  <button
+                    v-if="
+                      permissions.cancel && order.payment_status === 'pending'
+                    "
+                    @click="$emit('update-status', order.id, 'cancelled')"
+                    class="px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                    :class="getStatusButtonClass('cancelled')"
+                  >
+                    {{ getStatusLabel("cancelled") }}
+                  </button>
+                </div>
+              </div>
+
               <!-- Základní informace -->
               <div class="bg-gray-50 rounded-lg p-4 mb-6">
                 <div class="grid grid-cols-2 gap-4">
@@ -171,14 +198,18 @@
               <!-- Akce -->
               <div class="flex justify-end gap-3">
                 <button
-                  v-if="order.payment_status === 'pending'"
+                  v-if="
+                    permissions.complete && order.payment_status === 'pending'
+                  "
                   @click="$emit('update-status', order.id, 'completed')"
                   class="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
                 >
                   Označit jako zaplacené
                 </button>
                 <button
-                  v-if="order.payment_status === 'pending'"
+                  v-if="
+                    permissions.cancel && order.payment_status === 'pending'
+                  "
                   @click="$emit('update-status', order.id, 'cancelled')"
                   class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 >
@@ -225,11 +256,20 @@ const props = defineProps<{
   };
   bankAccount: string;
   getConcertTitle: (id: number) => string;
+  canEdit: boolean;
+  permissions: {
+    complete: boolean;
+    cancel: boolean;
+  };
 }>();
 
 defineEmits<{
   (e: "close"): void;
-  (e: "update-status", id: number, status: "completed" | "cancelled"): void;
+  (
+    e: "update-status",
+    id: number,
+    status: "pending" | "completed" | "cancelled"
+  ): void;
 }>();
 
 const paymentStatusText = computed(() => {
@@ -253,5 +293,31 @@ const formatDate = (date: string) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "pending":
+      return "Čeká na platbu";
+    case "completed":
+      return "Zaplaceno";
+    case "cancelled":
+      return "Zrušeno";
+    default:
+      return "";
+  }
+};
+
+const getStatusButtonClass = (status: string) => {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-100 text-yellow-800 border border-yellow-200";
+    case "completed":
+      return "bg-green-100 text-green-800 border border-green-200";
+    case "cancelled":
+      return "bg-red-100 text-red-800 border border-red-200";
+    default:
+      return "";
+  }
 };
 </script>

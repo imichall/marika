@@ -400,7 +400,43 @@
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
                                   <button
-                                    v-if="permissions.edit"
+                                    @click.stop="openOrderDetail(order)"
+                                    :class="[
+                                      active ? 'bg-gray-100' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                    ]"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      class="h-4 w-4 mr-2 text-gray-500"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                      />
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                      />
+                                    </svg>
+                                    Zobrazit detail
+                                  </button>
+                                </MenuItem>
+                                <MenuItem
+                                  v-if="
+                                    permissions.complete &&
+                                    order.payment_status === 'pending'
+                                  "
+                                  v-slot="{ active }"
+                                >
+                                  <button
                                     @click.stop="
                                       updateStatus(order.id, 'completed')
                                     "
@@ -426,9 +462,14 @@
                                     Označit jako zaplacené
                                   </button>
                                 </MenuItem>
-                                <MenuItem v-slot="{ active }">
+                                <MenuItem
+                                  v-if="
+                                    permissions.cancel &&
+                                    order.payment_status === 'pending'
+                                  "
+                                  v-slot="{ active }"
+                                >
                                   <button
-                                    v-if="permissions.edit"
                                     @click.stop="
                                       updateStatus(order.id, 'cancelled')
                                     "
@@ -501,6 +542,11 @@
       :order="selectedOrder"
       :bank-account="bankAccount"
       :get-concert-title="getConcertTitle"
+      :can-edit="permissions.edit"
+      :permissions="{
+        complete: permissions.complete,
+        cancel: permissions.cancel,
+      }"
       @close="closeOrderDetail"
       @update-status="handleStatusUpdate"
     />
@@ -576,6 +622,8 @@ watch(selectedTab, (newValue) => {
 const permissions = ref({
   view: false,
   edit: false,
+  complete: false,
+  cancel: false,
 });
 
 // Načtení oprávnění
@@ -585,7 +633,7 @@ const loadPermissions = async () => {
     if (!user.data?.user?.email) return;
 
     // Kontrola oprávnění pro každou akci
-    const actions = ["view", "edit"];
+    const actions = ["view", "edit", "complete", "cancel"];
     for (const action of actions) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
