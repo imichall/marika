@@ -610,6 +610,7 @@ const handleSubmitTestimonial = async () => {
         name: testimonialForm.value.name,
         message: testimonialForm.value.text,
         is_testimonial: true,
+        status: "pending",
       },
     ]);
 

@@ -68,6 +68,29 @@
             <span>Nastavení</span>
           </NuxtLink>
 
+          <!-- Historie emailů -->
+          <NuxtLink
+            v-if="permissions.emails?.view"
+            to="/admin/emaily"
+            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <span>Historie emailů</span>
+          </NuxtLink>
+
           <!-- Oprávnění - pouze pro adminy -->
           <NuxtLink
             v-if="currentUserRole === 'admin'"
@@ -190,6 +213,12 @@ const router = useRouter();
 const { orders, getAllOrders, startAutoRefresh } = useTicketOrders();
 const showNotifications = ref(false);
 const currentUserRole = ref("viewer");
+const permissions = ref({
+  emails: {
+    view: false,
+    manage: false,
+  },
+});
 
 // Překlad rolí do češtiny
 const getRoleName = (role) => {
@@ -218,6 +247,35 @@ const fetchUserRole = async () => {
     currentUserRole.value = data.role;
   } catch (err) {
     console.error("Error fetching user role:", err);
+  }
+};
+
+// Načtení oprávnění
+const fetchPermissions = async () => {
+  try {
+    const supabase = useSupabaseClient();
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    const { data: userPermissions, error } = await supabase.rpc(
+      "get_user_permissions",
+      {
+        p_email: user.data.user.email,
+      }
+    );
+
+    if (error) throw error;
+
+    // Aktualizace oprávnění
+    permissions.value = userPermissions.reduce((acc, perm) => {
+      if (!acc[perm.section]) {
+        acc[perm.section] = {};
+      }
+      acc[perm.section][perm.action] = true;
+      return acc;
+    }, {});
+  } catch (err) {
+    console.error("Error fetching permissions:", err);
   }
 };
 
@@ -260,6 +318,7 @@ onMounted(() => {
   getAllOrders();
   startAutoRefresh(30000);
   fetchUserRole();
+  fetchPermissions();
 });
 </script>
 

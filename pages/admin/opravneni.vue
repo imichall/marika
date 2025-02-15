@@ -294,6 +294,8 @@ const getSectionName = (section) => {
     settings: "Nastavení",
     users: "Uživatelé",
     form_messages: "Zprávy z formuláře",
+    emails: "Emaily",
+    gallery_layout: "Rozložení galerie",
   };
   return sections[section] || section;
 };
