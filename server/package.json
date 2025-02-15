@@ -1,0 +1,20 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "email-server": "node email-server.js"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
+    "nodemailer": "^6.10.0",
+    "pg": "^8.13.3"
+  }
+}

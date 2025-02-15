@@ -5,15 +5,9 @@ CREATE OR REPLACE FUNCTION send_notification_email(
   p_body TEXT
 ) RETURNS BOOLEAN AS $$
 BEGIN
-  -- Odeslání emailu pomocí pg_notify
-  PERFORM pg_notify(
-    'email_notification',
-    json_build_object(
-      'to', p_to,
-      'subject', p_subject,
-      'body', p_body
-    )::text
-  );
+  -- Vytvoření záznamu v email_logs
+  INSERT INTO email_logs (recipient, subject, body, status)
+  VALUES (p_to, p_subject, p_body, 'pending');
 
   RETURN TRUE;
 END;
