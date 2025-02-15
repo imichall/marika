@@ -78,11 +78,10 @@
                 <div class="flex items-center gap-2">
                   <span
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="[
-                      user.is_admin
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-blue-100 text-blue-800',
-                    ]"
+                    :class="{
+                      'bg-purple-100 text-purple-800': user.is_admin,
+                      'bg-blue-100 text-blue-800': !user.is_admin,
+                    }"
                   >
                     {{ user.is_admin ? "Admin" : "Uživatel" }}
                   </span>
@@ -96,26 +95,29 @@
                   >
                     {{ getRoleName(user.role) }}
                   </span>
-                  <div class="flex items-center space-x-2">
+                  <div
+                    v-if="permissions.edit || permissions.delete"
+                    class="flex items-center space-x-2"
+                  >
                     <button
                       v-if="permissions.edit"
                       @click="editUser(user)"
                       class="text-blue-600 hover:text-blue-800"
                     >
-                      <Icon
-                        name="heroicons:pencil-square"
-                        class="text-[20px] leading-none"
-                      />
+                      <span
+                        class="material-icons-outlined text-[20px] leading-none"
+                        >edit</span
+                      >
                     </button>
                     <button
                       v-if="permissions.delete"
                       @click="deleteUser(user)"
                       class="text-red-600 hover:text-red-800"
                     >
-                      <Icon
-                        name="heroicons:trash"
-                        class="text-[20px] leading-none"
-                      />
+                      <span
+                        class="material-icons-outlined text-[20px] leading-none"
+                        >delete</span
+                      >
                     </button>
                   </div>
                 </div>
@@ -129,11 +131,10 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                  :class="[
-                    user.confirmed_at
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-yellow-100 text-yellow-800',
-                  ]"
+                  :class="{
+                    'bg-green-100 text-green-800': user.confirmed_at,
+                    'bg-yellow-100 text-yellow-800': !user.confirmed_at,
+                  }"
                 >
                   {{ user.confirmed_at ? "Aktivní" : "Nepotvrzený" }}
                 </span>
@@ -431,20 +432,28 @@ watch(showAddModal, (newValue) => {
 const loadPermissions = async () => {
   try {
     const user = await supabase.auth.getUser();
-    if (!user.data?.user?.email) return;
+    if (!user.data?.user?.email) {
+      throw new Error("Uživatel není přihlášen");
+    }
 
     // Kontrola oprávnění pro každou akci
     const actions = ["view", "create", "edit", "delete"];
-    for (const action of actions) {
-      const { data: hasPermission } = await supabase.rpc("check_permission", {
+    const permissionPromises = actions.map((action) =>
+      supabase.rpc("check_permission", {
         p_email: user.data.user.email,
         p_section: "users",
         p_action: action,
-      });
-      permissions.value[action] = hasPermission;
-    }
+      })
+    );
+
+    const results = await Promise.all(permissionPromises);
+
+    actions.forEach((action, index) => {
+      permissions.value[action] = results[index].data;
+    });
   } catch (err) {
     console.error("Error loading permissions:", err);
+    throw new Error("Nepodařilo se načíst oprávnění");
   }
 };
 
@@ -736,6 +745,16 @@ const getAvailableActions = (section) => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadPermissions(), fetchUsers()]);
+  try {
+    loading.value = true;
+    await loadPermissions();
+    await fetchUsers();
+  } catch (err) {
+    console.error("Error initializing page:", err);
+    error.value = "Nepodařilo se načíst data";
+    toast.error(error.value);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
