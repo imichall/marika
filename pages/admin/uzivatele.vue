@@ -553,13 +553,17 @@ const handleSubmit = async () => {
       toast.success("Uživatel byl úspěšně upraven");
     } else {
       // Vytvoření nového uživatele
-      const { error: authError } = await supabase.auth.admin.createUser({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: form.value.email,
         password: form.value.password,
-        email_confirm: true,
+        options: {
+          data: {
+            role: form.value.role,
+          },
+        },
       });
 
-      if (authError) throw authError;
+      if (signUpError) throw signUpError;
 
       const { error: roleError } = await supabase.rpc("update_user_role", {
         p_email: form.value.email,
@@ -567,7 +571,9 @@ const handleSubmit = async () => {
       });
 
       if (roleError) throw roleError;
-      toast.success("Uživatel byl úspěšně vytvořen");
+      toast.success(
+        "Uživatel byl úspěšně vytvořen a bude mu zaslán potvrzovací email"
+      );
     }
 
     showAddModal.value = false;
@@ -742,6 +748,39 @@ const getAvailableActions = (section) => {
     users: ["view", "create", "edit", "delete"],
   };
   return specialActions[section] || defaultActions;
+};
+
+// Funkce pro smazání uživatele
+const deleteUser = async (user) => {
+  if (!confirm(`Opravdu chcete smazat uživatele ${user.email}?`)) {
+    return;
+  }
+
+  try {
+    loading.value = true;
+
+    // Nejprve smažeme roli uživatele
+    const { error: roleError } = await supabase.rpc("delete_user_role", {
+      p_email: user.email,
+    });
+
+    if (roleError) throw roleError;
+
+    // Pak smažeme uživatele z auth
+    const { error: deleteError } = await supabase.rpc("delete_user", {
+      p_email: user.email,
+    });
+
+    if (deleteError) throw deleteError;
+
+    toast.success("Uživatel byl úspěšně smazán");
+    await fetchUsers();
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    toast.error("Nepodařilo se smazat uživatele");
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(async () => {

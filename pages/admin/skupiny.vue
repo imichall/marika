@@ -185,9 +185,7 @@
                     @drop.prevent="handleDrop"
                   >
                     <div v-if="!form.image && !imagePreview" class="py-4">
-                      <span
-                        class="material-icons-outlined text-4xl text-gray-400 mb-2"
-                      >
+                      <span class="text-4xl text-gray-400 mb-2">
                         Nahrát obrázek
                       </span>
                       <p class="text-gray-500">
