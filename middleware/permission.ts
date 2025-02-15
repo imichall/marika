@@ -53,7 +53,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/uzivatele': { section: 'users', action: 'view' },
     '/admin/opravneni': { section: 'users', action: 'edit' },
     '/admin/zpravy': { section: 'form_messages', action: 'view' },
-    '/admin/emaily': { section: 'emails', action: 'view' }
+    '/admin/emaily': { section: 'emails', action: 'view' },
+    '/admin/emaily/nahled': { section: 'emails', action: 'view' }
   }
 
   // Kontrola oprávnění pro aktuální cestu
@@ -76,6 +77,26 @@ export default defineNuxtRouteMiddleware(async (to) => {
       })
     }
   } else {
+    // Kontrola, zda cesta začíná na /admin/emaily/
+    if (to.path.startsWith('/admin/emaily/')) {
+      const { data: hasPermission, error: permError } = await supabase
+        .rpc('check_permission', {
+          p_email: user.email,
+          p_section: 'emails',
+          p_action: 'view'
+        })
+
+      if (permError || !hasPermission) {
+        console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'emails', action: 'view' })
+        return navigateTo('/admin', {
+          query: {
+            error: 'Nemáte potřebná oprávnění pro přístup do této sekce'
+          }
+        })
+      }
+      return
+    }
+
     // Pokud cesta není v seznamu povolených, přesměrujeme na hlavní admin stránku
     return navigateTo('/admin', {
       query: {

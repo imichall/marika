@@ -4,6 +4,7 @@ import { useSupabaseClient } from '#imports'
 interface FormMessage {
   id: string
   email: string
+  name: string
   message: string
   status: 'pending' | 'approved' | 'rejected'
   is_testimonial: boolean
@@ -68,7 +69,7 @@ export const useFormMessages = () => {
   }
 
   // Přidání nové zprávy
-  const addMessage = async (messageData: { email: string; message: string; is_testimonial?: boolean }) => {
+  const addMessage = async (messageData: { email: string; name: string; message: string; is_testimonial?: boolean }) => {
     try {
       const { data, error: err } = await supabase
         .from('form_messages')

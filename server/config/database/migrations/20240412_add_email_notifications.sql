@@ -26,7 +26,7 @@ BEGIN
   PERFORM send_notification_email(
     'iimichal.svoboda@gmail.com',
     'Nová reference na webu Marika',
-    format('Nová reference od %s (%s):%n%n%s', NEW.name, NEW.email, NEW.message)
+    format('Nová reference od %s (%s):%s%s%s', NEW.name, NEW.email, E'\n', E'\n', NEW.message)
   );
 
   RETURN NEW;

@@ -4,6 +4,32 @@
 
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Historie emailů</h1>
+      <button
+        @click="navigateToPreview"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center space-x-2"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+          />
+        </svg>
+        <span>Náhled emailu</span>
+      </button>
     </div>
 
     <!-- Loading stav -->
@@ -197,6 +223,127 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Preview modal -->
+    <TransitionRoot appear :show="isPreviewModalOpen" as="template">
+      <Dialog as="div" @close="closePreviewModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle as="h3" class="text-2xl font-bold mb-4">
+                  Náhled emailu
+                </DialogTitle>
+
+                <!-- Testovací formulář -->
+                <div
+                  class="bg-white rounded-xl p-6 mb-8 border border-gray-200"
+                >
+                  <h2 class="text-xl font-bold mb-4">Testovací formulář</h2>
+                  <form @submit.prevent="updatePreview" class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Příjemce
+                      </label>
+                      <input
+                        v-model="previewForm.to"
+                        type="email"
+                        required
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Předmět
+                      </label>
+                      <input
+                        v-model="previewForm.subject"
+                        type="text"
+                        required
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Obsah
+                      </label>
+                      <textarea
+                        v-model="previewForm.content"
+                        rows="6"
+                        required
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      ></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                      <button
+                        type="submit"
+                        class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+                      >
+                        Aktualizovat náhled
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Email náhled -->
+                <EmailPreview
+                  :to="previewForm.to"
+                  :subject="previewForm.subject"
+                >
+                  <div v-html="formattedContent"></div>
+                </EmailPreview>
+
+                <div class="mt-6 flex justify-end space-x-4">
+                  <button
+                    @click="closePreviewModal"
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    Zavřít
+                  </button>
+                  <button
+                    @click="loadTestData"
+                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                  >
+                    Načíst testovací data
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -220,12 +367,44 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useRouter } from "#imports";
+import EmailPreview from "~/components/EmailPreview.vue";
+import { computed } from "vue";
 
+const router = useRouter();
 const { logs, loading, error, fetchEmailLogs } = useEmailLogs();
 
 // Stav pro detail modal
 const isDetailModalOpen = ref(false);
 const selectedLog = ref(null);
+
+// Stav pro preview modal
+const isPreviewModalOpen = ref(false);
+const previewForm = ref({
+  to: "",
+  subject: "",
+  content: "",
+});
+
+// Testovací data
+const testData = {
+  to: "test@example.com",
+  subject: "Potvrzení registrace na koncert",
+  content: `Vážený zákazníku,
+
+děkujeme za Vaši registraci na koncert Marika Singers.
+
+Detaily objednávky:
+- Název koncertu: Vánoční koncert 2024
+- Datum: 24. 12. 2024
+- Čas: 19:00
+- Počet vstupenek: 2
+- Celková cena: 500 Kč
+
+Vstupenky si můžete vyzvednout na místě před začátkem koncertu.
+
+V případě jakýchkoliv dotazů nás neváhejte kontaktovat.`,
+};
 
 // Formátování data
 const formatDate = (date) => {
@@ -258,6 +437,31 @@ const openDetailModal = (log) => {
 const closeDetailModal = () => {
   selectedLog.value = null;
   isDetailModalOpen.value = false;
+};
+
+// Načtení testovacích dat
+const loadTestData = () => {
+  previewForm.value = { ...testData };
+};
+
+// Formátování obsahu - převod nových řádků na <br>
+const formattedContent = computed(() => {
+  return previewForm.value.content.replace(/\n/g, "<br>");
+});
+
+const navigateToPreview = () => {
+  isPreviewModalOpen.value = true;
+  if (!previewForm.value.to) {
+    loadTestData();
+  }
+};
+
+const closePreviewModal = () => {
+  isPreviewModalOpen.value = false;
+};
+
+const updatePreview = () => {
+  // Formulář se automaticky aktualizuje díky v-model
 };
 
 // Načtení dat při mounted
