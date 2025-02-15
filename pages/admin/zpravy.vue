@@ -121,7 +121,7 @@
                 @click.stop
               >
                 <button
-                  v-if="message.status === 'pending'"
+                  v-if="message.status === 'pending' && permissions.approve"
                   @click="handleApprove(message)"
                   class="text-green-600 hover:text-green-900 inline-flex items-center gap-1"
                   title="Schválit"
@@ -132,7 +132,7 @@
                   <span>Schválit</span>
                 </button>
                 <button
-                  v-if="message.status === 'pending'"
+                  v-if="message.status === 'pending' && permissions.approve"
                   @click="handleReject(message)"
                   class="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
                   title="Zamítnout"
@@ -142,7 +142,9 @@
                 </button>
                 <button
                   v-if="
-                    message.status === 'approved' && !message.is_testimonial
+                    message.status === 'approved' &&
+                    !message.is_testimonial &&
+                    permissions.approve
                   "
                   @click="handleApproveAsTestimonial(message)"
                   class="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
@@ -152,7 +154,7 @@
                   <span>Jako reference</span>
                 </button>
                 <button
-                  v-if="message.status !== 'pending'"
+                  v-if="message.status !== 'pending' && permissions.approve"
                   @click="handleReset(message)"
                   class="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
                   title="Vrátit"
@@ -161,6 +163,7 @@
                   <span>Vrátit</span>
                 </button>
                 <button
+                  v-if="permissions.edit"
                   @click="openEditModal(message)"
                   class="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
                   title="Upravit"
@@ -169,6 +172,7 @@
                   <span>Upravit</span>
                 </button>
                 <button
+                  v-if="permissions.delete"
                   @click="handleDelete(message)"
                   class="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
                   title="Smazat"
@@ -275,6 +279,7 @@
 
                     <div class="flex justify-end gap-3 mt-8">
                       <button
+                        v-if="permissions.edit"
                         @click="openEditModal(selectedMessage)"
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       >
@@ -284,7 +289,10 @@
                         Upravit
                       </button>
                       <button
-                        v-if="selectedMessage?.status === 'pending'"
+                        v-if="
+                          selectedMessage?.status === 'pending' &&
+                          permissions.approve
+                        "
                         @click="handleApprove(selectedMessage)"
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
                       >
@@ -296,7 +304,8 @@
                       <button
                         v-if="
                           selectedMessage?.status === 'approved' &&
-                          !selectedMessage?.is_testimonial
+                          !selectedMessage?.is_testimonial &&
+                          permissions.approve
                         "
                         @click="handleApproveAsTestimonial(selectedMessage)"
                         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
@@ -439,11 +448,14 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
 
 definePageMeta({
   layout: "admin",
   middleware: ["auth", "admin"],
 });
+
+const supabase = useSupabaseClient();
 
 const {
   messages,
@@ -458,8 +470,44 @@ const {
 
 const toast = useToast();
 
-onMounted(() => {
-  fetchAllMessages();
+const permissions = ref({
+  view: false,
+  approve: false,
+  edit: false,
+  delete: false,
+  manage: false,
+});
+
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) {
+      throw new Error("Uživatel není přihlášen");
+    }
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "approve", "edit", "delete", "manage"];
+    const permissionPromises = actions.map((action) =>
+      supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "form_messages",
+        p_action: action,
+      })
+    );
+
+    const results = await Promise.all(permissionPromises);
+    actions.forEach((action, index) => {
+      permissions.value[action] = results[index].data;
+    });
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+    throw new Error("Nepodařilo se načíst oprávnění");
+  }
+};
+
+onMounted(async () => {
+  await loadPermissions();
+  await fetchAllMessages();
 });
 
 const getStatusText = (status) => {
