@@ -40,12 +40,12 @@
       </div>
 
       <!-- Actual content -->
-      <div v-else-if="testimonials?.length" class="relative px-12">
+      <div v-else-if="testimonials?.length" class="relative px-4 lg:px-12">
         <FadeUpOnScroll>
           <!-- Slider controls -->
           <button
             @click="previousSlide"
-            class="absolute left-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 z-10 group"
+            class="absolute -left-5 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 z-10 group"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -79,6 +79,8 @@
                 class="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 p-4"
               >
                 <div
+                  @mouseenter="handleMouseEnter"
+                  @mouseleave="handleMouseLeave"
                   class="h-full bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
                 >
                   <div class="flex-grow">
@@ -116,6 +118,8 @@
                 class="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 p-4"
               >
                 <div
+                  @mouseenter="handleMouseEnter"
+                  @mouseleave="handleMouseLeave"
                   class="h-full bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
                 >
                   <div class="flex-grow">
@@ -153,6 +157,8 @@
                 class="w-full md:w-1/2 lg:w-1/3 flex-shrink-0 p-4"
               >
                 <div
+                  @mouseenter="handleMouseEnter"
+                  @mouseleave="handleMouseLeave"
                   class="h-full bg-gradient-to-br from-gray-50 to-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col"
                 >
                   <div class="flex-grow">
@@ -187,7 +193,7 @@
 
           <button
             @click="nextSlide"
-            class="absolute right-0 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 z-10 group"
+            class="absolute -right-5 top-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 z-10 group"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
