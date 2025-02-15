@@ -289,12 +289,13 @@ export const useGallery = () => {
         })
       }
 
-      await fetchImages()
-      return true
+      // Aktualizujeme lokální stav
+      images.value = images.value.filter(img => img.id !== id)
+
+      return { success: true }
     } catch (err) {
       console.error('Error deleting image:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
-      throw err
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error occurred' }
     } finally {
       loading.value = false
     }

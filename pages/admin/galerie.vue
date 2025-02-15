@@ -70,7 +70,7 @@
             <div class="absolute top-2 right-2 flex gap-2">
               <button
                 v-if="permissions.edit"
-                @click.stop="handleDelete(image)"
+                @click.stop="handleDeleteImage(image)"
                 class="bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
                 title="Smazat fotografii"
               >
@@ -914,20 +914,19 @@ onMounted(async () => {
   await Promise.all([loadPermissions(), fetchImages(), loadLayout()]);
 });
 
-const handleDelete = async (image: GalleryImage) => {
+const handleDeleteImage = async (image: any) => {
   try {
-    if (!image.image_url) return;
-
-    const { success: deleteSuccess, error: deleteError } = await deleteImage(
-      image.image_url
+    const result = await deleteImage(
+      image.id,
+      image.image_url.split("/").pop() || ""
     );
 
-    if (deleteSuccess) {
+    if (result) {
       success("Fotografie byla úspěšně smazána");
       // Obnovíme data
       await fetchImages();
     } else {
-      showError(deleteError || "Nepodařilo se smazat fotografii");
+      showError("Nepodařilo se smazat fotografii");
     }
   } catch (err) {
     console.error("Error deleting image:", err);
@@ -981,42 +980,56 @@ const uploadFiles = async () => {
   try {
     uploading.value = true;
     uploadProgress.value = 0;
-    const formData = new FormData();
 
-    selectedFiles.value.forEach((file: File, index: number) => {
+    // Get current user for audit
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user?.email) throw new Error("User not authenticated");
+
+    for (const file of selectedFiles.value) {
       const timestamp = Date.now();
-      const fileName = `mansory-${String(index + 1).padStart(
-        5,
-        "0"
-      )}.${file.name.split(".").pop()}`;
-      formData.append("images", file, fileName);
-    });
+      const fileName = `mansory-${timestamp}-${file.name}`;
 
-    const response = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+      // Upload to storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("gallery")
+        .upload(fileName, file);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          uploadProgress.value = Math.round((event.loaded / event.total) * 100);
+      if (uploadError) throw uploadError;
+
+      if (uploadData) {
+        const { data: imageData } = await supabase
+          .from("gallery")
+          .insert([
+            {
+              title: file.name,
+              image_url: `${supabase.storageUrl}/object/public/gallery/${fileName}`,
+            },
+          ])
+          .select()
+          .single();
+
+        if (imageData) {
+          // Create audit log
+          await supabase.rpc("create_audit_log", {
+            p_user_email: user.email,
+            p_section: "gallery",
+            p_action: "create",
+            p_entity_id: imageData.id.toString(),
+            p_details: {
+              title: file.name,
+              file_name: fileName,
+            },
+          });
         }
-      };
+      }
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(JSON.parse(xhr.response));
-        } else {
-          reject(new Error(xhr.response || "Nahrávání selhalo"));
-        }
-      };
-
-      xhr.onerror = () => reject(new Error("Nahrávání selhalo"));
-
-      xhr.open("POST", "/api/gallery/upload");
-      xhr.send(formData);
-    });
-
-    if (!response.success) {
-      throw new Error("Nahrávání selhalo");
+      uploadProgress.value = Math.round(
+        ((Array.from(selectedFiles.value).indexOf(file) + 1) /
+          selectedFiles.value.length) *
+          100
+      );
     }
 
     await fetchImages();
