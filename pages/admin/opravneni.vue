@@ -293,6 +293,7 @@ const getSectionName = (section) => {
     choir_groups: "Skupiny",
     settings: "Nastavení",
     users: "Uživatelé",
+    form_messages: "Zprávy z formuláře",
   };
   return sections[section] || section;
 };

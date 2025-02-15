@@ -311,6 +311,72 @@
         </div>
       </NuxtLink>
 
+      <!-- Zprávy z formuláře -->
+      <NuxtLink
+        v-if="permissions.form_messages.view"
+        to="/admin/zpravy"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Zprávy z formuláře</h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-pink-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-600">Správa zpráv od návštěvníků</p>
+        <div class="mt-4 flex items-center gap-1.5">
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {{ pendingMessages }} čeká
+          </span>
+          <span
+            class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-3.5 w-3.5 mr-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+            {{ approvedMessages }} schváleno
+          </span>
+        </div>
+      </NuxtLink>
+
       <!-- Uživatelé -->
       <NuxtLink
         v-if="permissions.users.view"
@@ -567,6 +633,9 @@ const permissions = ref({
   users: {
     view: false,
     edit: false,
+  },
+  form_messages: {
+    view: false,
   },
 });
 

@@ -225,6 +225,30 @@
               "
             ></button>
           </div>
+
+          <!-- Add testimonial button -->
+          <div class="text-center mt-12">
+            <button
+              @click="showAddModal = true"
+              class="inline-flex items-center gap-2 bg-transparent text-black border-2 border-black px-6 py-3 rounded-xl hover:bg-black hover:text-white transition-all duration-300 group"
+            >
+              <span>Napište nám reference</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 transform transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
+              </svg>
+            </button>
+          </div>
         </FadeUpOnScroll>
       </div>
 
@@ -233,18 +257,193 @@
         Zatím zde nejsou žádné reference.
       </div>
     </div>
+
+    <!-- Add Testimonial Modal -->
+    <TransitionRoot appear :show="showAddModal" as="template">
+      <Dialog as="div" @close="showAddModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle as="h3" class="text-2xl font-bold mb-4">
+                  Napište nám reference
+                </DialogTitle>
+
+                <form
+                  @submit.prevent="handleSubmitTestimonial"
+                  class="space-y-4"
+                >
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                      Vaše jméno
+                    </label>
+                    <input
+                      v-model="testimonialForm.name"
+                      type="text"
+                      required
+                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      :class="{ 'border-red-500': testimonialErrors.name }"
+                    />
+                    <p
+                      v-if="testimonialErrors.name"
+                      class="text-red-500 text-sm mt-1"
+                    >
+                      {{ testimonialErrors.name }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                      Váš email
+                    </label>
+                    <input
+                      v-model="testimonialForm.email"
+                      type="email"
+                      required
+                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      :class="{ 'border-red-500': testimonialErrors.email }"
+                    />
+                    <p
+                      v-if="testimonialErrors.email"
+                      class="text-red-500 text-sm mt-1"
+                    >
+                      {{ testimonialErrors.email }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                      Vaše reference
+                    </label>
+                    <textarea
+                      v-model="testimonialForm.text"
+                      required
+                      rows="4"
+                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      :class="{ 'border-red-500': testimonialErrors.text }"
+                      placeholder="Napište nám, jak jste byli spokojeni..."
+                    ></textarea>
+                    <p
+                      v-if="testimonialErrors.text"
+                      class="text-red-500 text-sm mt-1"
+                    >
+                      {{ testimonialErrors.text }}
+                    </p>
+                  </div>
+
+                  <div class="flex justify-end space-x-4 mt-6">
+                    <button
+                      type="button"
+                      @click="showAddModal = false"
+                      class="px-4 py-2 text-gray-600 hover:text-gray-800"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                      :disabled="isSubmitting"
+                    >
+                      {{ isSubmitting ? "Odesílám..." : "Odeslat" }}
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </section>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
+import { useSupabaseClient } from "#imports";
+import { useTestimonials } from "~/composables/useTestimonials";
 import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
+import { useToast } from "~/composables/useToast";
 
-const { testimonials, loading, error } = useTestimonials();
+const supabase = useSupabaseClient();
+const testimonials = ref([]);
 const currentSlide = ref(0);
 const visibleSlides = ref(3);
 const isTransitioning = ref(false);
 const autoplayInterval = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+// Načtení testimonials a schválených zpráv z formuláře
+const fetchAllTestimonials = async () => {
+  try {
+    loading.value = true;
+    error.value = null;
+
+    // Načteme testimonials
+    const { data: testimonialsData, error: testimonialsError } = await supabase
+      .from("testimonials")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (testimonialsError) throw testimonialsError;
+
+    // Načteme schválené zprávy z formuláře
+    const { data: formMessages, error: formError } = await supabase
+      .from("form_messages")
+      .select("*")
+      .eq("status", "approved")
+      .eq("is_testimonial", true)
+      .order("created_at", { ascending: false });
+
+    if (formError) throw formError;
+
+    // Spojíme data dohromady
+    testimonials.value = [
+      ...testimonialsData,
+      ...formMessages.map((msg) => ({
+        id: msg.id,
+        text: msg.message,
+        author: msg.name || msg.email, // Použijeme jméno, pokud existuje, jinak email
+        source: "",
+        created_at: msg.created_at,
+      })),
+    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  } catch (err) {
+    console.error("Error fetching testimonials:", err);
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Počet klonovaných položek na každé straně pro plynulý loop
 const CLONE_COUNT = 3;
@@ -334,6 +533,7 @@ const stopAutoplay = () => {
 onMounted(() => {
   updateVisibleSlides();
   window.addEventListener("resize", updateVisibleSlides);
+  fetchAllTestimonials();
   startAutoplay();
 });
 
@@ -355,6 +555,79 @@ const handleMouseLeave = () => {
 watch(testimonials, () => {
   currentSlide.value = 0;
 });
+
+const showAddModal = ref(false);
+const isSubmitting = ref(false);
+const toast = useToast();
+
+const testimonialForm = ref({
+  email: "",
+  name: "",
+  text: "",
+});
+
+const testimonialErrors = ref({
+  email: "",
+  name: "",
+  text: "",
+});
+
+const validateForm = () => {
+  testimonialErrors.value = {};
+  let isValid = true;
+
+  if (!testimonialForm.value.name) {
+    testimonialErrors.value.name = "Jméno je povinné";
+    isValid = false;
+  }
+
+  if (!testimonialForm.value.email) {
+    testimonialErrors.value.email = "Email je povinný";
+    isValid = false;
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testimonialForm.value.email)) {
+    testimonialErrors.value.email = "Zadejte platný email";
+    isValid = false;
+  }
+
+  if (!testimonialForm.value.text) {
+    testimonialErrors.value.text = "Text reference je povinný";
+    isValid = false;
+  } else if (testimonialForm.value.text.length < 10) {
+    testimonialErrors.value.text = "Text musí mít alespoň 10 znaků";
+    isValid = false;
+  }
+
+  return isValid;
+};
+
+const handleSubmitTestimonial = async () => {
+  if (!validateForm()) return;
+
+  try {
+    const { error } = await supabase.from("form_messages").insert([
+      {
+        email: testimonialForm.value.email,
+        name: testimonialForm.value.name,
+        message: testimonialForm.value.text,
+        is_testimonial: true,
+      },
+    ]);
+
+    if (error) throw error;
+
+    toast.success("Děkujeme za vaši referenci. Po schválení bude zveřejněna.");
+    resetForm();
+    showAddModal.value = false;
+  } catch (err) {
+    console.error("Error submitting testimonial:", err);
+    toast.error("Nepodařilo se odeslat referenci. Zkuste to prosím později.");
+  }
+};
+
+const resetForm = () => {
+  testimonialForm.value = { email: "", name: "", text: "" };
+  testimonialErrors.value = { email: "", name: "", text: "" };
+};
 </script>
 
 <style scoped>
