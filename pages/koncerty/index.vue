@@ -314,8 +314,8 @@ const filteredConcerts = computed(() => {
         return false;
       }
 
-      // Zobrazujeme pouze nadcházející koncerty
-      return concertDate >= today;
+      // Zobrazujeme pouze nadcházející a nearchivované koncerty
+      return concertDate >= today && !concert.is_archived;
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 });

@@ -293,7 +293,7 @@ const displayedConcerts = computed(() => {
     .filter((concert) => {
       const concertDate = new Date(concert.date);
       concertDate.setHours(0, 0, 0, 0);
-      return concertDate >= today;
+      return concertDate >= today && !concert.is_archived;
     })
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3);

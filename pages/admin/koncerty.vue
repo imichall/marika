@@ -987,7 +987,7 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr
-              v-for="concert in paginatedConcerts"
+              v-for="concert in activeFilteredConcerts"
               :key="concert.id"
               class="hover:bg-gray-50 transition-colors duration-200"
             >
@@ -1073,6 +1073,27 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                    />
+                  </svg>
+                </button>
+                <button
+                  v-if="permissions.edit"
+                  @click="archiveConcert(concert)"
+                  class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                  title="Archivovat"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-4 h-4"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
                     />
                   </svg>
                 </button>
@@ -1806,6 +1827,127 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Sekce archivovaných koncertů -->
+    <div class="mt-12">
+      <h2 class="text-2xl font-bold mb-6 text-gray-800">
+        Archivované koncerty
+      </h2>
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Název
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Datum a čas
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Skupina
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Cena
+                </th>
+                <th
+                  scope="col"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Akce
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr
+                v-for="concert in archivedConcerts"
+                :key="concert.id"
+                class="hover:bg-gray-50"
+              >
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm font-medium text-gray-900">
+                    {{ concert.title }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">
+                    {{ formatDateWithTime(concert.date, concert.time) }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">
+                    {{ concert.group_name }}
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500">
+                    {{ concert.price }} Kč
+                  </div>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                >
+                  <button
+                    v-if="permissions.edit"
+                    @click="restoreConcert(concert)"
+                    class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                    title="Obnovit"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    v-if="permissions.delete"
+                    @click="deleteConcert(concert)"
+                    class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    title="Smazat"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1873,6 +2015,8 @@ const loadPermissions = async () => {
 
 onMounted(async () => {
   await Promise.all([loadPermissions(), loadConcerts(), loadGroups()]);
+  checkAndArchiveOldConcerts();
+  setInterval(checkAndArchiveOldConcerts, 3600000); // každou hodinu
 });
 
 const showAddModal = ref(false);
@@ -1901,6 +2045,7 @@ const form = ref({
   ticket_id: null,
   poster: null,
   posterFile: null,
+  is_archived: false,
 });
 
 const showTicketModal = ref(false);
@@ -1966,26 +2111,24 @@ const filteredConcerts = computed(() => {
   }
 
   // Aplikujeme řazení
-  return filtered.sort((a, b) => {
+  filtered = filtered.sort((a, b) => {
     const modifier = sortDesc.value ? -1 : 1;
-
-    switch (sortBy.value) {
-      case "title":
-        return modifier * (a.title || "").localeCompare(b.title || "");
-      case "date":
-        return modifier * (new Date(a.date || "") - new Date(b.date || ""));
-      case "time":
-        return modifier * (a.time || "").localeCompare(b.time || "");
-      case "group_name":
-        return (
-          modifier * (a.group_name || "").localeCompare(b.group_name || "")
-        );
-      case "price":
-        return modifier * ((a.price || 0) - (b.price || 0));
-      default:
-        return modifier * (new Date(b.date) - new Date(a.date)); // Výchozí řazení podle data
+    if (sortBy.value === "date") {
+      return (
+        modifier *
+        (new Date(a.date + " " + (a.time || "00:00")) -
+          new Date(b.date + " " + (b.time || "00:00")))
+      );
     }
+    return modifier * a[sortBy.value].localeCompare(b[sortBy.value]);
   });
+
+  return filtered;
+});
+
+// Přidáme computed property pro aktivní koncerty v hlavní tabulce
+const activeFilteredConcerts = computed(() => {
+  return filteredConcerts.value.filter((concert) => !concert.is_archived);
 });
 
 // Upravíme paginaci aby používala filtrovaná a seřazená data
@@ -2207,6 +2350,7 @@ const resetForm = () => {
     ticket_id: null,
     poster: null,
     posterFile: null,
+    is_archived: false,
   };
   imagePreview.value = null;
   posterPreview.value = null;
@@ -2310,6 +2454,7 @@ const editConcert = (concert) => {
     qr_session: concert.qr_session || "",
     poster: concert.poster || null,
     posterFile: null,
+    is_archived: concert.is_archived,
   };
   imagePreview.value = concert.image ? getFullImageUrl(concert.image) : null;
   posterPreview.value = concert.poster ? concert.poster.image_url : null;
@@ -2506,6 +2651,80 @@ definePageMeta({
 // Přidáme nový ref pro progress
 const uploadProgress = ref(0);
 const isUploading = ref(false);
+
+// Přidáme computed property pro filtrování aktivních a archivovaných koncertů
+const activeConcerts = computed(() => {
+  return filteredConcerts.value.filter((concert) => !concert.is_archived);
+});
+
+const archivedConcerts = computed(() => {
+  return concerts.value
+    .filter((concert) => concert.is_archived)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+});
+
+// Přidáme funkci pro archivaci koncertu
+const archiveConcert = async (concert) => {
+  try {
+    await updateConcert(concert.id, { is_archived: true });
+    await fetchConcerts();
+    toast.success("Koncert byl úspěšně archivován");
+  } catch (err) {
+    toast.error("Chyba při archivaci koncertu: " + err.message);
+  }
+};
+
+// Přidáme funkci pro obnovení koncertu z archivu
+const restoreConcert = async (concert) => {
+  try {
+    loading.value = true;
+    const { error } = await supabase
+      .from("concerts")
+      .update({ is_archived: false })
+      .eq("id", concert.id);
+
+    if (error) throw error;
+
+    toast.success("Koncert byl úspěšně obnoven");
+    await fetchConcerts();
+  } catch (err) {
+    console.error("Error restoring concert:", err);
+    toast.error("Nepodařilo se obnovit koncert");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Funkce pro kontrolu a archivaci starých koncertů
+const checkAndArchiveOldConcerts = async () => {
+  try {
+    const now = new Date();
+    const { error } = await supabase.rpc("auto_archive_concerts");
+
+    if (error) throw error;
+
+    await fetchConcerts();
+  } catch (err) {
+    console.error("Error checking old concerts:", err);
+  }
+};
+
+// Spustíme kontrolu při načtení komponenty a pak každou hodinu
+onMounted(() => {
+  checkAndArchiveOldConcerts();
+  setInterval(checkAndArchiveOldConcerts, 3600000); // každou hodinu
+});
+
+const formatDateWithTime = (date, time) => {
+  return new Date(`${date} ${time}`).toLocaleString("cs-CZ", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 </script>
 
 <style scoped>
