@@ -5,6 +5,7 @@ interface ConcertRow {
   id: number;
   title: string;
   description: string | null;
+  detailed_description: string | null;
   desc: string | null;
   date: string;
   time: string | null;
@@ -42,6 +43,7 @@ interface Concert {
   id: number;
   title: string;
   description: string;
+  detailed_description: string;
   date: string;
   time: string;
   price: number;

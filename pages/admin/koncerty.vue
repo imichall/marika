@@ -330,20 +330,20 @@
 
               <div class="col-span-2">
                 <label class="block text-gray-700 text-sm font-medium mb-2">
-                  Popis koncertu
+                  Anotace koncertu
                 </label>
                 <textarea
                   v-model="form.description"
                   required
-                  rows="4"
+                  rows="2"
                   class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
-                  placeholder="Zadejte popis koncertu..."
+                  placeholder="Krátká anotace koncertu pro přehled..."
                 ></textarea>
               </div>
             </div>
           </div>
 
-          <!-- Popis koncertu -->
+          <!-- Detailní popis koncertu -->
           <div class="mb-8">
             <h3
               class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
@@ -362,14 +362,14 @@
                   d="M4 6h16M4 12h16M4 18h7"
                 />
               </svg>
-              Popis koncertu
+              Detailní popis koncertu
             </h3>
             <textarea
-              v-model="form.description"
+              v-model="form.detailed_description"
               required
-              rows="4"
+              rows="6"
               class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
-              placeholder="Zadejte popis koncertu..."
+              placeholder="Podrobný popis koncertu..."
             ></textarea>
           </div>
 
@@ -2053,6 +2053,7 @@ const form = ref({
   date: "",
   time: "",
   description: "",
+  detailed_description: "",
   group_name: "",
   price: 0,
   is_voluntary: false,
@@ -2358,6 +2359,7 @@ const resetForm = () => {
     date: "",
     time: "",
     description: "",
+    detailed_description: "",
     group_name: "",
     price: 0,
     is_voluntary: false,
@@ -2463,6 +2465,7 @@ const editConcert = (concert) => {
     date: concert.date,
     time: concert.time || "",
     description: concert.description,
+    detailed_description: concert.detailed_description || "",
     group_name: concert.group_name,
     price: concert.price,
     is_voluntary: concert.is_voluntary || false,

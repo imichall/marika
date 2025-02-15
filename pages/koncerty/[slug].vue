@@ -88,61 +88,99 @@
             </div>
 
             <!-- Content Column -->
-            <div
-              class="flex flex-col flex-grow bg-white rounded-lg shadow-sm p-8 space-y-4"
-            >
-              <header>
-                <div class="flex items-center gap-2 mb-2">
-                  <!-- <time :datetime="concert.date" class="text-gray-600 text-sm">
-                    {{ formatDateWithTime(concert.date, concert.time) }}
-                  </time>
-                  <span class="text-gray-400">•</span> -->
-                  <div class="relative inline-flex items-center">
+            <div class="flex flex-col bg-white rounded-lg shadow-sm p-8 h-full">
+              <div class="flex-grow space-y-6">
+                <header>
+                  <div class="flex items-center gap-2 mb-2">
+                    <div class="relative inline-flex items-center">
+                      <svg
+                        class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                        />
+                      </svg>
+                      <span
+                        class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
+                        :class="{
+                          'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
+                            concert.group_name === 'Marika Singers',
+                          'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
+                            concert.group_name === 'Voices',
+                          'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
+                            concert.group_name === 'Five',
+                        }"
+                      >
+                        {{ concert.group_name }}
+                      </span>
+                    </div>
+                  </div>
+                  <h1 class="text-4xl font-bold text-custom-gray mb-4">
+                    {{ concert.title }}
+                  </h1>
+                  <p class="text-gray-600 text-base mb-6 leading-relaxed">
+                    {{ concert.description }}
+                  </p>
+                </header>
+
+                <div class="bg-gray-50 rounded-lg p-6 space-y-4">
+                  <div class="flex items-center gap-2">
                     <svg
-                      class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-red-600"
+                      fill="none"
                       viewBox="0 0 24 24"
-                      fill="currentColor"
+                      stroke="currentColor"
                     >
                       <path
-                        d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <span
-                      class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
-                      :class="{
-                        'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
-                          concert.group_name === 'Marika Singers',
-                        'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
-                          concert.group_name === 'Voices',
-                        'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
-                          concert.group_name === 'Five',
-                      }"
+                    <div>
+                      <span class="text-sm text-gray-500"
+                        >Čas a datum vystoupení</span
+                      >
+                      <p class="text-lg font-semibold text-gray-900">
+                        {{ formatDateWithTime(concert.date, concert.time) }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-red-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      {{ concert.group_name }}
-                    </span>
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <div>
+                      <span class="text-sm text-gray-500">Cena vstupenky</span>
+                      <p class="text-lg font-semibold text-gray-900">
+                        {{
+                          concert.is_voluntary
+                            ? "Dobrovolné vstupné"
+                            : `${concert.price},- Kč`
+                        }}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <h1 class="text-4xl font-bold text-custom-gray">
-                  {{ concert.title }}
-                </h1>
-              </header>
-
-              <div class="text-gray-600 flex-grow">
-                <p class="text-sm mb-2">
-                  Čas a datum vystoupení<br />
-                  <span class="text-2xl font-bold text-custom-gray">
-                    {{ formatDateWithTime(concert.date, concert.time) }}
-                  </span>
-                </p>
-                <p class="text-sm">
-                  Cena vstupenky<br />
-                  <span class="text-2xl font-bold text-custom-gray"
-                    >{{ concert.price }},- Kč</span
-                  >
-                </p>
               </div>
 
-              <footer class="flex gap-4 mt-auto pt-4">
+              <div class="flex gap-4 mt-6">
                 <button
                   v-if="concert.ticket_id"
                   @click="openTicketInfoModal(concert)"
@@ -171,13 +209,13 @@
                 >
                   Plakát není k dispozici
                 </button>
-              </footer>
+              </div>
             </div>
           </div>
           <div class="flex flex-col gap-4 mt-10">
-            <h4 class="text-2xl font-medium">Informace o koncertu</h4>
-            <p class="text-gray-600">
-              {{ concert.description }}
+            <h4 class="text-2xl font-medium">Detailní popis koncertu</h4>
+            <p class="text-gray-600 whitespace-pre-line">
+              {{ concert.detailed_description }}
             </p>
           </div>
         </div>
