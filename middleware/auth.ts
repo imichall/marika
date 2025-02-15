@@ -51,6 +51,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
         '/admin/uzivatele',
         '/admin/opravneni',
         '/admin/zpravy',
+        '/admin/audit',
       ]
 
       // Normalizace cesty - odstranění trailing slash

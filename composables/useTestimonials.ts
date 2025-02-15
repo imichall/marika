@@ -57,6 +57,17 @@ export const useTestimonials = () => {
       if (err) throw err
 
       if (data) {
+        // Vytvoření auditního záznamu
+        await supabase.rpc('create_audit_log', {
+          p_section: 'testimonials',
+          p_action: 'create',
+          p_entity_id: data.id.toString(),
+          p_details: {
+            author: data.author,
+            text: data.text.substring(0, 100) + (data.text.length > 100 ? '...' : '')
+          }
+        })
+
         testimonials.value.unshift({
           id: Number(data.id),
           text: String(data.text),
@@ -87,6 +98,17 @@ export const useTestimonials = () => {
       if (err) throw err
 
       if (data) {
+        // Vytvoření auditního záznamu
+        await supabase.rpc('create_audit_log', {
+          p_section: 'testimonials',
+          p_action: 'update',
+          p_entity_id: data.id.toString(),
+          p_details: {
+            author: data.author,
+            changes: Object.keys(updates)
+          }
+        })
+
         const index = testimonials.value.findIndex(t => t.id === id)
         if (index !== -1) {
           testimonials.value[index] = {
@@ -110,12 +132,32 @@ export const useTestimonials = () => {
   const deleteTestimonial = async (id: number) => {
     try {
       loading.value = true
+      // Nejprve získáme data reference pro audit
+      const { data: testimonial } = await supabase
+        .from('testimonials')
+        .select('author, text')
+        .eq('id', id)
+        .single()
+
       const { error: err } = await supabase
         .from('testimonials')
         .delete()
         .eq('id', id)
 
       if (err) throw err
+
+      // Vytvoření auditního záznamu
+      if (testimonial) {
+        await supabase.rpc('create_audit_log', {
+          p_section: 'testimonials',
+          p_action: 'delete',
+          p_entity_id: id.toString(),
+          p_details: {
+            author: testimonial.author,
+            text: testimonial.text.substring(0, 100) + (testimonial.text.length > 100 ? '...' : '')
+          }
+        })
+      }
 
       testimonials.value = testimonials.value.filter(t => t.id !== id)
       return { success: true }

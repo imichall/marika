@@ -55,6 +55,17 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
+      // Get contact data before update for audit
+      const { data: oldData } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single()
+
       const { data: updatedContact, error: err } = await supabase
         .from('contacts')
         .update(data)
@@ -66,6 +77,26 @@ export const useContacts = () => {
 
       if (!updatedContact) {
         throw new Error('Kontakt nebyl nalezen')
+      }
+
+      // Create audit log
+      if (oldData) {
+        await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
+          p_section: 'contacts',
+          p_action: 'update',
+          p_entity_id: id,
+          p_details: {
+            group_name: oldData.group_name,
+            changes: Object.keys(data),
+            old_values: Object.fromEntries(
+              Object.keys(data).map(key => [key, oldData[key]])
+            ),
+            new_values: Object.fromEntries(
+              Object.keys(data).map(key => [key, updatedContact[key]])
+            )
+          }
+        })
       }
 
       // Aktualizujeme lokální stav
@@ -89,6 +120,10 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
       const now = new Date().toISOString()
       const contactData = {
         ...data,
@@ -107,6 +142,24 @@ export const useContacts = () => {
       if (!newData) {
         throw new Error('Kontakt nebyl vytvořen')
       }
+
+      // Create audit log
+      await supabase.rpc('create_audit_log', {
+        p_user_email: currentUser.email,
+        p_section: 'contacts',
+        p_action: 'create',
+        p_entity_id: newData.id,
+        p_details: {
+          group_name: newData.group_name,
+          contact_data: {
+            address: newData.address,
+            ico: newData.ico,
+            dic: newData.dic,
+            email: newData.email,
+            bank_account: newData.bank_account
+          }
+        }
+      })
 
       const contact: Contact = {
         id: String(newData.id),
@@ -136,12 +189,43 @@ export const useContacts = () => {
       loading.value = true
       error.value = null
 
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
+      // Get contact data before deletion for audit
+      const { data: contactData } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('id', id)
+        .single()
+
       const { error: err } = await supabase
         .from('contacts')
         .delete()
         .eq('id', id)
 
       if (err) throw err
+
+      // Create audit log
+      if (contactData) {
+        await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
+          p_section: 'contacts',
+          p_action: 'delete',
+          p_entity_id: id,
+          p_details: {
+            group_name: contactData.group_name,
+            deleted_data: {
+              address: contactData.address,
+              ico: contactData.ico,
+              dic: contactData.dic,
+              email: contactData.email,
+              bank_account: contactData.bank_account
+            }
+          }
+        })
+      }
 
       contacts.value = contacts.value.filter(c => c.id !== id)
     } catch (err: any) {

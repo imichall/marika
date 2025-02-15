@@ -87,6 +87,17 @@ export const useFormMessages = () => {
   // Aktualizace zprávy
   const updateMessage = async (id: string, messageData: Partial<FormMessage>) => {
     try {
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
+      // Get message data before update for audit
+      const { data: oldData } = await supabase
+        .from('form_messages')
+        .select('*')
+        .eq('id', id)
+        .single()
+
       const { data, error: err } = await supabase
         .from('form_messages')
         .update(messageData)
@@ -95,6 +106,27 @@ export const useFormMessages = () => {
         .single()
 
       if (err) throw err
+
+      // Create audit log
+      if (oldData) {
+        await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
+          p_section: 'form_messages',
+          p_action: 'update',
+          p_entity_id: id,
+          p_details: {
+            email: oldData.email,
+            changes: Object.keys(messageData),
+            old_values: Object.fromEntries(
+              Object.keys(messageData).map(key => [key, oldData[key]])
+            ),
+            new_values: Object.fromEntries(
+              Object.keys(messageData).map(key => [key, data[key]])
+            )
+          }
+        })
+      }
+
       return data
     } catch (err) {
       console.error('Error updating message:', err)
@@ -105,6 +137,10 @@ export const useFormMessages = () => {
   // Smazání zprávy
   const deleteMessage = async (id: string) => {
     try {
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
       // Nejprve získáme data zprávy
       const { data: message, error: messageError } = await supabase
         .from('form_messages')
@@ -113,6 +149,15 @@ export const useFormMessages = () => {
         .single();
 
       if (messageError) throw messageError;
+
+      // Vytvoření auditního záznamu před smazáním
+      await supabase.rpc('create_audit_log', {
+        p_user_email: currentUser.email,
+        p_section: 'form_messages',
+        p_action: 'delete',
+        p_entity_id: id,
+        p_details: { email: message.email, message: message.message }
+      });
 
       // Pokud je zpráva schválená jako reference, smažeme ji i z testimonials
       if (message.is_testimonial) {
@@ -142,12 +187,58 @@ export const useFormMessages = () => {
 
   // Změna stavu zprávy
   const updateMessageStatus = async (id: string, status: FormMessage['status']) => {
-    return updateMessage(id, { status })
+    try {
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
+      // Nejprve získáme data zprávy pro audit
+      const { data: message, error: messageError } = await supabase
+        .from('form_messages')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (messageError) throw messageError;
+
+      // Aktualizace statusu
+      const { data: updatedMessage, error: updateError } = await supabase
+        .from('form_messages')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      // Vytvoření auditního záznamu
+      await supabase.rpc('create_audit_log', {
+        p_user_email: currentUser.email,
+        p_section: 'form_messages',
+        p_action: status === 'approved' ? 'approve' : 'reject',
+        p_entity_id: id,
+        p_details: {
+          email: message.email,
+          message: message.message,
+          previous_status: message.status,
+          new_status: status
+        }
+      });
+
+      return updatedMessage;
+    } catch (err) {
+      console.error('Error updating message status:', err);
+      throw err;
+    }
   }
 
   // Schválení zprávy jako reference
   const approveAsTestimonial = async (id: string) => {
     try {
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
       // Nejprve získáme data zprávy
       const { data: message, error: messageError } = await supabase
         .from('form_messages')
@@ -188,6 +279,20 @@ export const useFormMessages = () => {
         .eq('id', id);
 
       if (updateError) throw updateError;
+
+      // Vytvoření auditního záznamu
+      await supabase.rpc('create_audit_log', {
+        p_user_email: currentUser.email,
+        p_section: 'form_messages',
+        p_action: 'approve',
+        p_entity_id: id,
+        p_details: {
+          email: message.email,
+          message: message.message,
+          approved_as_testimonial: true,
+          testimonial_id: testimonialData.id
+        }
+      });
 
       return true;
     } catch (err) {

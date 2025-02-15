@@ -145,6 +145,17 @@ export const useGallery = () => {
 
   const toggleVisibility = async (imageId: number, isVisible: boolean) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error('User not authenticated')
+
+      // Nejprve získáme data obrázku pro audit
+      const { data: image } = await supabase
+        .from('gallery')
+        .select('title')
+        .eq('id', imageId)
+        .single()
+
       const { error: err } = await supabase
         .from('gallery')
         .update({ is_visible: isVisible })
@@ -156,9 +167,23 @@ export const useGallery = () => {
       }
 
       // Update local state
-      const image = images.value.find((img: GalleryImage) => img.id === imageId)
+      const imageInState = images.value.find((img: GalleryImage) => img.id === imageId)
+      if (imageInState) {
+        imageInState.is_visible = isVisible
+      }
+
+      // Vytvoření auditního záznamu
       if (image) {
-        image.is_visible = isVisible
+        await supabase.rpc('create_audit_log', {
+          p_user_email: user.email,
+          p_section: 'gallery',
+          p_action: 'update',
+          p_entity_id: imageId.toString(),
+          p_details: {
+            title: image.title,
+            change: `Viditelnost nastavena na ${isVisible ? 'viditelné' : 'skryté'}`
+          }
+        })
       }
 
       return { success: true, error: null };
@@ -169,63 +194,111 @@ export const useGallery = () => {
     }
   }
 
-  const deleteImage = async (imageUrl: string) => {
+  const addImage = async (file: File, title: string) => {
     try {
-      loading.value = true;
+      loading.value = true
+      const timestamp = Date.now()
+      const fileName = `${timestamp}-${file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-')}`
 
-      // Get filename from URL
-      const fileName = imageUrl.split('/').pop();
-      if (!fileName) throw new Error('Invalid image URL');
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error('User not authenticated')
 
-      // Get image ID from database for later use
-      const { data: imageData } = await supabase
+      // Upload image
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('gallery')
-        .select('id')
-        .eq('image_url', imageUrl)
-        .single();
+        .upload(fileName, file)
 
-      if (!imageData?.id) {
-        throw new Error('Image not found in database');
+      if (uploadError) throw uploadError
+
+      // Create gallery record
+      const { data: galleryData, error: galleryError } = await supabase
+        .from('gallery')
+        .insert([{
+          title,
+          image_url: `${supabaseUrl}/storage/v1/object/public/gallery/${fileName}`
+        }])
+        .select()
+        .single()
+
+      if (galleryError) throw galleryError
+
+      // Vytvoření auditního záznamu
+      if (galleryData) {
+        await supabase.rpc('create_audit_log', {
+          p_user_email: user.email,
+          p_section: 'gallery',
+          p_action: 'create',
+          p_entity_id: galleryData.id.toString(),
+          p_details: { title: galleryData.title }
+        })
       }
 
-      // First try to delete from Storage
-      const { error: storageError } = await supabase
-        .storage
+      await fetchImages()
+      return galleryData
+    } catch (err) {
+      console.error('Error adding image:', err)
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deleteImage = async (id: number, fileName: string) => {
+    try {
+      loading.value = true
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error('User not authenticated')
+
+      // Nejprve získáme data obrázku pro audit
+      const { data: image } = await supabase
         .from('gallery')
-        .remove([fileName]);
+        .select('title')
+        .eq('id', id)
+        .single()
 
-      if (storageError) throw storageError;
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('gallery')
+        .remove([fileName])
 
-      // If storage deletion was successful, delete from Database
+      if (storageError) throw storageError
+
+      // Delete from database
       const { error: dbError } = await supabase
         .from('gallery')
         .delete()
-        .eq('image_url', imageUrl);
+        .eq('id', id)
 
-      if (dbError) throw dbError;
+      if (dbError) throw dbError
 
-      // Delete from layout if exists
-      await supabase
-        .from('gallery_layout')
-        .delete()
-        .eq('image_id', imageData.id);
+      // Vytvoření auditního záznamu
+      if (image) {
+        await supabase.rpc('create_audit_log', {
+          p_user_email: user.email,
+          p_section: 'gallery',
+          p_action: 'delete',
+          p_entity_id: id.toString(),
+          p_details: {
+            title: image.title,
+            file_name: fileName
+          }
+        })
+      }
 
-      // Update local states
-      images.value = images.value.filter((img: GalleryImage) => img.image_url !== imageUrl);
-      allImages.value = allImages.value.filter((img: GalleryImage) => img.image_url !== imageUrl);
-
-      // Clear cache after successful delete
-      clearCache();
-
-      return { success: true };
+      await fetchImages()
+      return true
     } catch (err) {
-      console.error('Error deleting image:', err);
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
-      return { success: false, error: error.value };
+      console.error('Error deleting image:', err)
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      throw err
     } finally {
-      loading.value = false;
+      loading.value = false
     }
-  };
+  }
 
   const changePage = async (page: number) => {
     if (page === currentPage.value) return
@@ -233,29 +306,46 @@ export const useGallery = () => {
     await fetchImages()
   }
 
-  const updatePosition = async (imageId: number, position: number | null) => {
+  const updatePosition = async (imageId: number, newPosition: number) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error('User not authenticated')
+
+      // Nejprve získáme data obrázku pro audit
+      const { data: image } = await supabase
+        .from('gallery')
+        .select('title, position')
+        .eq('id', imageId)
+        .single()
+
       const { error: err } = await supabase
         .from('gallery')
-        .update({ position })
+        .update({ position: newPosition })
         .eq('id', imageId)
 
-      if (err) {
-        error.value = err.message
-        return { success: false, error: err.message }
-      }
+      if (err) throw err
 
-      // Update local state
-      const image = images.value.find((img: GalleryImage) => img.id === imageId)
+      // Vytvoření auditního záznamu
       if (image) {
-        image.position = position
+        await supabase.rpc('create_audit_log', {
+          p_user_email: user.email,
+          p_section: 'gallery',
+          p_action: 'update',
+          p_entity_id: imageId.toString(),
+          p_details: {
+            title: image.title,
+            change: `Pozice změněna z ${image.position || 'nezařazeno'} na ${newPosition}`
+          }
+        })
       }
 
-      return { success: true, error: null }
+      await fetchImages()
+      return true
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
-      error.value = errorMessage
-      return { success: false, error: errorMessage }
+      console.error('Error updating position:', err)
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      throw err
     }
   }
 
@@ -325,6 +415,7 @@ export const useGallery = () => {
     handlePositionChange,
     updateUsedPositions,
     updatePosition,
-    allImages
+    allImages,
+    addImage
   }
 }

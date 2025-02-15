@@ -43,6 +43,18 @@
         >
           Oprávnění
         </NuxtLink>
+        <NuxtLink
+          to="/admin/uzivatele"
+          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          Uživatelé
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/audit"
+          class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+        >
+          Auditní záznamy
+        </NuxtLink>
       </div>
     </div>
   </div>

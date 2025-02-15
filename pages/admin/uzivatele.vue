@@ -5,6 +5,14 @@
 
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa uživatelů</h1>
+      <button
+        v-if="permissions.create"
+        @click="showAddModal = true"
+        class="bg-violet-600 text-white px-4 py-2 rounded-md hover:bg-violet-700"
+      >
+        <span class="material-icons-outlined mr-2">add</span>
+        Přidat uživatele
+      </button>
     </div>
 
     <!-- Loading state -->
@@ -364,16 +372,17 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   layout: "admin",
-  middleware: ["auth"],
+  middleware: ["auth", "permission"],
 });
 
 import { ref, onMounted, computed, watch } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import Modal from "~/components/Modal.vue";
+import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import {
   TransitionRoot,
   TransitionChild,
@@ -381,23 +390,23 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
+import { useUsers } from "~/composables/useUsers";
 
 const supabase = useSupabaseClient();
 const toast = useToast();
 
-// Všechny refs přesuneme na začátek
-const users = ref([]);
-const loading = ref(true);
-const error = ref(null);
+const { users, loading, error, addUser, updateUser, deleteUser } = useUsers();
+
 const showAddModal = ref(false);
 const showRolesModal = ref(false);
-const showEditModal = ref(false);
-const editingUser = ref(null);
+const editingUser = ref<{ id: string; email: string; role: string } | null>(
+  null
+);
 
 const form = ref({
   email: "",
   password: "",
-  role: "viewer",
+  role: "viewer" as const,
 });
 
 const addForm = ref({
@@ -495,25 +504,29 @@ const fetchUsers = async () => {
 };
 
 // Formátování data
-const formatDate = (dateString) => {
-  if (!dateString) return "—";
-  return new Date(dateString).toLocaleString("cs-CZ", {
+const formatDate = (date: string | null) => {
+  if (!date) return "Nikdy";
+  return new Date(date).toLocaleDateString("cs-CZ", {
+    day: "2-digit",
+    month: "2-digit",
     year: "numeric",
-    month: "long",
-    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
 };
 
 // Překlad rolí do češtiny
-const getRoleName = (role) => {
-  const roles = {
-    admin: "Administrátor",
-    editor: "Editor",
-    viewer: "Prohlížeč",
-  };
-  return roles[role] || role;
+const getRoleName = (role: string) => {
+  switch (role) {
+    case "admin":
+      return "Administrátor";
+    case "editor":
+      return "Editor";
+    case "viewer":
+      return "Prohlížeč";
+    default:
+      return role;
+  }
 };
 
 // Funkce pro reset formuláře
@@ -527,12 +540,12 @@ const resetForm = () => {
 };
 
 // Funkce pro editaci uživatele
-const editUser = (user) => {
+const editUser = (user: { id: string; email: string; role: string }) => {
   editingUser.value = user;
   form.value = {
     email: user.email,
     password: "",
-    role: user.role,
+    role: user.role as "admin" | "editor" | "viewer",
   };
   showAddModal.value = true;
 };
@@ -540,54 +553,23 @@ const editUser = (user) => {
 // Společná funkce pro vytvoření/úpravu uživatele
 const handleSubmit = async () => {
   try {
-    loading.value = true;
-
     if (editingUser.value) {
-      // Úprava existujícího uživatele
-      const { error: updateError } = await supabase.rpc("update_user_role", {
-        p_email: form.value.email,
-        p_role: form.value.role,
+      await updateUser(editingUser.value.id, {
+        role: form.value.role as "admin" | "editor" | "viewer",
       });
-
-      if (updateError) throw updateError;
-      toast.success("Uživatel byl úspěšně upraven");
     } else {
-      // Vytvoření nového uživatele
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: form.value.email,
-        password: form.value.password,
-        options: {
-          data: {
-            role: form.value.role,
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      const { error: roleError } = await supabase.rpc("update_user_role", {
-        p_email: form.value.email,
-        p_role: form.value.role,
-      });
-
-      if (roleError) throw roleError;
-      toast.success(
-        "Uživatel byl úspěšně vytvořen a bude mu zaslán potvrzovací email"
-      );
+      await addUser(form.value.email, form.value.password, form.value.role);
     }
-
     showAddModal.value = false;
     resetForm();
     await fetchUsers();
   } catch (err) {
-    console.error("Error handling user:", err);
+    console.error("Error submitting form:", err);
     toast.error(
       editingUser.value
         ? "Nepodařilo se upravit uživatele"
         : "Nepodařilo se vytvořit uživatele"
     );
-  } finally {
-    loading.value = false;
   }
 };
 
@@ -751,35 +733,14 @@ const getAvailableActions = (section) => {
 };
 
 // Funkce pro smazání uživatele
-const deleteUser = async (user) => {
-  if (!confirm(`Opravdu chcete smazat uživatele ${user.email}?`)) {
-    return;
-  }
-
-  try {
-    loading.value = true;
-
-    // Nejprve smažeme roli uživatele
-    const { error: roleError } = await supabase.rpc("delete_user_role", {
-      p_email: user.email,
-    });
-
-    if (roleError) throw roleError;
-
-    // Pak smažeme uživatele z auth
-    const { error: deleteError } = await supabase.rpc("delete_user", {
-      p_email: user.email,
-    });
-
-    if (deleteError) throw deleteError;
-
-    toast.success("Uživatel byl úspěšně smazán");
-    await fetchUsers();
-  } catch (err) {
-    console.error("Error deleting user:", err);
-    toast.error("Nepodařilo se smazat uživatele");
-  } finally {
-    loading.value = false;
+const confirmDelete = async (user: { id: string }) => {
+  if (confirm("Opravdu chcete smazat tohoto uživatele?")) {
+    try {
+      await deleteUser(user.id);
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      toast.error("Nepodařilo se smazat uživatele");
+    }
   }
 };
 

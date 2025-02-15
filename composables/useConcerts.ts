@@ -118,6 +118,14 @@ export const useConcerts = () => {
       if (err) throw err;
 
       if (data) {
+        // Vytvoření auditního záznamu
+        await supabase.rpc('create_audit_log', {
+          p_section: 'concerts',
+          p_action: 'create',
+          p_entity_id: data.id.toString(),
+          p_details: { title: data.title }
+        });
+
         await fetchConcerts();
       }
       return data;
@@ -143,6 +151,17 @@ export const useConcerts = () => {
       if (err) throw err;
 
       if (data) {
+        // Vytvoření auditního záznamu
+        await supabase.rpc('create_audit_log', {
+          p_section: 'concerts',
+          p_action: 'update',
+          p_entity_id: data.id.toString(),
+          p_details: {
+            title: data.title,
+            changes: Object.keys(concertData)
+          }
+        });
+
         await fetchConcerts();
       }
       return data;
@@ -158,12 +177,29 @@ export const useConcerts = () => {
   const deleteConcert = async (id: number) => {
     try {
       loading.value = true;
+      // Nejprve získáme data koncertu pro audit
+      const { data: concert } = await supabase
+        .from('concerts')
+        .select('title')
+        .eq('id', id)
+        .single();
+
       const { error: err } = await supabase
         .from('concerts')
         .delete()
         .eq('id', id);
 
       if (err) throw err;
+
+      // Vytvoření auditního záznamu
+      if (concert) {
+        await supabase.rpc('create_audit_log', {
+          p_section: 'concerts',
+          p_action: 'delete',
+          p_entity_id: id.toString(),
+          p_details: { title: concert.title }
+        });
+      }
 
       await fetchConcerts();
     } catch (err) {
@@ -319,6 +355,43 @@ export const useConcerts = () => {
     }
   };
 
+  const archiveConcert = async (id: number) => {
+    try {
+      loading.value = true;
+      // Nejprve získáme data koncertu pro audit
+      const { data: concert } = await supabase
+        .from('concerts')
+        .select('title')
+        .eq('id', id)
+        .single();
+
+      const { error: err } = await supabase
+        .from('concerts')
+        .update({ is_archived: true })
+        .eq('id', id);
+
+      if (err) throw err;
+
+      // Vytvoření auditního záznamu
+      if (concert) {
+        await supabase.rpc('create_audit_log', {
+          p_section: 'concerts',
+          p_action: 'archive',
+          p_entity_id: id.toString(),
+          p_details: { title: concert.title }
+        });
+      }
+
+      await fetchConcerts();
+    } catch (err) {
+      console.error('Error archiving concert:', err);
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   onMounted(async () => {
     await fetchConcerts();
   });
@@ -335,6 +408,7 @@ export const useConcerts = () => {
     uploadPoster,
     deletePoster,
     posterUploadProgress,
-    isPosterUploading
+    isPosterUploading,
+    archiveConcert
   };
 };

@@ -410,6 +410,39 @@
         </div>
       </NuxtLink>
 
+      <!-- Auditní záznamy -->
+      <NuxtLink
+        v-if="permissions.audit.view"
+        to="/admin/audit"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Auditní záznamy</h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-cyan-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-600">Historie akcí v administraci</p>
+        <div class="mt-4 flex items-center">
+          <span
+            class="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm"
+          >
+            Zobrazit záznamy
+          </span>
+        </div>
+      </NuxtLink>
+
       <!-- Nastavení -->
       <NuxtLink
         v-if="permissions.settings.view"
@@ -595,27 +628,19 @@ const { messages, fetchAllMessages } = useFormMessages();
 const permissions = ref({
   concerts: {
     view: false,
-    create: false,
     edit: false,
-    delete: false,
   },
   choir_groups: {
     view: false,
-    create: false,
     edit: false,
-    delete: false,
   },
   gallery: {
     view: false,
-    create: false,
     edit: false,
-    delete: false,
   },
   testimonials: {
     view: false,
-    create: false,
     edit: false,
-    delete: false,
   },
   orders: {
     view: false,
@@ -640,6 +665,10 @@ const permissions = ref({
   },
   form_messages: {
     view: false,
+  },
+  audit: {
+    view: false,
+    manage: false,
   },
 });
 
