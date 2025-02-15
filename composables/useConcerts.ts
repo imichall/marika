@@ -109,6 +109,11 @@ export const useConcerts = () => {
   const addConcert = async (concertData: Partial<Concert>) => {
     try {
       loading.value = true;
+
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
       const { data, error: err } = await supabase
         .from('concerts')
         .insert([concertData])
@@ -120,6 +125,7 @@ export const useConcerts = () => {
       if (data) {
         // Vytvoření auditního záznamu
         await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
           p_section: 'concerts',
           p_action: 'create',
           p_entity_id: data.id.toString(),
@@ -141,6 +147,18 @@ export const useConcerts = () => {
   const updateConcert = async (id: number, concertData: Partial<Concert>) => {
     try {
       loading.value = true;
+
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
+      // Get concert data before update for audit
+      const { data: oldData } = await supabase
+        .from('concerts')
+        .select('*')
+        .eq('id', id)
+        .single()
+
       const { data, error: err } = await supabase
         .from('concerts')
         .update(concertData)
@@ -153,12 +171,19 @@ export const useConcerts = () => {
       if (data) {
         // Vytvoření auditního záznamu
         await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
           p_section: 'concerts',
           p_action: 'update',
           p_entity_id: data.id.toString(),
           p_details: {
             title: data.title,
-            changes: Object.keys(concertData)
+            changes: Object.keys(concertData),
+            old_values: oldData ? Object.fromEntries(
+              Object.keys(concertData).map(key => [key, oldData[key]])
+            ) : null,
+            new_values: Object.fromEntries(
+              Object.keys(concertData).map(key => [key, data[key]])
+            )
           }
         });
 
@@ -177,10 +202,15 @@ export const useConcerts = () => {
   const deleteConcert = async (id: number) => {
     try {
       loading.value = true;
+
+      // Get current user for audit
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser?.email) throw new Error('User not authenticated')
+
       // Nejprve získáme data koncertu pro audit
       const { data: concert } = await supabase
         .from('concerts')
-        .select('title')
+        .select('title, date, time, price, group_name')
         .eq('id', id)
         .single();
 
@@ -194,10 +224,11 @@ export const useConcerts = () => {
       // Vytvoření auditního záznamu
       if (concert) {
         await supabase.rpc('create_audit_log', {
+          p_user_email: currentUser.email,
           p_section: 'concerts',
           p_action: 'delete',
           p_entity_id: id.toString(),
-          p_details: { title: concert.title }
+          p_details: concert
         });
       }
 
