@@ -72,8 +72,12 @@
                   </div>
 
                   <div class="flex justify-between items-center text-gray-600">
-                    <span>Cena za vstupenku:</span>
-                    <span class="font-medium">{{ concert.price }} Kč</span>
+                    <span>Vstupné:</span>
+                    <span class="font-medium">{{
+                      concert.is_voluntary
+                        ? "Dobrovolné"
+                        : `${concert.price} Kč`
+                    }}</span>
                   </div>
 
                   <div class="border-t border-b border-gray-200 py-4 my-4">
@@ -106,6 +110,17 @@
                   </div>
 
                   <div
+                    v-if="concert.is_voluntary"
+                    class="bg-blue-50 p-4 rounded-lg mt-4"
+                  >
+                    <p class="text-blue-800">
+                      Dobrovolné vstupné se platí na místě před začátkem
+                      koncertu.
+                    </p>
+                  </div>
+
+                  <div
+                    v-else
                     class="flex justify-between items-center text-lg font-bold"
                   >
                     <span>Celková cena:</span>
@@ -149,7 +164,10 @@
                 </div>
 
                 <!-- Step 3: Platební údaje -->
-                <div v-if="currentStep === 2" class="space-y-6">
+                <div
+                  v-if="currentStep === 2 && !concert.is_voluntary"
+                  class="space-y-6"
+                >
                   <div class="text-center">
                     <h3 class="text-lg font-bold mb-2">Platební údaje</h3>
                     <p class="text-gray-600">
@@ -229,10 +247,12 @@
                   </button>
                   <button
                     v-if="currentStep === steps.length - 1"
-                    @click="closeModal"
+                    @click="handleSubmit"
                     class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
                   >
-                    Dokončit
+                    {{
+                      concert.is_voluntary ? "Dokončit rezervaci" : "Dokončit"
+                    }}
                   </button>
                 </div>
               </div>
@@ -270,7 +290,12 @@ const props = defineProps({
 
 const emit = defineEmits(["close", "purchase"]);
 
-const steps = ["Vstupenky", "Kontaktní údaje", "Platba"];
+const steps = computed(() => {
+  if (props.concert.is_voluntary) {
+    return ["Vstupenky", "Kontaktní údaje"];
+  }
+  return ["Vstupenky", "Kontaktní údaje", "Platba"];
+});
 const currentStep = ref(0);
 const ticketCount = ref(1);
 const contactInfo = ref({
@@ -283,6 +308,7 @@ const errors = ref({
 });
 
 const totalPrice = computed(() => {
+  if (props.concert.is_voluntary) return 0;
   return Number(props.concert.price) * ticketCount.value;
 });
 
@@ -395,7 +421,7 @@ watch(
 );
 
 const handleClose = () => {
-  if (currentStep.value === steps.length - 1) {
+  if (currentStep.value === steps.value.length - 1) {
     return;
   }
   currentStep.value = 0;
@@ -436,8 +462,19 @@ const formattedVariableSymbol = computed(() => {
   return cleanVS || ""; // Vrátíme prázdný řetězec, pokud by zbyly jen nuly
 });
 
-const closeModal = async () => {
-  if (currentStep.value === steps.length - 1) {
+const closeModal = () => {
+  currentStep.value = 0;
+  ticketCount.value = 1;
+  contactInfo.value = {
+    name: "",
+    email: "",
+  };
+  errors.value = {};
+  emit("close");
+};
+
+const handleSubmit = async () => {
+  if (currentStep.value === steps.value.length - 1) {
     try {
       const orderData = {
         concert_id: props.concert.id,
@@ -446,31 +483,31 @@ const closeModal = async () => {
         ticket_count: ticketCount.value,
         total_price: totalPrice.value,
         variable_symbol: formattedVariableSymbol.value,
-        payment_details: {
-          account_number: bankDetails.value.accountNumber,
-          bank_code: bankDetails.value.bankCode,
-          amount: totalPrice.value,
-          message: props.concert.title,
-        },
+        payment_details: props.concert.is_voluntary
+          ? null
+          : {
+              account_number: bankDetails.value.accountNumber,
+              bank_code: bankDetails.value.bankCode,
+              amount: totalPrice.value,
+              message: props.concert.title,
+            },
       };
 
       await createOrder(orderData);
-      toast.success("Objednávka byla úspěšně vytvořena");
-
-      currentStep.value = 0;
-      ticketCount.value = 1;
-      contactInfo.value = {
-        name: "",
-        email: "",
-      };
-      errors.value = {};
-      emit("close");
+      toast.success(
+        props.concert.is_voluntary
+          ? "Rezervace byla úspěšně vytvořena"
+          : "Objednávka byla úspěšně vytvořena"
+      );
+      closeModal();
     } catch (err) {
       console.error("Error saving order:", err);
-      toast.error("Nepodařilo se vytvořit objednávku");
+      toast.error(
+        props.concert.is_voluntary
+          ? "Nepodařilo se vytvořit rezervaci"
+          : "Nepodařilo se vytvořit objednávku"
+      );
     }
-  } else {
-    handleClose();
   }
 };
 </script>
