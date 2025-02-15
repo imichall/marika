@@ -74,7 +74,8 @@
             <tr
               v-for="message in messages"
               :key="message.id"
-              class="hover:bg-gray-50"
+              class="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+              @click="openDetailModal(message)"
             >
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ message.email }}
@@ -117,6 +118,7 @@
               </td>
               <td
                 class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2"
+                @click.stop
               >
                 <button
                   v-if="message.status === 'pending'"
@@ -181,9 +183,9 @@
       </div>
     </div>
 
-    <!-- Modal pro úpravu zprávy -->
-    <TransitionRoot appear :show="isEditModalOpen" as="template">
-      <Dialog as="div" @close="closeEditModal" class="relative z-50">
+    <!-- Modal pro detail zprávy -->
+    <TransitionRoot appear :show="isDetailModalOpen" as="template">
+      <Dialog as="div" @close="closeDetailModal" class="relative z-50">
         <TransitionChild
           as="template"
           enter="duration-300 ease-out"
@@ -193,7 +195,10 @@
           leave-from="opacity-100"
           leave-to="opacity-0"
         >
-          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
         </TransitionChild>
 
         <div class="fixed inset-0 overflow-y-auto">
@@ -208,68 +213,212 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
               >
-                <DialogTitle
-                  as="h3"
-                  class="text-lg font-medium leading-6 text-gray-900 mb-4"
-                >
-                  Upravit zprávu
-                </DialogTitle>
+                <div class="relative">
+                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8">
+                    Detail zprávy
+                  </DialogTitle>
+                  <button
+                    @click="closeDetailModal"
+                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <span class="material-icons-outlined">close</span>
+                  </button>
 
-                <form @submit.prevent="handleEditSubmit" class="space-y-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      v-model="editForm.email"
-                      type="email"
-                      required
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                    />
-                  </div>
+                  <div class="space-y-6">
+                    <div class="flex gap-8">
+                      <div class="flex-1">
+                        <div class="text-sm text-gray-500 mb-1">Odesílatel</div>
+                        <div class="font-medium">
+                          {{ selectedMessage?.name }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                          {{ selectedMessage?.email }}
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <div class="text-sm text-gray-500 mb-1">
+                          Datum odeslání
+                        </div>
+                        <div class="font-medium">
+                          {{ formatDate(selectedMessage?.created_at) }}
+                        </div>
+                      </div>
+                    </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Jméno
-                    </label>
-                    <input
-                      v-model="editForm.name"
-                      type="text"
-                      required
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                    />
-                  </div>
+                    <div>
+                      <div class="text-sm text-gray-500 mb-2">Stav</div>
+                      <span
+                        class="px-3 py-1 text-sm font-medium rounded-full"
+                        :class="{
+                          'bg-yellow-100 text-yellow-800':
+                            selectedMessage?.status === 'pending',
+                          'bg-green-100 text-green-800':
+                            selectedMessage?.status === 'approved',
+                          'bg-red-100 text-red-800':
+                            selectedMessage?.status === 'rejected',
+                        }"
+                      >
+                        {{ getStatusText(selectedMessage?.status) }}
+                      </span>
+                    </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Zpráva
-                    </label>
-                    <textarea
-                      v-model="editForm.message"
-                      required
-                      rows="4"
-                      class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                    ></textarea>
-                  </div>
+                    <div>
+                      <div class="text-sm text-gray-500 mb-2">Zpráva</div>
+                      <div
+                        class="bg-gray-50 p-4 rounded-lg text-gray-800 whitespace-pre-wrap"
+                      >
+                        {{ selectedMessage?.message }}
+                      </div>
+                    </div>
 
-                  <div class="flex justify-end gap-3 mt-6">
-                    <button
-                      type="button"
-                      @click="closeEditModal"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
-                    >
-                      Zrušit
-                    </button>
-                    <button
-                      type="submit"
-                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                    >
-                      Uložit změny
-                    </button>
+                    <div class="flex justify-end gap-3 mt-8">
+                      <button
+                        @click="openEditModal(selectedMessage)"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
+                        <span class="material-icons-outlined text-base"
+                          >edit</span
+                        >
+                        Upravit
+                      </button>
+                      <button
+                        v-if="selectedMessage?.status === 'pending'"
+                        @click="handleApprove(selectedMessage)"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                      >
+                        <span class="material-icons-outlined text-base"
+                          >check_circle</span
+                        >
+                        Schválit
+                      </button>
+                      <button
+                        v-if="
+                          selectedMessage?.status === 'approved' &&
+                          !selectedMessage?.is_testimonial
+                        "
+                        @click="handleApproveAsTestimonial(selectedMessage)"
+                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
+                        <span class="material-icons-outlined text-base"
+                          >star</span
+                        >
+                        Jako reference
+                      </button>
+                    </div>
                   </div>
-                </form>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Modal pro úpravu zprávy -->
+    <TransitionRoot appear :show="isEditModalOpen" as="template">
+      <Dialog as="div" @close="closeEditModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+              >
+                <div class="relative">
+                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8">
+                    Upravit zprávu
+                  </DialogTitle>
+                  <button
+                    @click="closeEditModal"
+                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <span class="material-icons-outlined">close</span>
+                  </button>
+
+                  <form @submit.prevent="handleEditSubmit" class="space-y-6">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Email
+                      </label>
+                      <input
+                        v-model="editForm.email"
+                        type="email"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Jméno
+                      </label>
+                      <input
+                        v-model="editForm.name"
+                        type="text"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Zpráva
+                      </label>
+                      <textarea
+                        v-model="editForm.message"
+                        required
+                        rows="4"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      ></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-8">
+                      <button
+                        type="button"
+                        @click="closeEditModal"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                      >
+                        Zrušit
+                      </button>
+                      <button
+                        type="submit"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+                      >
+                        Uložit změny
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </DialogPanel>
             </TransitionChild>
           </div>
@@ -341,6 +490,7 @@ const handleApprove = async (message) => {
     await updateMessageStatus(message.id, "approved");
     await fetchAllMessages();
     toast.success("Zpráva byla schválena");
+    closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se schválit zprávu");
   }
@@ -351,6 +501,7 @@ const handleReject = async (message) => {
     await updateMessageStatus(message.id, "rejected");
     await fetchAllMessages();
     toast.success("Zpráva byla zamítnuta");
+    closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se zamítnout zprávu");
   }
@@ -361,6 +512,7 @@ const handleReset = async (message) => {
     await updateMessageStatus(message.id, "pending");
     await fetchAllMessages();
     toast.success("Zpráva byla vrácena do čekajícího stavu");
+    closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se vrátit zprávu");
   }
@@ -371,6 +523,7 @@ const handleApproveAsTestimonial = async (message) => {
     await approveAsTestimonial(message.id);
     await fetchAllMessages();
     toast.success("Zpráva byla schválena jako reference");
+    closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se schválit zprávu jako referenci");
   }
@@ -383,6 +536,7 @@ const handleDelete = async (message) => {
     await deleteMessage(message.id);
     await fetchAllMessages();
     toast.success("Zpráva byla smazána");
+    closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se smazat zprávu");
   }
@@ -405,6 +559,7 @@ const openEditModal = (message) => {
     message: message.message,
   };
   isEditModalOpen.value = true;
+  isDetailModalOpen.value = false;
 };
 
 const closeEditModal = () => {
@@ -430,5 +585,20 @@ const handleEditSubmit = async () => {
   } catch (error) {
     toast.error("Nepodařilo se upravit zprávu");
   }
+};
+
+// Přidáme nový stav pro detail modal
+const isDetailModalOpen = ref(false);
+const selectedMessage = ref(null);
+
+const openDetailModal = (message) => {
+  if (isEditModalOpen.value) return;
+  selectedMessage.value = message;
+  isDetailModalOpen.value = true;
+};
+
+const closeDetailModal = () => {
+  isDetailModalOpen.value = false;
+  selectedMessage.value = null;
 };
 </script>
