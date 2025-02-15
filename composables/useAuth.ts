@@ -22,6 +22,12 @@ export const useAuth = () => {
     if (autoLogoutTimer.value) {
       clearTimeout(autoLogoutTimer.value)
     }
+
+    // Skip auto-logout if we're in admin section
+    if (process.client && window.location.pathname.startsWith('/admin')) {
+      return
+    }
+
     if (isAuthenticated.value) {
       autoLogoutTimer.value = setTimeout(() => {
         logout()
