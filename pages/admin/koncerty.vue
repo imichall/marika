@@ -331,46 +331,46 @@
               <div class="col-span-2">
                 <label class="block text-gray-700 text-sm font-medium mb-2">
                   Anotace koncertu
+                  <span class="text-gray-500 text-xs ml-1">
+                    (Zbývá {{ 150 - (form.description?.length || 0) }} znaků)
+                  </span>
                 </label>
                 <textarea
                   v-model="form.description"
-                  required
                   rows="2"
+                  :maxlength="150"
                   class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
                   placeholder="Krátká anotace koncertu pro přehled..."
+                  required
+                ></textarea>
+                <p
+                  class="mt-1 text-sm"
+                  :class="{
+                    'text-gray-500':
+                      (form.description?.length || 0) <= 150 * 0.8,
+                    'text-orange-500':
+                      (form.description?.length || 0) > 150 * 0.8 &&
+                      (form.description?.length || 0) <= 150,
+                    'text-red-500': (form.description?.length || 0) > 150,
+                  }"
+                >
+                  {{ form.description?.length || 0 }}/150 znaků
+                </p>
+              </div>
+
+              <div class="col-span-2">
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                  Detailní popis koncertu
+                </label>
+                <textarea
+                  v-model="form.detailed_description"
+                  rows="6"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  placeholder="Podrobný popis koncertu..."
+                  required
                 ></textarea>
               </div>
             </div>
-          </div>
-
-          <!-- Detailní popis koncertu -->
-          <div class="mb-8">
-            <h3
-              class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-red-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 6h16M4 12h16M4 18h7"
-                />
-              </svg>
-              Detailní popis koncertu
-            </h3>
-            <textarea
-              v-model="form.detailed_description"
-              required
-              rows="6"
-              class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
-              placeholder="Podrobný popis koncertu..."
-            ></textarea>
           </div>
 
           <!-- QR Platba -->
