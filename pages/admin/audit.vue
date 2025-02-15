@@ -713,6 +713,41 @@ const formatDate = (date: string) => {
 // Formátování detailů
 const formatDetails = (details: any) => {
   if (!details) return "";
+
+  // Pro objednávky
+  if (details.order_id) {
+    const lines = [];
+    lines.push(`Objednávka #${details.order_id}`);
+
+    if (details.změny) {
+      if (details.změny.původní_stav !== undefined) {
+        lines.push(
+          `Původní stav: ${translateOrderState(details.změny.původní_stav)}`
+        );
+      }
+      if (details.změny.nový_stav !== undefined) {
+        lines.push(
+          `Nový stav: ${translateOrderState(details.změny.nový_stav)}`
+        );
+      }
+      if (details.změny.původní_částka !== undefined) {
+        lines.push(`Původní částka: ${details.změny.původní_částka} Kč`);
+      }
+      if (details.změny.nová_částka !== undefined) {
+        lines.push(`Nová částka: ${details.změny.nová_částka} Kč`);
+      }
+    } else {
+      if (details.payment_status) {
+        lines.push(`Stav: ${translateOrderState(details.payment_status)}`);
+      }
+      if (details.total_price !== undefined) {
+        lines.push(`Částka: ${details.total_price} Kč`);
+      }
+    }
+
+    return lines.join("\n");
+  }
+
   return JSON.stringify(details, null, 2);
 };
 
@@ -758,45 +793,138 @@ const openDiffModal = (log) => {
   showDiffModal.value = true;
 };
 
+// Překlad stavů objednávek
+const translateOrderState = (state: string) => {
+  const states = {
+    pending: "Čeká na platbu",
+    paid: "Zaplaceno",
+    cancelled: "Zrušeno",
+    refunded: "Vráceno",
+  };
+  return states[state] || state;
+};
+
+// Formátování hodnoty pro zobrazení
+const formatValue = (key: string, value: any) => {
+  if (key === "stav") return translateOrderState(value);
+  if (typeof value === "number" && key.includes("částka")) return `${value} Kč`;
+  if (value === null || value === undefined) return "-";
+  return value;
+};
+
 const getDetailsPreview = (details) => {
   if (!details) return "";
 
-  // Pro update akce zobrazíme jen informaci o tom, co se změnilo
-  if (details.změny) {
-    const changes = Object.keys(details.změny)
-      .filter((key) => !key.startsWith("původní_"))
-      .map((key) => key.replace("nový_", ""))
-      .join(", ");
-    return `Změněno: ${changes}`;
+  // Pro objednávky
+  if (details.order_id) {
+    const parts = [`Objednávka #${details.order_id}`];
+
+    // Pro update akce
+    if (details.changes) {
+      if (details.changes.nový_stav !== undefined) {
+        parts.push(`stav: ${translateOrderState(details.changes.nový_stav)}`);
+      }
+      if (details.changes.nová_částka !== undefined) {
+        parts.push(`částka: ${details.changes.nová_částka} Kč`);
+      }
+    }
+    // Pro create akce
+    else if (details.payment_status !== undefined) {
+      parts.push(`stav: ${translateOrderState(details.payment_status)}`);
+      if (details.total_price !== undefined) {
+        parts.push(`částka: ${details.total_price} Kč`);
+      }
+    }
+    // Pro delete akce
+    else if (details.stav !== undefined) {
+      parts.push(`stav: ${translateOrderState(details.stav)}`);
+      if (details.celková_částka !== undefined) {
+        parts.push(`částka: ${details.celková_částka} Kč`);
+      }
+    }
+
+    return parts.join(" - ");
   }
 
-  // Pro ostatní akce zobrazíme první řádek nebo zkrácený obsah
+  // Pro ostatní záznamy
   const preview = JSON.stringify(details).slice(0, 100);
   return preview.length > 100 ? preview + "..." : preview;
 };
 
 const formatOldState = (details) => {
-  if (!details || !details.změny) return "";
+  if (!details) return "";
 
-  const oldState = {};
-  Object.entries(details.změny).forEach(([key, value]) => {
-    if (key.startsWith("původní_")) {
-      oldState[key.replace("původní_", "")] = value;
+  // Pro objednávky
+  if (details.order_id) {
+    const lines = [];
+
+    // Pro update akce
+    if (details.changes) {
+      if (details.changes.původní_stav !== undefined) {
+        lines.push(
+          `Stav: ${translateOrderState(details.changes.původní_stav)}`
+        );
+      }
+      if (details.changes.původní_částka !== undefined) {
+        lines.push(`Částka: ${details.changes.původní_částka} Kč`);
+      }
     }
-  });
-  return JSON.stringify(oldState, null, 2);
+    // Pro delete akce
+    else if (details.stav !== undefined) {
+      lines.push(`Stav: ${translateOrderState(details.stav)}`);
+      if (details.celková_částka !== undefined) {
+        lines.push(`Částka: ${details.celková_částka} Kč`);
+      }
+      if (details.jméno_zákazníka) {
+        lines.push(`Jméno: ${details.jméno_zákazníka}`);
+      }
+      if (details.email_zákazníka) {
+        lines.push(`Email: ${details.email_zákazníka}`);
+      }
+    }
+
+    return lines.join("\n");
+  }
+
+  // Pro ostatní záznamy
+  return JSON.stringify(details, null, 2);
 };
 
 const formatNewState = (details) => {
-  if (!details || !details.změny) return "";
+  if (!details) return "";
 
-  const newState = {};
-  Object.entries(details.změny).forEach(([key, value]) => {
-    if (key.startsWith("nový_")) {
-      newState[key.replace("nový_", "")] = value;
+  // Pro objednávky
+  if (details.order_id) {
+    const lines = [];
+
+    // Pro update akce
+    if (details.changes) {
+      if (details.changes.nový_stav !== undefined) {
+        lines.push(`Stav: ${translateOrderState(details.changes.nový_stav)}`);
+      }
+      if (details.changes.nová_částka !== undefined) {
+        lines.push(`Částka: ${details.changes.nová_částka} Kč`);
+      }
     }
-  });
-  return JSON.stringify(newState, null, 2);
+    // Pro create akce
+    else if (details.payment_status !== undefined) {
+      lines.push(`Stav: ${translateOrderState(details.payment_status)}`);
+      if (details.total_price !== undefined) {
+        lines.push(`Částka: ${details.total_price} Kč`);
+      }
+      if (details.customer_name) {
+        lines.push(`Jméno: ${details.customer_name}`);
+      }
+      if (details.customer_email) {
+        lines.push(`Email: ${details.customer_email}`);
+      }
+    }
+
+    return lines.join("\n");
+  }
+
+  // Pro ostatní záznamy
+  return JSON.stringify(details, null, 2);
 };
 
 // Přidání nových proměnných a funkcí do <script setup>
