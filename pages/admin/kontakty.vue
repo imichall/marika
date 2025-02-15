@@ -510,6 +510,7 @@ const form = reactive({
 
 const permissions = ref({
   view: false,
+  create: false,
   edit: false,
   delete: false,
 });
@@ -520,7 +521,7 @@ const loadPermissions = async () => {
     if (!user.data?.user?.email) return;
 
     // Kontrola oprávnění pro každou akci
-    const actions = ["view", "edit", "delete"];
+    const actions = ["view", "create", "edit", "delete"];
     for (const action of actions) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
