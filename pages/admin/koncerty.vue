@@ -2014,7 +2014,7 @@ const loadPermissions = async () => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadPermissions(), loadConcerts(), loadGroups()]);
+  await Promise.all([loadPermissions(), fetchConcerts()]);
   checkAndArchiveOldConcerts();
   setInterval(checkAndArchiveOldConcerts, 3600000); // každou hodinu
 });
@@ -2692,11 +2692,8 @@ const restoreConcert = async (concert) => {
 // Funkce pro kontrolu a archivaci starých koncertů
 const checkAndArchiveOldConcerts = async () => {
   try {
-    const now = new Date();
-    const { error } = await supabase.rpc("auto_archive_concerts");
-
+    const { error } = await supabase.rpc("archive_old_concerts");
     if (error) throw error;
-
     await fetchConcerts();
   } catch (err) {
     console.error("Error checking old concerts:", err);
