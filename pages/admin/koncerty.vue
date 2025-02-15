@@ -2131,34 +2131,33 @@ const activeFilteredConcerts = computed(() => {
   return filteredConcerts.value.filter((concert) => !concert.is_archived);
 });
 
-// Upravíme paginaci aby používala filtrovaná a seřazená data
+// Upravíme paginaci aby používala aktivní koncerty
 const paginationStart = computed(
   () => (currentPage.value - 1) * ITEMS_PER_PAGE
 );
 const paginationEnd = computed(() => {
   const end = currentPage.value * ITEMS_PER_PAGE;
-  return end > filteredConcerts.value?.length
-    ? filteredConcerts.value?.length
+  return end > activeFilteredConcerts.value.length
+    ? activeFilteredConcerts.value.length
     : end;
 });
 
 const paginatedConcerts = computed(() => {
-  if (!filteredConcerts.value) return [];
-  return filteredConcerts.value.slice(
+  return activeFilteredConcerts.value.slice(
     paginationStart.value,
     paginationEnd.value
   );
 });
 
 // Počet stránek
-const totalPages = computed(() => {
-  return Math.ceil((filteredConcerts.value?.length || 0) / ITEMS_PER_PAGE);
-});
+const totalPages = computed(() =>
+  Math.ceil(activeFilteredConcerts.value.length / ITEMS_PER_PAGE)
+);
 
-// Přidáme computed property pro celkový počet filtrovaných koncertů
-const totalFilteredConcerts = computed(() => {
-  return filteredConcerts.value?.length || 0;
-});
+// Celkový počet filtrovaných koncertů
+const totalFilteredConcerts = computed(
+  () => activeFilteredConcerts.value.length
+);
 
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString("cs-CZ", {
@@ -2651,11 +2650,6 @@ definePageMeta({
 // Přidáme nový ref pro progress
 const uploadProgress = ref(0);
 const isUploading = ref(false);
-
-// Přidáme computed property pro filtrování aktivních a archivovaných koncertů
-const activeConcerts = computed(() => {
-  return filteredConcerts.value.filter((concert) => !concert.is_archived);
-});
 
 const archivedConcerts = computed(() => {
   return concerts.value
