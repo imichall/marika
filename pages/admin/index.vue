@@ -557,13 +557,14 @@
 <script setup>
 definePageMeta({
   layout: "admin",
-  middleware: ["auth"],
+  middleware: ["auth", "admin"],
 });
 
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import { useRoute, useRouter } from "vue-router";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useSupabaseClient } from "#imports";
+import { useFormMessages } from "~/composables/useFormMessages";
 
 const route = useRoute();
 const router = useRouter();
@@ -586,6 +587,9 @@ const {
   devBranch,
   error,
 } = useVersion();
+
+// Přidám ref pro zprávy
+const { messages, fetchAllMessages } = useFormMessages();
 
 // Stav oprávnění
 const permissions = ref({
@@ -698,7 +702,12 @@ const loadPermissions = async () => {
 
 // Načtení dat při mounted
 onMounted(async () => {
-  await Promise.all([getAllOrders(), fetchGitHubInfo(), loadPermissions()]);
+  await Promise.all([
+    getAllOrders(),
+    fetchGitHubInfo(),
+    loadPermissions(),
+    fetchAllMessages(),
+  ]);
 });
 
 // Přidám computed properties pro počty objednávek
@@ -718,6 +727,19 @@ const cancelledOrders = computed(
   () =>
     orders.value?.filter((order) => order.payment_status === "cancelled")
       .length || 0
+);
+
+// Přidám computed properties pro počty zpráv
+const pendingMessages = computed(
+  () =>
+    messages.value?.filter((message) => message.status === "pending").length ||
+    0
+);
+
+const approvedMessages = computed(
+  () =>
+    messages.value?.filter((message) => message.status === "approved").length ||
+    0
 );
 
 // Funkce pro vyčištění chybové hlášky
