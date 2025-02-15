@@ -16,18 +16,25 @@
     </div>
 
     <!-- Filtry -->
-    <div class="bg-white p-6 rounded-lg shadow mb-6">
+    <div
+      class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-200 hover:shadow-md"
+    >
       <div class="flex flex-col space-y-4">
         <!-- Horní řada filtrů -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >category</span
+              >
               Sekce
             </label>
-            <div class="relative">
+            <div class="relative group">
               <select
                 v-model="filters.section"
-                class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
               >
                 <option value="">Všechny sekce</option>
                 <option
@@ -39,21 +46,29 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
               >
-                <span class="material-icons-outlined text-xl">expand_more</span>
+                <span
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  >expand_more</span
+                >
               </div>
             </div>
           </div>
 
           <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >edit_note</span
+              >
               Akce
             </label>
-            <div class="relative">
+            <div class="relative group">
               <select
                 v-model="filters.action"
-                class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
               >
                 <option value="">Všechny akce</option>
                 <option
@@ -65,21 +80,29 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
               >
-                <span class="material-icons-outlined text-xl">expand_more</span>
+                <span
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  >expand_more</span
+                >
               </div>
             </div>
           </div>
 
           <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >person</span
+              >
               Uživatel
             </label>
-            <div class="relative">
+            <div class="relative group">
               <select
                 v-model="filters.user_email"
-                class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
               >
                 <option value="">Všichni uživatelé</option>
                 <option
@@ -91,21 +114,29 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
               >
-                <span class="material-icons-outlined text-xl">expand_more</span>
+                <span
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  >expand_more</span
+                >
               </div>
             </div>
           </div>
 
           <div class="relative">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >calendar_today</span
+              >
               Období
             </label>
-            <div class="relative">
+            <div class="relative group">
               <select
                 v-model="selectedPeriod"
-                class="w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
               >
                 <option value="all">Celé období</option>
                 <option value="today">Dnes</option>
@@ -115,9 +146,12 @@
                 <option value="custom">Vlastní období</option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
               >
-                <span class="material-icons-outlined text-xl">expand_more</span>
+                <span
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  >expand_more</span
+                >
               </div>
             </div>
           </div>
@@ -129,23 +163,33 @@
           class="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >event</span
+              >
               Od
             </label>
             <input
               v-model="filters.from_date"
               type="date"
-              class="w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+              class="w-full px-3 py-2.5 border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 hover:bg-white"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+            >
+              <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
+                >event</span
+              >
               Do
             </label>
             <input
               v-model="filters.to_date"
               type="date"
-              class="w-full px-3 py-2 border-gray-300 focus:outline-none focus:ring-violet-500 focus:border-violet-500 rounded-lg"
+              class="w-full px-3 py-2.5 border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 hover:bg-white"
             />
           </div>
         </div>
