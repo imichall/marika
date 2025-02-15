@@ -34,7 +34,7 @@
             <div class="relative group">
               <select
                 v-model="filters.section"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
               >
                 <option value="">Všechny sekce</option>
                 <option
@@ -68,7 +68,7 @@
             <div class="relative group">
               <select
                 v-model="filters.action"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
               >
                 <option value="">Všechny akce</option>
                 <option
@@ -102,7 +102,7 @@
             <div class="relative group">
               <select
                 v-model="filters.user_email"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
               >
                 <option value="">Všichni uživatelé</option>
                 <option
@@ -136,7 +136,7 @@
             <div class="relative group">
               <select
                 v-model="selectedPeriod"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
               >
                 <option value="all">Celé období</option>
                 <option value="today">Dnes</option>
@@ -206,7 +206,7 @@
           <span class="text-sm text-gray-600">Zobrazit:</span>
           <select
             v-model="itemsPerPage"
-            class="border-gray-300 rounded-md text-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500"
+            class="border-gray-300 rounded-md text-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 appearance-none pl-3 pr-8 py-1"
           >
             <option :value="10">10</option>
             <option :value="20">20</option>
@@ -633,11 +633,108 @@ const filters = ref({
 
 const selectedPeriod = ref("all");
 
+// Přidání konstanty pro aktuální rok
+const CURRENT_YEAR = 2025;
+
+// Sledování změn filtrů
+watch(
+  filters,
+  () => {
+    // Převedeme datum na UTC pro server
+    const fromDate = filters.value.from_date
+      ? new Date(filters.value.from_date + "T00:00:00Z")
+      : undefined;
+    const toDate = filters.value.to_date
+      ? new Date(filters.value.to_date + "T23:59:59Z")
+      : undefined;
+
+    fetchLogs({
+      ...filters.value,
+      from_date: fromDate,
+      to_date: toDate,
+    });
+  },
+  { deep: true }
+);
+
+// Filtrované záznamy
+const filteredLogs = computed(() => {
+  return logs.value.filter((log) => {
+    if (filters.value.section && log.section !== filters.value.section)
+      return false;
+    if (filters.value.action && log.action !== filters.value.action)
+      return false;
+    if (filters.value.user_email && log.user_email !== filters.value.user_email)
+      return false;
+
+    if (filters.value.from_date || filters.value.to_date) {
+      const logDate = new Date(log.created_at);
+
+      // Porovnáváme pouze rok, měsíc a den
+      const logYear = logDate.getFullYear();
+      const logMonth = logDate.getMonth();
+      const logDay = logDate.getDate();
+
+      if (filters.value.from_date) {
+        const fromDate = new Date(filters.value.from_date);
+        const fromYear = fromDate.getFullYear();
+        const fromMonth = fromDate.getMonth();
+        const fromDay = fromDate.getDate();
+
+        // Porovnání data bez času
+        const logDateValue = new Date(logYear, logMonth, logDay).getTime();
+        const fromDateValue = new Date(fromYear, fromMonth, fromDay).getTime();
+
+        if (logDateValue < fromDateValue) {
+          return false;
+        }
+      }
+
+      if (filters.value.to_date) {
+        const toDate = new Date(filters.value.to_date);
+        const toYear = toDate.getFullYear();
+        const toMonth = toDate.getMonth();
+        const toDay = toDate.getDate();
+
+        // Porovnání data bez času
+        const logDateValue = new Date(logYear, logMonth, logDay).getTime();
+        const toDateValue = new Date(toYear, toMonth, toDay).getTime();
+
+        if (logDateValue > toDateValue) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+});
+
 // Sledování změn období
 watch(selectedPeriod, (newValue) => {
-  const today = new Date();
-  const yesterday = new Date(today);
+  // Získáme aktuální den a měsíc, ale použijeme rok 2025
+  const currentDate = new Date();
+  const today = new Date(
+    CURRENT_YEAR,
+    currentDate.getMonth(),
+    currentDate.getDate()
+  );
+
+  const yesterday = new Date(
+    CURRENT_YEAR,
+    currentDate.getMonth(),
+    currentDate.getDate()
+  );
   yesterday.setDate(yesterday.getDate() - 1);
+
+  const weekStart = new Date(
+    CURRENT_YEAR,
+    currentDate.getMonth(),
+    currentDate.getDate()
+  );
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+  const monthStart = new Date(CURRENT_YEAR, currentDate.getMonth(), 1);
 
   switch (newValue) {
     case "all":
@@ -653,35 +750,15 @@ watch(selectedPeriod, (newValue) => {
       filters.value.to_date = yesterday.toISOString().split("T")[0];
       break;
     case "week":
-      const weekStart = new Date(today);
-      weekStart.setDate(today.getDate() - today.getDay());
       filters.value.from_date = weekStart.toISOString().split("T")[0];
       filters.value.to_date = today.toISOString().split("T")[0];
       break;
     case "month":
-      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       filters.value.from_date = monthStart.toISOString().split("T")[0];
       filters.value.to_date = today.toISOString().split("T")[0];
       break;
   }
 });
-
-// Sledování změn filtrů
-watch(
-  filters,
-  () => {
-    fetchLogs({
-      ...filters.value,
-      from_date: filters.value.from_date
-        ? new Date(filters.value.from_date)
-        : undefined,
-      to_date: filters.value.to_date
-        ? new Date(filters.value.to_date)
-        : undefined,
-    });
-  },
-  { deep: true }
-);
 
 // Unikátní hodnoty pro filtry
 const uniqueSections = computed(() => [
@@ -693,34 +770,6 @@ const uniqueActions = computed(() => [
 const uniqueUsers = computed(() => [
   ...new Set(logs.value.map((log) => log.user_email)),
 ]);
-
-// Filtrované záznamy
-const filteredLogs = computed(() => {
-  return logs.value.filter((log) => {
-    if (filters.value.section && log.section !== filters.value.section)
-      return false;
-    if (filters.value.action && log.action !== filters.value.action)
-      return false;
-    if (filters.value.user_email && log.user_email !== filters.value.user_email)
-      return false;
-
-    if (filters.value.from_date) {
-      const fromDate = new Date(filters.value.from_date);
-      fromDate.setHours(0, 0, 0, 0);
-      const logDate = new Date(log.created_at);
-      if (logDate < fromDate) return false;
-    }
-
-    if (filters.value.to_date) {
-      const toDate = new Date(filters.value.to_date);
-      toDate.setHours(23, 59, 59, 999);
-      const logDate = new Date(log.created_at);
-      if (logDate > toDate) return false;
-    }
-
-    return true;
-  });
-});
 
 // Seskupená konfigurace podle sekcí
 const groupedConfig = computed(() => {
@@ -903,15 +952,15 @@ const formatOldState = (details) => {
     const lines = [];
 
     // Pro update akce
-    if (details.changes) {
-      if (details.changes.původní_stav !== undefined) {
-        lines.push(
-          `Stav: ${translateOrderState(details.changes.původní_stav)}`
-        );
-      }
-      if (details.changes.původní_částka !== undefined) {
-        lines.push(`Částka: ${details.changes.původní_částka} Kč`);
-      }
+    if (details.changes || details.změny) {
+      const changes = details.changes || details.změny;
+      // Zobrazíme pouze původní hodnoty
+      Object.entries(changes).forEach(([key, value]) => {
+        if (key.startsWith("původní_")) {
+          const label = key.replace("původní_", "");
+          lines.push(`${label}: ${value}`);
+        }
+      });
     }
     // Pro delete akce
     else if (details.stav !== undefined) {
@@ -931,6 +980,18 @@ const formatOldState = (details) => {
   }
 
   // Pro ostatní záznamy
+  if (details.změny) {
+    const lines = [];
+    // Zobrazíme pouze původní hodnoty
+    Object.entries(details.změny).forEach(([key, value]) => {
+      if (key.startsWith("původní_")) {
+        const label = key.replace("původní_", "");
+        lines.push(`${label}: ${value}`);
+      }
+    });
+    return lines.join("\n");
+  }
+
   return JSON.stringify(details, null, 2);
 };
 
@@ -942,13 +1003,15 @@ const formatNewState = (details) => {
     const lines = [];
 
     // Pro update akce
-    if (details.changes) {
-      if (details.changes.nový_stav !== undefined) {
-        lines.push(`Stav: ${translateOrderState(details.changes.nový_stav)}`);
-      }
-      if (details.changes.nová_částka !== undefined) {
-        lines.push(`Částka: ${details.changes.nová_částka} Kč`);
-      }
+    if (details.changes || details.změny) {
+      const changes = details.changes || details.změny;
+      // Zobrazíme pouze nové hodnoty
+      Object.entries(changes).forEach(([key, value]) => {
+        if (key.startsWith("nový_")) {
+          const label = key.replace("nový_", "");
+          lines.push(`${label}: ${value}`);
+        }
+      });
     }
     // Pro create akce
     else if (details.payment_status !== undefined) {
@@ -968,6 +1031,18 @@ const formatNewState = (details) => {
   }
 
   // Pro ostatní záznamy
+  if (details.změny) {
+    const lines = [];
+    // Zobrazíme pouze nové hodnoty
+    Object.entries(details.změny).forEach(([key, value]) => {
+      if (key.startsWith("nový_")) {
+        const label = key.replace("nový_", "");
+        lines.push(`${label}: ${value}`);
+      }
+    });
+    return lines.join("\n");
+  }
+
   return JSON.stringify(details, null, 2);
 };
 
