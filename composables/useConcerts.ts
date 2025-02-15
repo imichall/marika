@@ -20,6 +20,7 @@ interface ConcertRow {
   poster_id: string | null;
   created_at: string;
   updated_at: string;
+  is_voluntary: boolean;
 }
 
 interface ConcertTicket {
@@ -58,6 +59,7 @@ interface Concert {
   poster?: ConcertPoster | null;
   created_at: string;
   updated_at: string;
+  is_voluntary: boolean;
 }
 
 const formatTime = (time: string | null): string => {

@@ -234,20 +234,38 @@
 
               <div>
                 <label class="block text-gray-700 text-sm font-medium mb-2">
+                  Typ vstupného
+                </label>
+                <div class="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    v-model="form.is_voluntary"
+                    class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <span class="text-gray-700">Dobrovolné vstupné</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-gray-700 text-sm font-medium mb-2">
                   Cena vstupného
                 </label>
-                <div class="relative">
+                <div
+                  class="relative"
+                  :class="{ 'opacity-50': form.is_voluntary }"
+                >
                   <input
                     v-model="form.price"
                     type="number"
-                    required
-                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md pl-8"
+                    :required="!form.is_voluntary"
+                    :disabled="form.is_voluntary"
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md pl-10"
                     placeholder="0"
                   />
                   <span
                     class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                    >Kč</span
-                  >
+                    >Kč
+                  </span>
                 </div>
               </div>
 
@@ -2037,6 +2055,7 @@ const form = ref({
   description: "",
   group_name: "",
   price: 0,
+  is_voluntary: false,
   image: "",
   variable_symbol: "",
   qr_session: "",
@@ -2341,6 +2360,7 @@ const resetForm = () => {
     description: "",
     group_name: "",
     price: 0,
+    is_voluntary: false,
     image: "",
     variable_symbol: "",
     qr_session: "",
@@ -2445,6 +2465,7 @@ const editConcert = (concert) => {
     description: concert.description,
     group_name: concert.group_name,
     price: concert.price,
+    is_voluntary: concert.is_voluntary || false,
     image: concert.image,
     ticket_id: concert.ticket_id?.toString() || "",
     variable_symbol: concert.variable_symbol || "",
@@ -2594,7 +2615,9 @@ const confirmDeleteTicket = async () => {
 };
 
 // Přidáme computed property pro zobrazení/skrytí QR sekce
-const showQRSection = computed(() => !form.value.ticket_id);
+const showQRSection = computed(
+  () => !form.value.ticket_id && !form.value.is_voluntary
+);
 
 // Přidáme watch pro debugování
 watch(
