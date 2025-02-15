@@ -20,7 +20,7 @@
     </div>
 
     <!-- Full-width background section -->
-    <div class="bg-pink-50 py-12">
+    <div class="concert-detail-bg py-12">
       <!-- Skeleton loading -->
       <div v-if="loading" class="container mx-auto px-4">
         <div class="mx-auto">
@@ -599,5 +599,23 @@ const downloadPoster = async () => {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.concert-detail-bg {
+  background: linear-gradient(-45deg, #fdf2f8, #fff1f2, #fee2e2, #fce7f3);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 </style>
