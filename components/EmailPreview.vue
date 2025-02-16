@@ -73,7 +73,7 @@
                   <tr>
                     <td align="center">
                       <img
-                        src="/images/svg/marika-singers-logo.svg"
+                        src="https://dev-marikasingers.netlify.app/images/svg/marika-singers-logo.svg"
                         alt="Marika Singers Logo"
                         style="height: 60px; width: auto"
                       />

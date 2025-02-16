@@ -6,7 +6,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "email-server": "node email-server.js"
+    "email-server": "node email-server.js",
+    "email-cron": "node email-cron.js"
   },
   "devDependencies": {
     "dotenv": "^16.4.7",
@@ -15,6 +16,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
     "nodemailer": "^6.10.0",
+    "node-cron": "^3.0.3",
     "pg": "^8.13.3"
   }
 }
