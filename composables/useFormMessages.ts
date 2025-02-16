@@ -12,7 +12,13 @@ interface FormMessage {
   updated_at: string
 }
 
-export const useFormMessages = () => {
+interface FormMessagesOptions {
+  page?: Ref<number>
+  itemsPerPage?: number
+  onTotalChange?: (total: number) => void
+}
+
+export const useFormMessages = (options: FormMessagesOptions = {}) => {
   const supabase = useSupabaseClient()
   const messages = ref<FormMessage[]>([])
   const loading = ref(false)
@@ -53,13 +59,36 @@ export const useFormMessages = () => {
     loading.value = true
     error.value = null
     try {
-      const { data, error: err } = await supabase
+      // Nejdřív získáme celkový počet zpráv
+      const countQuery = await supabase
+        .from('form_messages')
+        .select('id', { count: 'exact', head: true })
+
+      if (countQuery.error) throw countQuery.error
+
+      // Informujeme o celkovém počtu
+      if (options.onTotalChange) {
+        options.onTotalChange(countQuery.count || 0)
+      }
+
+      // Pak načteme stránku
+      let query = supabase
         .from('form_messages')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (err) throw err
-      messages.value = data
+      // Přidáme stránkování, pokud je nastaveno
+      if (options.page && options.itemsPerPage) {
+        const from = (options.page.value - 1) * options.itemsPerPage
+        const to = from + options.itemsPerPage - 1
+        query = query.range(from, to)
+      }
+
+      const { data, error: fetchError } = await query
+
+      if (fetchError) throw fetchError
+
+      messages.value = data || []
     } catch (err) {
       console.error('Error fetching messages:', err)
       error.value = err instanceof Error ? err.message : 'Unknown error occurred'

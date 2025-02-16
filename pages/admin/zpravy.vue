@@ -1,6 +1,6 @@
 # Vytvořím novou stránku pro správu zpráv z formuláře
 <template>
-  <div class="container mx-auto px-4 mt-[100px]">
+  <div class="container mx-auto px-4 my-[100px]">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
@@ -184,6 +184,68 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginace -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <div class="text-sm text-gray-700">
+              Zobrazuji {{ startIndex + 1 }} až
+              {{ Math.min(endIndex, totalMessages) }} z
+              {{ totalMessages }} zpráv
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="itemsPerPage" class="text-sm text-gray-600"
+                >Počet na stránku:</label
+              >
+              <select
+                id="itemsPerPage"
+                v-model="itemsPerPage"
+                @change="changeItemsPerPage($event.target.value)"
+                class="text-sm border-gray-300 rounded-md focus:border-red-500 focus:ring-red-500"
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex space-x-2">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Předchozí
+            </button>
+            <div class="flex items-center space-x-1">
+              <template v-for="page in displayedPages" :key="page">
+                <button
+                  v-if="page !== '...'"
+                  @click="goToPage(page)"
+                  :class="[
+                    'px-3 py-1 border rounded-md',
+                    currentPage === page
+                      ? 'bg-red-600 text-white'
+                      : 'hover:bg-gray-100',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+                <span v-else class="px-2">...</span>
+              </template>
+            </div>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Další
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -434,13 +496,98 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Modal pro potvrzení smazání -->
+    <TransitionRoot appear :show="isDeleteModalOpen" as="template">
+      <Dialog as="div" @close="closeDeleteModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-xl font-bold text-gray-900 mb-4"
+                >
+                  Smazat zprávu?
+                </DialogTitle>
+
+                <div class="mt-2">
+                  <p class="text-gray-600">
+                    Opravdu chcete smazat tuto zprávu? Tuto akci nelze vrátit
+                    zpět.
+                  </p>
+
+                  <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm">
+                      <div class="font-medium text-gray-700">Od:</div>
+                      <div class="text-gray-600">
+                        {{ messageToDelete?.email }}
+                      </div>
+                    </div>
+                    <div class="text-sm mt-2">
+                      <div class="font-medium text-gray-700">Zpráva:</div>
+                      <div class="text-gray-600">
+                        {{ messageToDelete?.message }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    @click="closeDeleteModal"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+                    @click="confirmDelete"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useFormMessages } from "~/composables/useFormMessages";
 import { useToast } from "~/composables/useToast";
+import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import {
   TransitionRoot,
   TransitionChild,
@@ -457,6 +604,77 @@ definePageMeta({
 
 const supabase = useSupabaseClient();
 
+// Stav pro paginaci
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+const totalMessages = ref(0);
+
+// Computed properties pro paginaci
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value);
+const endIndex = computed(() => startIndex.value + itemsPerPage.value);
+const totalPages = computed(() =>
+  Math.ceil(totalMessages.value / itemsPerPage.value)
+);
+
+// Zobrazené stránky v paginaci
+const displayedPages = computed(() => {
+  const pages = [];
+  const maxVisiblePages = 5;
+
+  if (totalPages.value <= maxVisiblePages) {
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1);
+
+    let start = Math.max(2, currentPage.value - 1);
+    let end = Math.min(totalPages.value - 1, currentPage.value + 1);
+
+    if (start > 2) {
+      pages.push("...");
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (end < totalPages.value - 1) {
+      pages.push("...");
+    }
+
+    pages.push(totalPages.value);
+  }
+
+  return pages;
+});
+
+// Funkce pro navigaci
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchAllMessages();
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchAllMessages();
+  }
+};
+
+const goToPage = (page) => {
+  currentPage.value = page;
+  fetchAllMessages();
+};
+
+const changeItemsPerPage = (newValue) => {
+  itemsPerPage.value = Number(newValue);
+  currentPage.value = 1; // Reset na první stránku
+  fetchAllMessages();
+};
+
 const {
   messages,
   loading,
@@ -466,7 +684,13 @@ const {
   updateMessageStatus,
   deleteMessage,
   approveAsTestimonial,
-} = useFormMessages();
+} = useFormMessages({
+  page: currentPage,
+  itemsPerPage: itemsPerPage.value,
+  onTotalChange: (total) => {
+    totalMessages.value = total;
+  },
+});
 
 const toast = useToast();
 
@@ -507,7 +731,10 @@ const loadPermissions = async () => {
 
 onMounted(async () => {
   await loadPermissions();
-  await fetchAllMessages();
+  // Nejdřív načteme oprávnění, pak data
+  if (permissions.value.view) {
+    await fetchAllMessages();
+  }
 });
 
 const getStatusText = (status) => {
@@ -577,13 +804,32 @@ const handleApproveAsTestimonial = async (message) => {
   }
 };
 
-const handleDelete = async (message) => {
-  if (!confirm("Opravdu chcete smazat tuto zprávu?")) return;
+// Stav pro delete modal
+const isDeleteModalOpen = ref(false);
+const messageToDelete = ref(null);
 
+const openDeleteModal = (message) => {
+  messageToDelete.value = message;
+  isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  messageToDelete.value = null;
+  isDeleteModalOpen.value = false;
+};
+
+const handleDelete = async (message) => {
+  openDeleteModal(message);
+};
+
+const confirmDelete = async () => {
   try {
-    await deleteMessage(message.id);
+    if (!messageToDelete.value) return;
+
+    await deleteMessage(messageToDelete.value.id);
     await fetchAllMessages();
     toast.success("Zpráva byla smazána");
+    closeDeleteModal();
     closeDetailModal();
   } catch (error) {
     toast.error("Nepodařilo se smazat zprávu");
