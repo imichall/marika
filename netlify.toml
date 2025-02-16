@@ -7,7 +7,7 @@ functions = "netlify/functions"
 node_bundler = "esbuild"
 
 [functions."email-cron"]
-schedule = "60 * * * *"
+schedule = "0 * * * *"
 
 [build.environment]
 NODE_VERSION = "18"
