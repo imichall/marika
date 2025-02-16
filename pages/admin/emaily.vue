@@ -3,7 +3,12 @@
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Historie emailů</h1>
+      <div>
+        <h1 class="text-3xl font-bold">Správa emailů</h1>
+        <p class="text-gray-600 mt-2">
+          Spravujte příjemce emailů a prohlížejte historii odeslaných emailů
+        </p>
+      </div>
       <button
         @click="navigateToPreview"
         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center space-x-2"
@@ -30,6 +35,127 @@
         </svg>
         <span>Náhled emailu</span>
       </button>
+    </div>
+
+    <!-- Sekce příjemců emailů -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-semibold">Příjemci emailů</h2>
+          <button
+            v-if="permissions.manage"
+            @click="openAddRecipientModal"
+            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+          >
+            Přidat příjemce
+          </button>
+        </div>
+
+        <!-- Loading stav pro příjemce -->
+        <div v-if="recipientsLoading" class="text-center py-8">
+          <div
+            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+          ></div>
+          <p class="mt-2 text-gray-600">Načítání příjemců...</p>
+        </div>
+
+        <!-- Error stav pro příjemce -->
+        <div
+          v-else-if="recipientsError"
+          class="bg-red-50 text-red-600 p-4 rounded-lg mb-8"
+        >
+          {{ recipientsError }}
+        </div>
+
+        <!-- Seznam příjemců -->
+        <div v-else class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Jméno
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Email
+                </th>
+                <th
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Stav
+                </th>
+                <th
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Akce
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr v-for="recipient in recipients" :key="recipient.id">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ recipient.name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {{ recipient.email }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  <span
+                    :class="[
+                      'px-2 py-1 text-xs font-medium rounded-full',
+                      recipient.is_active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800',
+                    ]"
+                  >
+                    {{ recipient.is_active ? "Aktivní" : "Neaktivní" }}
+                  </span>
+                </td>
+                <td
+                  class="px-6 py-4 whitespace-nowrap text-sm text-right space-x-2"
+                >
+                  <button
+                    v-if="permissions.manage"
+                    @click="openEditRecipientModal(recipient)"
+                    class="text-blue-600 hover:text-blue-900 inline-flex items-center gap-1"
+                    title="Upravit"
+                  >
+                    <span class="material-icons-outlined text-base">edit</span>
+                    <span>Upravit</span>
+                  </button>
+                  <button
+                    v-if="permissions.manage"
+                    @click="handleToggleRecipientStatus(recipient)"
+                    class="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
+                    :title="recipient.is_active ? 'Deaktivovat' : 'Aktivovat'"
+                  >
+                    <span class="material-icons-outlined text-base">{{
+                      recipient.is_active ? "toggle_off" : "toggle_on"
+                    }}</span>
+                    <span>{{
+                      recipient.is_active ? "Deaktivovat" : "Aktivovat"
+                    }}</span>
+                  </button>
+                  <button
+                    v-if="permissions.manage"
+                    @click="handleDeleteRecipient(recipient)"
+                    class="text-red-600 hover:text-red-900 inline-flex items-center gap-1"
+                    title="Smazat"
+                  >
+                    <span class="material-icons-outlined text-base"
+                      >delete</span
+                    >
+                    <span>Smazat</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- Loading stav -->
@@ -387,6 +513,276 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Modal pro přidání příjemce -->
+    <TransitionRoot appear :show="isAddRecipientModalOpen" as="template">
+      <Dialog as="div" @close="closeAddRecipientModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-xl font-bold text-gray-900 mb-4"
+                >
+                  Přidat příjemce
+                </DialogTitle>
+
+                <form @submit.prevent="handleAddRecipientSubmit">
+                  <div class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Jméno
+                      </label>
+                      <input
+                        v-model="recipientForm.name"
+                        type="text"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Email
+                      </label>
+                      <input
+                        v-model="recipientForm.email"
+                        type="email"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end gap-3 mt-8">
+                    <button
+                      type="button"
+                      @click="closeAddRecipientModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+                    >
+                      Přidat
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Modal pro úpravu příjemce -->
+    <TransitionRoot appear :show="isEditRecipientModalOpen" as="template">
+      <Dialog as="div" @close="closeEditRecipientModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-xl font-bold text-gray-900 mb-4"
+                >
+                  Upravit příjemce
+                </DialogTitle>
+
+                <form @submit.prevent="handleEditRecipientSubmit">
+                  <div class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Jméno
+                      </label>
+                      <input
+                        v-model="recipientForm.name"
+                        type="text"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                      >
+                        Email
+                      </label>
+                      <input
+                        v-model="recipientForm.email"
+                        type="email"
+                        required
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="flex justify-end gap-3 mt-8">
+                    <button
+                      type="button"
+                      @click="closeEditRecipientModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+                    >
+                      Uložit změny
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Modal pro smazání příjemce -->
+    <TransitionRoot appear :show="isDeleteRecipientModalOpen" as="template">
+      <Dialog as="div" @close="closeDeleteRecipientModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-xl font-bold text-gray-900 mb-4"
+                >
+                  Smazat příjemce?
+                </DialogTitle>
+
+                <div class="mt-2">
+                  <p class="text-gray-600">
+                    Opravdu chcete smazat tohoto příjemce? Tuto akci nelze
+                    vrátit zpět.
+                  </p>
+
+                  <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                    <div class="text-sm">
+                      <div class="font-medium text-gray-700">Jméno:</div>
+                      <div class="text-gray-600">
+                        {{ recipientToDelete?.name }}
+                      </div>
+                    </div>
+                    <div class="text-sm mt-2">
+                      <div class="font-medium text-gray-700">Email:</div>
+                      <div class="text-gray-600">
+                        {{ recipientToDelete?.email }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    @click="closeDeleteRecipientModal"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+                    @click="confirmDeleteRecipient"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -402,6 +798,8 @@ definePageMeta({
 
 import { ref, onMounted, computed } from "vue";
 import { useEmailLogs } from "~/composables/useEmailLogs";
+import { useEmailRecipients } from "~/composables/useEmailRecipients";
+import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import {
   TransitionRoot,
@@ -410,10 +808,13 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/vue";
-import { useRouter } from "#imports";
+import { useRouter, useSupabaseClient } from "#imports";
 import EmailPreview from "~/components/EmailPreview.vue";
 
 const router = useRouter();
+const supabase = useSupabaseClient();
+const toast = useToast();
+
 const currentPage = ref(1);
 const itemsPerPage = 10;
 const totalEmails = ref(0);
@@ -582,8 +983,170 @@ const updatePreview = () => {
   // Formulář se automaticky aktualizuje díky v-model
 };
 
+// Stav pro příjemce emailů
+const {
+  recipients,
+  loading: recipientsLoading,
+  error: recipientsError,
+  fetchRecipients,
+  addRecipient,
+  updateRecipient,
+  deleteRecipient,
+  toggleRecipientStatus,
+} = useEmailRecipients();
+
+// Stav pro modaly příjemců
+const isAddRecipientModalOpen = ref(false);
+const isEditRecipientModalOpen = ref(false);
+const isDeleteRecipientModalOpen = ref(false);
+const recipientToDelete = ref(null);
+const recipientForm = ref({
+  id: null,
+  name: "",
+  email: "",
+});
+
+// Funkce pro správu příjemců
+const openAddRecipientModal = () => {
+  recipientForm.value = {
+    id: null,
+    name: "",
+    email: "",
+  };
+  isAddRecipientModalOpen.value = true;
+};
+
+const closeAddRecipientModal = () => {
+  isAddRecipientModalOpen.value = false;
+  recipientForm.value = {
+    id: null,
+    name: "",
+    email: "",
+  };
+};
+
+const openEditRecipientModal = (recipient) => {
+  recipientForm.value = {
+    id: recipient.id,
+    name: recipient.name,
+    email: recipient.email,
+  };
+  isEditRecipientModalOpen.value = true;
+};
+
+const closeEditRecipientModal = () => {
+  isEditRecipientModalOpen.value = false;
+  recipientForm.value = {
+    id: null,
+    name: "",
+    email: "",
+  };
+};
+
+const handleAddRecipientSubmit = async () => {
+  try {
+    await addRecipient({
+      name: recipientForm.value.name,
+      email: recipientForm.value.email,
+    });
+    await fetchRecipients();
+    toast.success("Příjemce byl úspěšně přidán");
+    closeAddRecipientModal();
+  } catch (error) {
+    toast.error("Nepodařilo se přidat příjemce");
+  }
+};
+
+const handleEditRecipientSubmit = async () => {
+  try {
+    await updateRecipient(recipientForm.value.id, {
+      name: recipientForm.value.name,
+      email: recipientForm.value.email,
+    });
+    await fetchRecipients();
+    toast.success("Příjemce byl úspěšně upraven");
+    closeEditRecipientModal();
+  } catch (error) {
+    toast.error("Nepodařilo se upravit příjemce");
+  }
+};
+
+const handleDeleteRecipient = (recipient) => {
+  recipientToDelete.value = recipient;
+  isDeleteRecipientModalOpen.value = true;
+};
+
+const closeDeleteRecipientModal = () => {
+  isDeleteRecipientModalOpen.value = false;
+  recipientToDelete.value = null;
+};
+
+const confirmDeleteRecipient = async () => {
+  try {
+    if (!recipientToDelete.value) return;
+
+    await deleteRecipient(recipientToDelete.value.id);
+    await fetchRecipients();
+    toast.success("Příjemce byl úspěšně smazán");
+    closeDeleteRecipientModal();
+  } catch (error) {
+    toast.error("Nepodařilo se smazat příjemce");
+  }
+};
+
+const handleToggleRecipientStatus = async (recipient) => {
+  try {
+    await toggleRecipientStatus(recipient.id, !recipient.is_active);
+    await fetchRecipients();
+    toast.success(
+      `Příjemce byl úspěšně ${
+        !recipient.is_active ? "aktivován" : "deaktivován"
+      }`
+    );
+  } catch (error) {
+    toast.error("Nepodařilo se změnit stav příjemce");
+  }
+};
+
+// Inicializace permissions
+const permissions = ref({
+  view: false,
+  manage: false,
+});
+
+// Funkce pro načtení oprávnění
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) {
+      throw new Error("Uživatel není přihlášen");
+    }
+
+    // Kontrola oprávnění pro každou akci
+    const actions = ["view", "manage"];
+    const permissionPromises = actions.map((action) =>
+      supabase.rpc("check_permission", {
+        p_email: user.data.user.email,
+        p_section: "emails",
+        p_action: action,
+      })
+    );
+
+    const results = await Promise.all(permissionPromises);
+    actions.forEach((action, index) => {
+      permissions.value[action] = results[index].data;
+    });
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+    toast.error("Nepodařilo se načíst oprávnění");
+  }
+};
+
 // Načtení dat při mounted
-onMounted(() => {
-  fetchEmailLogs();
+onMounted(async () => {
+  await loadPermissions();
+  if (permissions.value.view) {
+    await Promise.all([fetchRecipients(), fetchEmailLogs()]);
+  }
 });
 </script>
