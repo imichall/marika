@@ -4,6 +4,19 @@ CREATE SCHEMA IF NOT EXISTS net;
 -- Instalace potřebných rozšíření
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- Vytvoření tabulky pro logy emailů
+CREATE TABLE IF NOT EXISTS email_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    recipient VARCHAR(255) NOT NULL,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending',
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT valid_status CHECK (status IN ('pending', 'sent', 'failed'))
+);
+
 -- Vytvoření funkce pro odesílání emailů v net schématu
 CREATE OR REPLACE FUNCTION net.send_email(
     smtp_username text,
@@ -23,27 +36,42 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Odstranění všech verzí funkce
+DROP FUNCTION IF EXISTS send_notification_email(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS send_notification_email(TEXT, TEXT);
+
 -- Vytvoření funkce pro odesílání emailů
 CREATE OR REPLACE FUNCTION send_notification_email(
-  p_to TEXT,
   p_subject TEXT,
   p_body TEXT
 ) RETURNS BOOLEAN AS $$
+DECLARE
+  v_recipient RECORD;
+  v_count INTEGER := 0;
 BEGIN
-  -- Vytvoření záznamu v email_logs
-  INSERT INTO email_logs (recipient, subject, body, status)
-  VALUES (p_to, p_subject, p_body, 'pending');
+  -- Projít všechny aktivní příjemce
+  FOR v_recipient IN (
+    SELECT email, name
+    FROM email_recipients
+    WHERE is_active = true
+  ) LOOP
+    -- Vytvoření záznamu v email_logs pro každého příjemce
+    INSERT INTO email_logs (recipient, subject, body, status)
+    VALUES (v_recipient.email, p_subject, p_body, 'pending');
 
-  RETURN TRUE;
+    v_count := v_count + 1;
+  END LOOP;
+
+  -- Vrátit true pouze pokud byl vytvořen alespoň jeden záznam
+  RETURN v_count > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Vytvoření funkce pro odeslání notifikace o nové referenci
 CREATE OR REPLACE FUNCTION notify_new_testimonial() RETURNS TRIGGER AS $$
 BEGIN
-  -- Odeslání emailu administrátorovi
+  -- Odeslání emailu všem aktivním příjemcům
   PERFORM send_notification_email(
-    'iimichal.svoboda@gmail.com',
     'Nová reference na webu Marika',
     format('Nová reference od %s (%s):%s%s%s', NEW.name, NEW.email, E'\n', E'\n', NEW.message)
   );
