@@ -1,6 +1,7 @@
 {
   "name": "marika",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -8,37 +9,49 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs"
+    "docs:build": "vuepress build docs",
+    "email-server": "node server/email-server.js",
+    "email-cron": "node server/email-cron.js"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
+    "@netlify/functions": "^2.6.0",
+    "@nuxt/devtools": "latest",
     "@nuxt/types": "^2.18.1",
     "@nuxtjs/color-mode": "^3.5.2",
+    "@nuxtjs/supabase": "^1.1.5",
+    "@nuxtjs/tailwindcss": "^6.10.4",
     "@types/formidable": "^3.4.5",
-    "@types/node": "^22.10.10",
+    "@types/node": "^20.11.5",
     "@vuepress/client": "^2.0.0-rc.19",
     "autoprefixer": "^10.4.16",
-    "nuxt": "^3.9.0",
+    "nuxt": "^3.9.3",
     "nuxt-icon": "^1.0.0-beta.7",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.3",
-    "vuepress": "^2.0.0-rc.19"
+    "vuepress": "^2.0.0-rc.19",
+    "vue": "^3.4.14",
+    "vue-router": "^4.2.5"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.23",
+    "@headlessui/vue": "^1.7.17",
     "@nuxtjs/supabase": "^1.4.6",
-    "@supabase/supabase-js": "^2.47.16",
+    "@supabase/supabase-js": "^2.39.3",
     "@types/pdfkit": "^0.13.8",
     "chart.js": "^4.4.7",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "formidable": "^3.5.2",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.10.0",
     "pdfkit": "^0.16.0",
     "qrcode": "^1.5.3",
     "qrcode-vue3": "^1.7.1",
     "sortablejs": "^1.15.2",
     "vue-chartjs": "^5.3.2",
     "vue-toastification": "^2.0.0-rc.5",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "pg": "^8.11.3"
   }
 }
