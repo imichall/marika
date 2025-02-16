@@ -22,9 +22,14 @@ ON CONFLICT (section, language) DO NOTHING;
 -- Vytvoření triggeru pro auditování vytvoření objednávky vstupenek
 CREATE OR REPLACE FUNCTION audit_ticket_orders_insert()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_email VARCHAR;
 BEGIN
+  -- Get user email from JWT if available, otherwise use a default value
+  v_user_email := COALESCE(auth.jwt() ->> 'email', 'anonymous@system');
+
   PERFORM create_audit_log(
-    auth.jwt() ->> 'email',
+    v_user_email,
     'ticket_orders',
     'create'::audit_action_type,
     NEW.id::text,
@@ -48,9 +53,14 @@ CREATE TRIGGER ticket_orders_audit_insert
 -- Vytvoření triggeru pro auditování aktualizace objednávky vstupenek
 CREATE OR REPLACE FUNCTION audit_ticket_orders_update()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_email VARCHAR;
 BEGIN
+  -- Get user email from JWT if available, otherwise use a default value
+  v_user_email := COALESCE(auth.jwt() ->> 'email', 'anonymous@system');
+
   PERFORM create_audit_log(
-    auth.jwt() ->> 'email',
+    v_user_email,
     'ticket_orders',
     'update'::audit_action_type,
     NEW.id::text,
@@ -76,9 +86,14 @@ CREATE TRIGGER ticket_orders_audit_update
 -- Vytvoření triggeru pro auditování smazání objednávky vstupenek
 CREATE OR REPLACE FUNCTION audit_ticket_orders_delete()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_user_email VARCHAR;
 BEGIN
+  -- Get user email from JWT if available, otherwise use a default value
+  v_user_email := COALESCE(auth.jwt() ->> 'email', 'anonymous@system');
+
   PERFORM create_audit_log(
-    auth.jwt() ->> 'email',
+    v_user_email,
     'ticket_orders',
     'delete'::audit_action_type,
     OLD.id::text,
