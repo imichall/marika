@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 mt-[100px]">
+  <div class="container mx-auto px-4 my-[100px]">
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
@@ -114,6 +114,49 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Paginace -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-700">
+            Zobrazuji {{ startIndex + 1 }} až
+            {{ Math.min(endIndex, totalEmails) }} z {{ totalEmails }} emailů
+          </div>
+          <div class="flex space-x-2">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Předchozí
+            </button>
+            <div class="flex items-center space-x-1">
+              <template v-for="page in displayedPages" :key="page">
+                <button
+                  v-if="page !== '...'"
+                  @click="goToPage(page)"
+                  :class="[
+                    'px-3 py-1 border rounded-md',
+                    currentPage === page
+                      ? 'bg-red-600 text-white'
+                      : 'hover:bg-gray-100',
+                  ]"
+                >
+                  {{ page }}
+                </button>
+                <span v-else class="px-2">...</span>
+              </template>
+            </div>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Další
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -357,7 +400,7 @@ definePageMeta({
   },
 });
 
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useEmailLogs } from "~/composables/useEmailLogs";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import {
@@ -369,10 +412,85 @@ import {
 } from "@headlessui/vue";
 import { useRouter } from "#imports";
 import EmailPreview from "~/components/EmailPreview.vue";
-import { computed } from "vue";
 
 const router = useRouter();
-const { logs, loading, error, fetchEmailLogs } = useEmailLogs();
+const currentPage = ref(1);
+const itemsPerPage = 10;
+const totalEmails = ref(0);
+
+// Načtení emailů s paginací
+const { logs, loading, error, fetchEmailLogs } = useEmailLogs({
+  page: currentPage,
+  itemsPerPage,
+  onTotalChange: (total) => {
+    totalEmails.value = total;
+  },
+});
+
+// Computed properties pro paginaci
+const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage);
+const endIndex = computed(() => startIndex.value + itemsPerPage);
+const totalPages = computed(() => Math.ceil(totalEmails.value / itemsPerPage));
+
+// Zobrazené stránky v paginaci
+const displayedPages = computed(() => {
+  const pages = [];
+  const maxVisiblePages = 5;
+
+  if (totalPages.value <= maxVisiblePages) {
+    // Pokud je méně stránek než maximum, zobrazíme všechny
+    for (let i = 1; i <= totalPages.value; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Vždy zobrazíme první stránku
+    pages.push(1);
+
+    // Určíme rozsah zobrazených stránek kolem aktuální stránky
+    let start = Math.max(2, currentPage.value - 1);
+    let end = Math.min(totalPages.value - 1, currentPage.value + 1);
+
+    // Přidáme tři tečky po první stránce, pokud je potřeba
+    if (start > 2) {
+      pages.push("...");
+    }
+
+    // Přidáme stránky v rozsahu
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // Přidáme tři tečky před poslední stránkou, pokud je potřeba
+    if (end < totalPages.value - 1) {
+      pages.push("...");
+    }
+
+    // Vždy zobrazíme poslední stránku
+    pages.push(totalPages.value);
+  }
+
+  return pages;
+});
+
+// Funkce pro navigaci
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    fetchEmailLogs();
+  }
+};
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    fetchEmailLogs();
+  }
+};
+
+const goToPage = (page) => {
+  currentPage.value = page;
+  fetchEmailLogs();
+};
 
 // Stav pro detail modal
 const isDetailModalOpen = ref(false);

@@ -12,7 +12,13 @@ interface EmailLog {
   sent_at?: string
 }
 
-export const useEmailLogs = () => {
+interface EmailLogsOptions {
+  page?: Ref<number>
+  itemsPerPage?: number
+  onTotalChange?: (total: number) => void
+}
+
+export function useEmailLogs(options: EmailLogsOptions = {}) {
   const supabase = useSupabaseClient()
   const logs = ref<EmailLog[]>([])
   const loading = ref(false)
@@ -22,17 +28,41 @@ export const useEmailLogs = () => {
   const fetchEmailLogs = async () => {
     loading.value = true
     error.value = null
+
     try {
-      const { data, error: err } = await supabase
+      // Nejdřív získáme celkový počet emailů
+      const countQuery = await supabase
+        .from('email_logs')
+        .select('id', { count: 'exact', head: true })
+
+      if (countQuery.error) throw countQuery.error
+
+      // Informujeme o celkovém počtu
+      if (options.onTotalChange) {
+        options.onTotalChange(countQuery.count || 0)
+      }
+
+      // Pak načteme stránku
+      let query = supabase
         .from('email_logs')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (err) throw err
-      logs.value = data
+      // Přidáme stránkování, pokud je nastaveno
+      if (options.page && options.itemsPerPage) {
+        const from = (options.page.value - 1) * options.itemsPerPage
+        const to = from + options.itemsPerPage - 1
+        query = query.range(from, to)
+      }
+
+      const { data, error: fetchError } = await query
+
+      if (fetchError) throw fetchError
+
+      logs.value = data || []
     } catch (err) {
       console.error('Error fetching email logs:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      error.value = err.message
     } finally {
       loading.value = false
     }
