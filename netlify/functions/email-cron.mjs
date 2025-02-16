@@ -164,5 +164,5 @@ export default async (req) => {
 
 // Nastavení scheduled function
 export const config = {
-    schedule: "*/15 * * * *"  // Každých 15 minut
+    schedule: "0 * * * *"  // Každých 15 minut
 };
