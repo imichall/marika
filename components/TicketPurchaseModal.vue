@@ -30,7 +30,7 @@
               </DialogTitle>
 
               <!-- Progress Steps -->
-              <div class="mb-8">
+              <div v-if="!concert.is_voluntary" class="mb-8">
                 <div class="flex justify-between mb-2">
                   <span
                     v-for="(step, index) in steps"
@@ -55,8 +55,8 @@
               </div>
 
               <div class="space-y-4">
-                <!-- Step 1: Výběr vstupenek -->
-                <div v-if="currentStep === 0">
+                <!-- Informace o koncertu -->
+                <div>
                   <div class="flex justify-between items-center text-gray-600">
                     <span>Datum koncertu:</span>
                     <span class="font-medium">{{
@@ -73,14 +73,26 @@
 
                   <div class="flex justify-between items-center text-gray-600">
                     <span>Vstupné:</span>
-                    <span class="font-medium">{{
-                      concert.is_voluntary
-                        ? "Dobrovolné"
-                        : `${concert.price} Kč`
-                    }}</span>
+                    <span class="font-medium">
+                      <template v-if="concert.is_voluntary">
+                        Dobrovolné
+                      </template>
+                      <template v-else>
+                        {{ concert.price }} Kč
+                        <template v-if="ticketCount > 1">
+                          <span class="text-gray-500">
+                            ({{ ticketCount }}× vstupenka, celkem
+                            {{ totalPrice }} Kč)
+                          </span>
+                        </template>
+                      </template>
+                    </span>
                   </div>
 
-                  <div class="border-t border-b border-gray-200 py-4 my-4">
+                  <div
+                    v-if="!concert.is_voluntary && currentStep === 0"
+                    class="border-t border-b border-gray-200 py-4 my-4"
+                  >
                     <label class="block text-gray-700 text-sm font-bold mb-2">
                       Počet vstupenek
                     </label>
@@ -120,7 +132,7 @@
                   </div>
 
                   <div
-                    v-else
+                    v-if="!concert.is_voluntary && currentStep === 0"
                     class="flex justify-between items-center text-lg font-bold"
                   >
                     <span>Celková cena:</span>
@@ -128,8 +140,11 @@
                   </div>
                 </div>
 
-                <!-- Step 2: Kontaktní údaje -->
-                <div v-if="currentStep === 1" class="space-y-4">
+                <!-- Step 2: Kontaktní údaje - pouze pro placené koncerty -->
+                <div
+                  v-if="!concert.is_voluntary && currentStep === 1"
+                  class="space-y-4"
+                >
                   <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">
                       Jméno a příjmení
@@ -163,9 +178,9 @@
                   </div>
                 </div>
 
-                <!-- Step 3: Platební údaje -->
+                <!-- Step 3: Platební údaje - pouze pro placené koncerty -->
                 <div
-                  v-if="currentStep === 2 && !concert.is_voluntary"
+                  v-if="!concert.is_voluntary && currentStep === 2"
                   class="space-y-6"
                 >
                   <div class="text-center">
@@ -225,35 +240,42 @@
                 <!-- Navigation Buttons -->
                 <div class="flex justify-end space-x-4 mt-6">
                   <button
-                    v-if="currentStep > 0"
-                    @click="currentStep--"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
-                  >
-                    Zpět
-                  </button>
-                  <button
-                    v-if="currentStep === 0"
+                    v-if="concert.is_voluntary"
                     @click="handleClose"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
-                  >
-                    Zrušit
-                  </button>
-                  <button
-                    v-if="currentStep < steps.length - 1"
-                    @click="handleNextStep"
                     class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
                   >
-                    Pokračovat
+                    Rozumím
                   </button>
-                  <button
-                    v-if="currentStep === steps.length - 1"
-                    @click="handleSubmit"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
-                  >
-                    {{
-                      concert.is_voluntary ? "Dokončit rezervaci" : "Dokončit"
-                    }}
-                  </button>
+                  <template v-else>
+                    <button
+                      v-if="currentStep > 0"
+                      @click="currentStep--"
+                      class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    >
+                      Zpět
+                    </button>
+                    <button
+                      v-if="currentStep === 0"
+                      @click="handleClose"
+                      class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      v-if="currentStep < steps.length - 1"
+                      @click="handleNextStep"
+                      class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    >
+                      Pokračovat
+                    </button>
+                    <button
+                      v-if="currentStep === steps.length - 1"
+                      @click="handleSubmit"
+                      class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    >
+                      Dokončit
+                    </button>
+                  </template>
                 </div>
               </div>
             </DialogPanel>
@@ -292,7 +314,7 @@ const emit = defineEmits(["close", "purchase"]);
 
 const steps = computed(() => {
   if (props.concert.is_voluntary) {
-    return ["Vstupenky", "Kontaktní údaje"];
+    return [];
   }
   return ["Vstupenky", "Kontaktní údaje", "Platba"];
 });
@@ -416,6 +438,10 @@ watch(
   (newValue) => {
     if (newValue) {
       loadBankDetails();
+      // Set ticketCount to 1 for voluntary admission
+      if (props.concert.is_voluntary) {
+        ticketCount.value = 1;
+      }
     }
   }
 );

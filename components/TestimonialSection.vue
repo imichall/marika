@@ -517,9 +517,12 @@ const goToSlide = (index) => {
 };
 
 const startAutoplay = () => {
-  autoplayInterval.value = setInterval(() => {
-    nextSlide();
-  }, 5000);
+  // Spustíme autoplay pouze na zařízeních s šířkou větší než 768px
+  if (window.innerWidth >= 768) {
+    autoplayInterval.value = setInterval(() => {
+      nextSlide();
+    }, 5000);
+  }
 };
 
 const stopAutoplay = () => {
@@ -528,6 +531,20 @@ const stopAutoplay = () => {
     autoplayInterval.value = null;
   }
 };
+
+// Přidáme watch na změnu velikosti okna pro kontrolu autoplay
+watch(
+  () => visibleSlides.value,
+  (newValue) => {
+    // Pokud jsme na mobilu (1 viditelný slide), zastavíme autoplay
+    if (newValue === 1) {
+      stopAutoplay();
+    } else {
+      // Na větších obrazovkách spustíme autoplay
+      startAutoplay();
+    }
+  }
+);
 
 // Event listeners a lifecycle hooks
 onMounted(() => {
