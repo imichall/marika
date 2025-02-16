@@ -14,7 +14,7 @@ function createEmailTemplate(content) {
                             <tbody>
                                 <tr>
                                     <td align="center">
-                                        <img src="https://dev.marikasingers.netlify.app/images/svg/marika-singers-logo.svg" alt="Marika Singers Logo" style="height: 60px; width: auto" />
+                                        <img src="https://dev-marikasingers.netlify.app/images/svg/marika-singers-logo.svg" alt="Marika Singers Logo" style="height: 60px; width: auto" />
                                     </td>
                                 </tr>
                             </tbody>
