@@ -1940,7 +1940,7 @@
                   </button>
                   <button
                     v-if="permissions.delete"
-                    @click="deleteConcert(concert)"
+                    @click="handleDelete(concert.id)"
                     class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                     title="Smazat"
                   >
