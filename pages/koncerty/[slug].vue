@@ -521,10 +521,15 @@ onMounted(async () => {
   loading.value = false;
 });
 
-// Get other concerts excluding current one
+// Get other concerts excluding current one and archived ones
 const otherConcerts = computed(() => {
   const id = getId(route.params.slug);
-  return concerts.value.filter((c) => c.id !== id);
+  const currentDate = new Date();
+  return concerts.value
+    .filter(
+      (c) => c.id !== id && !c.is_archived && new Date(c.date) >= currentDate
+    )
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
 
 const openTicketModal = (concert) => {

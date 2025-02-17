@@ -11,7 +11,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <FadeUpOnScroll v-for="concert in displayedConcerts" :key="concert.id">
           <article
-            class="concert-card flex flex-col bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+            class="concert-card flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
           >
             <div class="relative aspect-[4/3] overflow-hidden">
               <img

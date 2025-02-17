@@ -70,7 +70,7 @@
       >
         <FadeUpOnScroll v-for="concert in filteredConcerts" :key="concert.id">
           <div
-            class="concert-card flex flex-col bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+            class="concert-card flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
           >
             <div class="relative aspect-[4/3] overflow-hidden">
               <img
