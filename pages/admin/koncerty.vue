@@ -1892,7 +1892,8 @@
               <tr
                 v-for="concert in archivedConcerts"
                 :key="concert.id"
-                class="hover:bg-gray-50"
+                class="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                @click="showArchivePreview(concert)"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm font-medium text-gray-900">
@@ -1917,48 +1918,50 @@
                 <td
                   class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
                 >
-                  <button
-                    v-if="permissions.edit"
-                    @click="restoreConcert(concert)"
-                    class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
-                    title="Obnovit"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <div class="flex justify-end space-x-2">
+                    <button
+                      v-if="permissions.edit"
+                      @click.stop="restoreConcert(concert)"
+                      class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                      title="Obnovit"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="permissions.delete"
-                    @click="handleDelete(concert.id)"
-                    class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                    title="Smazat"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      v-if="permissions.delete"
+                      @click.stop="handleDelete(concert.id)"
+                      class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      title="Smazat"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -1966,6 +1969,156 @@
         </div>
       </div>
     </div>
+
+    <!-- Archive Preview Modal -->
+    <TransitionRoot appear :show="showArchiveModal" as="template">
+      <Dialog as="div" @close="showArchiveModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold mb-4 text-gray-900"
+                >
+                  {{ selectedConcert?.title }}
+                  <span class="text-sm font-normal text-gray-500 ml-2">
+                    (Archivovaný koncert)
+                  </span>
+                </DialogTitle>
+
+                <div class="space-y-6">
+                  <!-- Základní informace -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <img
+                        v-if="selectedConcert?.image"
+                        :src="selectedConcert.image"
+                        :alt="selectedConcert.title"
+                        class="w-full h-64 object-cover rounded-lg"
+                      />
+                    </div>
+                    <div class="space-y-4">
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-500">
+                          Datum a čas
+                        </h4>
+                        <p class="text-lg">
+                          {{
+                            formatDateWithTime(
+                              selectedConcert?.date,
+                              selectedConcert?.time
+                            )
+                          }}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-500">
+                          Skupina
+                        </h4>
+                        <p class="text-lg">{{ selectedConcert?.group_name }}</p>
+                      </div>
+                      <div v-if="selectedConcert?.price">
+                        <h4 class="text-sm font-medium text-gray-500">
+                          Vstupné
+                        </h4>
+                        <p class="text-lg">{{ selectedConcert?.price }} Kč</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Plakát koncertu -->
+                  <div v-if="selectedConcert?.poster">
+                    <h4 class="text-sm font-medium text-gray-500 mb-4">
+                      Plakát koncertu
+                    </h4>
+                    <div class="flex justify-center">
+                      <img
+                        v-if="
+                          selectedConcert.poster.image_url &&
+                          !selectedConcert.poster.image_url.endsWith('.pdf')
+                        "
+                        :src="selectedConcert.poster.image_url"
+                        :alt="'Plakát - ' + selectedConcert.title"
+                        class="max-h-96 rounded-lg shadow-lg"
+                      />
+                      <object
+                        v-else-if="
+                          selectedConcert.poster.image_url &&
+                          selectedConcert.poster.image_url.endsWith('.pdf')
+                        "
+                        :data="selectedConcert.poster.image_url"
+                        type="application/pdf"
+                        class="w-full h-96 rounded-lg shadow-lg"
+                      >
+                        <div class="text-center p-4 bg-gray-100 rounded-lg">
+                          <p class="text-gray-600">
+                            PDF plakát není možné zobrazit přímo.
+                          </p>
+                          <a
+                            :href="selectedConcert.poster.image_url"
+                            target="_blank"
+                            class="text-blue-600 hover:text-blue-800 underline mt-2 inline-block"
+                          >
+                            Otevřít PDF v novém okně
+                          </a>
+                        </div>
+                      </object>
+                    </div>
+                  </div>
+
+                  <!-- Popis -->
+                  <div>
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">
+                      Popis koncertu
+                    </h4>
+                    <p
+                      class="text-gray-700 whitespace-pre-line"
+                      v-html="
+                        convertUrlsToLinks(
+                          selectedConcert?.detailed_description
+                        )
+                      "
+                    ></p>
+                  </div>
+
+                  <div class="flex justify-end mt-6">
+                    <button
+                      @click="showArchiveModal = false"
+                      class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    >
+                      Zavřít
+                    </button>
+                  </div>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -2741,6 +2894,24 @@ const formatDateWithTime = (date, time) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const showArchiveModal = ref(false);
+const selectedConcert = ref(null);
+
+// Funkce pro konverzi URL na odkazy
+const convertUrlsToLinks = (text) => {
+  if (!text) return "";
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+  return text.replace(urlRegex, (url) => {
+    const href = url.startsWith("www.") ? `https://${url}` : url;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">${url}</a>`;
+  });
+};
+
+const showArchivePreview = (concert) => {
+  selectedConcert.value = concert;
+  showArchiveModal.value = true;
 };
 </script>
 
