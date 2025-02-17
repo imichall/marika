@@ -214,9 +214,10 @@
           </div>
           <div class="flex flex-col gap-4 mt-10">
             <h4 class="text-2xl font-medium">Detailní popis koncertu</h4>
-            <p class="text-gray-600 whitespace-pre-line">
-              {{ concert.detailed_description }}
-            </p>
+            <p
+              class="text-gray-600 whitespace-pre-line"
+              v-html="convertUrlsToLinks(concert.detailed_description)"
+            ></p>
           </div>
         </div>
       </div>
@@ -492,6 +493,7 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 import { formatDateWithTime } from "~/utils/date";
+import { ref, computed } from "vue";
 
 const route = useRoute();
 const { concerts, getConcert } = useConcerts();
@@ -583,6 +585,19 @@ const downloadPoster = async () => {
   } catch (error) {
     console.error("Chyba při stahování plakátu:", error);
   }
+};
+
+// Přidáme funkci pro konverzi URL na odkazy
+const convertUrlsToLinks = (text) => {
+  if (!text) return "";
+
+  // Regex pro detekci URL (podporuje http://, https://, www.)
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
+
+  return text.replace(urlRegex, (url) => {
+    const href = url.startsWith("www.") ? `https://${url}` : url;
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:text-red-800 underline">${url}</a>`;
+  });
 };
 </script>
 
