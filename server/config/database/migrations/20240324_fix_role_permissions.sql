@@ -26,11 +26,7 @@ language plpgsql
 as $$
 begin
   -- Pro adminy vrátíme všechna oprávnění
-  if exists (
-    select 1 from user_roles
-    where email = auth.jwt() ->> 'email'
-    and role = 'admin'
-  ) then
+  if p_role = 'admin' then
     return query
       select p.section, p.action
       from permissions p;
@@ -41,7 +37,7 @@ begin
       from permissions p
       join user_permissions up on p.id = up.permission_id
       join user_roles ur on ur.id = up.role_id
-      where ur.email = auth.jwt() ->> 'email';
+      where ur.role = p_role;
   end if;
 end;
 $$;

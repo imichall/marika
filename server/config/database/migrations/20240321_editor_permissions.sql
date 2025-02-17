@@ -29,8 +29,8 @@ begin
         or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Reference - plný přístup
         or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
-        -- Objednávky - rozšířená oprávnění
-        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel'))
+        -- Objednávky - rozšířená oprávnění včetně mazání
+        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel', 'delete'))
         -- Skupiny - plný přístup
         or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Kontakty - plný přístup
@@ -69,3 +69,20 @@ join user_permissions up on ur.id = up.role_id
 join permissions p on p.id = up.permission_id
 where ur.role = 'editor'
 order by ur.email, p.section, p.action;
+
+-- Spustíme funkci pro aktualizaci oprávnění
+SELECT * FROM setup_editor_permissions();
+
+-- Vypíšeme aktuální oprávnění pro editory pro kontrolu
+SELECT
+  ur.email,
+  ur.role,
+  p.section,
+  p.action,
+  p.description
+FROM user_roles ur
+JOIN user_permissions up ON ur.id = up.role_id
+JOIN permissions p ON p.id = up.permission_id
+WHERE ur.role = 'editor'
+  AND p.section = 'orders'
+ORDER BY ur.email, p.section, p.action;

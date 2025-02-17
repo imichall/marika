@@ -526,6 +526,34 @@
                                     Zrušit objednávku
                                   </button>
                                 </MenuItem>
+                                <MenuItem
+                                  v-if="permissions.delete"
+                                  v-slot="{ active }"
+                                >
+                                  <button
+                                    @click.stop="confirmDeleteOrder(order)"
+                                    :class="[
+                                      active ? 'bg-gray-100' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-red-700',
+                                    ]"
+                                  >
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      class="h-4 w-4 mr-2 text-red-500"
+                                      fill="none"
+                                      viewBox="0 0 24 24"
+                                      stroke="currentColor"
+                                    >
+                                      <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                      />
+                                    </svg>
+                                    Smazat objednávku
+                                  </button>
+                                </MenuItem>
                               </div>
                             </MenuItems>
                           </transition>
@@ -581,6 +609,97 @@
       @close="closeOrderDetail"
       @update-status="handleStatusUpdate"
     />
+
+    <!-- Delete Confirmation Modal -->
+    <TransitionRoot appear :show="isDeleteModalOpen" as="template">
+      <Dialog as="div" @close="closeDeleteModal" class="relative z-50">
+        <TransitionChild
+          as="div"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="div"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold mb-4 text-gray-900"
+                >
+                  Smazat objednávku
+                </DialogTitle>
+                <div class="mt-2">
+                  <p class="text-gray-600">
+                    Opravdu chcete smazat tuto objednávku? Tato akce je
+                    nevratná.
+                  </p>
+                  <div class="mt-4 bg-yellow-50 p-4 rounded-lg">
+                    <p class="text-yellow-800 font-medium">
+                      Detaily objednávky:
+                    </p>
+                    <ul class="mt-2 space-y-1 text-yellow-700">
+                      <li>Zákazník: {{ orderToDelete?.customer_name }}</li>
+                      <li>Email: {{ orderToDelete?.customer_email }}</li>
+                      <li>
+                        Koncert:
+                        {{ getConcertTitle(orderToDelete?.concert_id) }}
+                      </li>
+                      <li>Celkem: {{ orderToDelete?.total_price }} Kč</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-4">
+                  <button
+                    @click="closeDeleteModal"
+                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    @click="deleteOrder"
+                    class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                    Smazat objednávku
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -591,9 +710,46 @@ definePageMeta({
   middleware: ["auth"],
 });
 
+// Definice typů
+interface Order {
+  id: number;
+  concert_id: number;
+  customer_name: string;
+  customer_email: string;
+  ticket_count: number;
+  total_price: number;
+  payment_status: "pending" | "completed" | "cancelled";
+  variable_symbol?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Concert {
+  id: number;
+  title: string;
+  date: string;
+  image?: string;
+  image_position?: string;
+  is_voluntary?: boolean;
+  ticket_id?: string;
+  variable_symbol?: string;
+}
+
+interface MonthData {
+  label: string;
+  date: Date;
+}
+
 // Vue importy
-import { ref, onMounted, computed, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import {
+  ref,
+  onMounted,
+  computed,
+  watch,
+  useRoute,
+  useRouter,
+  useSupabaseClient,
+} from "#imports";
 
 // Chart.js importy
 import type { ChartOptions } from "chart.js";
@@ -602,8 +758,8 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
   PointElement,
+  LineElement,
   ArcElement,
   Title,
   Tooltip,
@@ -615,12 +771,49 @@ import {
   Doughnut as DoughnutChart,
 } from "vue-chartjs";
 
+// UI komponenty
+import {
+  Menu,
+  MenuButton,
+  MenuItems,
+  MenuItem,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionRoot,
+  TransitionChild,
+  TabGroup,
+  TabList,
+  Tab,
+  TabPanels,
+  TabPanel,
+} from "@headlessui/vue";
+
 // Composables
+import { useTicketOrders } from "~/composables/useTicketOrders";
+import { useConcerts } from "~/composables/useConcerts";
+import { useToast } from "~/composables/useToast";
+
+// Inicializace composables
 const { orders, getAllOrders, updateOrderStatus } = useTicketOrders();
 const { concerts, fetchConcerts } = useConcerts();
 const toast = useToast();
 const route = useRoute();
 const router = useRouter();
+const supabase = useSupabaseClient();
+
+// Registrace Chart.js komponent
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 // Vybraný tab
 const selectedTab = ref(0);
@@ -649,42 +842,75 @@ watch(selectedTab, (newValue) => {
   }
 });
 
-// Stav oprávnění
+// Inicializace oprávnění
 const permissions = ref({
-  view: false,
   edit: false,
   complete: false,
   cancel: false,
+  delete: false,
 });
 
 // Načtení oprávnění
 const loadPermissions = async () => {
   try {
-    const supabase = useSupabaseClient();
-    const user = await supabase.auth.getUser();
-    console.log("Current user:", user.data?.user);
-    if (!user.data?.user?.email) return;
-
-    // Kontrola oprávnění pro každou akci
-    const actions = ["view", "edit", "complete", "cancel"];
-    for (const action of actions) {
-      const { data: hasPermission } = await supabase.rpc("check_permission", {
-        p_email: user.data.user.email,
-        p_section: "orders",
-        p_action: action,
-      });
-      console.log(`Permission check for ${action}:`, hasPermission);
-      permissions.value[action] = hasPermission;
+    const userData = await supabase.auth.getUser();
+    if (!userData.data.user?.email) {
+      console.error("User email not found");
+      return;
     }
-    console.log("Final permissions state:", permissions.value);
+
+    // Nejprve získáme roli uživatele
+    const { data: userRole, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", userData.data.user.email)
+      .single();
+
+    if (roleError) {
+      console.error("Error loading user role:", roleError);
+      return;
+    }
+
+    // Pak získáme oprávnění pro tuto roli
+    const { data: perms, error: permError } = await supabase.rpc(
+      "get_role_permissions",
+      {
+        p_role: userRole.role,
+      }
+    );
+
+    if (permError) {
+      console.error("Error loading permissions:", permError);
+      return;
+    }
+
+    if (perms) {
+      permissions.value = {
+        edit: perms.some((p) => p.section === "orders" && p.action === "edit"),
+        complete: perms.some(
+          (p) => p.section === "orders" && p.action === "complete"
+        ),
+        cancel: perms.some(
+          (p) => p.section === "orders" && p.action === "cancel"
+        ),
+        delete: perms.some(
+          (p) => p.section === "orders" && p.action === "delete"
+        ),
+      };
+    }
   } catch (err) {
-    console.error("Error loading permissions:", err);
+    console.error("Error in loadPermissions:", err);
   }
 };
 
-// Načtení dat
+// Načteme oprávnění při mounted
 onMounted(async () => {
-  await Promise.all([loadPermissions(), getAllOrders(), fetchConcerts()]);
+  await Promise.all([
+    loadPermissions(),
+    getAllOrders(),
+    fetchConcerts(),
+    loadBankAccount(),
+  ]);
   // Po načtení dat zkontrolujeme, jestli máme otevřít detail
   const orderId = route.query.order;
   if (orderId) {
@@ -711,54 +937,6 @@ watch(
     }
   }
 );
-
-// UI komponenty
-import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/vue";
-
-// Registrace Chart.js komponent
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-// Definice typů
-interface Order {
-  id: number;
-  concert_id: number;
-  customer_name: string;
-  customer_email: string;
-  ticket_count: number;
-  total_price: number;
-  payment_status: "pending" | "completed" | "cancelled";
-  variable_symbol?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Concert {
-  id: number;
-  title: string;
-}
-
-interface Panel {
-  id: string;
-  title: string;
-  visible: boolean;
-  minimized: boolean;
-}
-
-interface MonthData {
-  label: string;
-  date: Date;
-}
 
 // Vyhledávání a filtry
 const searchQuery = ref("");
@@ -1137,7 +1315,10 @@ const closeOrderDetail = () => {
 };
 
 // Funkce pro aktualizaci stavu objednávky
-const handleStatusUpdate = async (orderId, newStatus) => {
+const handleStatusUpdate = async (
+  orderId: number,
+  newStatus: "pending" | "completed" | "cancelled"
+) => {
   try {
     await updateOrderStatus(orderId, newStatus);
     await getAllOrders();
@@ -1146,6 +1327,74 @@ const handleStatusUpdate = async (orderId, newStatus) => {
   } catch (error) {
     console.error("Chyba při aktualizaci stavu:", error);
     toast.error("Nepodařilo se aktualizovat stav objednávky");
+  }
+};
+
+// Přidáme nové proměnné pro mazání
+const isDeleteModalOpen = ref(false);
+const orderToDelete = ref<Order | null>(null);
+
+// Přidáme nové funkce pro mazání
+const confirmDeleteOrder = (order: Order) => {
+  orderToDelete.value = order;
+  isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  orderToDelete.value = null;
+  isDeleteModalOpen.value = false;
+};
+
+const deleteOrder = async () => {
+  if (!orderToDelete.value) return;
+
+  try {
+    const { error } = await supabase
+      .from("ticket_orders")
+      .delete()
+      .eq("id", orderToDelete.value.id);
+
+    if (error) throw error;
+
+    // Aktualizujeme seznam objednávek
+    await getAllOrders();
+    toast.success("Objednávka byla úspěšně smazána");
+    closeDeleteModal();
+  } catch (err) {
+    console.error("Error deleting order:", err);
+    toast.error("Nepodařilo se smazat objednávku");
+  }
+};
+
+// Bankovní účet
+const bankAccount = ref({
+  account_number: "",
+  bank_code: "",
+  iban: "",
+  swift: "",
+});
+
+// Načtení bankovního účtu
+const loadBankAccount = async () => {
+  try {
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("name", "marikaSingers")
+      .single();
+
+    if (data?.value) {
+      const settings = JSON.parse(data.value);
+      bankAccount.value = {
+        account_number: settings.accountNumber || "",
+        bank_code: settings.bankCode || "",
+        iban: settings.iban || "",
+        swift: settings.swift || "",
+      };
+    }
+  } catch (err) {
+    console.error("Error loading bank account:", err);
+    toast.error("Nepodařilo se načíst bankovní údaje");
   }
 };
 </script>

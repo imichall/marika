@@ -141,6 +141,31 @@ export const useTicketOrders = () => {
     }
   };
 
+  const deleteOrder = async (orderId: number) => {
+    try {
+      loading.value = true;
+      const { data, error: err } = await supabase
+        .from('ticket_orders')
+        .delete()
+        .eq('id', orderId)
+        .select()
+        .single();
+
+      if (err) throw err;
+
+      // Remove from local state
+      orders.value = orders.value.filter(order => order.id !== orderId);
+
+      return data;
+    } catch (err) {
+      console.error('Error deleting order:', err);
+      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // Funkce pro nastavení automatického obnovování
   const startAutoRefresh = (intervalMs: number = 30000) => {
     stopAutoRefresh(); // Nejdřív zastavíme případný běžící interval
@@ -321,5 +346,6 @@ export const useTicketOrders = () => {
     updateOrderStatus,
     startAutoRefresh,
     stopAutoRefresh,
+    deleteOrder
   };
 };
