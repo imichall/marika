@@ -116,6 +116,11 @@
             :src="concert.image"
             :alt="concert.title"
             class="w-full h-48 object-cover"
+            :style="
+              concert.image_position
+                ? { objectPosition: concert.image_position }
+                : {}
+            "
           />
           <div class="flex flex-col gap-4">
             <div class="flex gap-4">

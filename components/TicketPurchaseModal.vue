@@ -284,6 +284,161 @@
       </div>
     </Dialog>
   </TransitionRoot>
+
+  <!-- Potvrzovací modál -->
+  <TransitionRoot appear :show="showConfirmationModal" as="template">
+    <Dialog as="div" @close="handleConfirmationClose" class="relative z-50">
+      <TransitionChild
+        as="template"
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <TransitionChild
+            as="template"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95"
+          >
+            <DialogPanel class="bg-white p-8 rounded-2xl w-full max-w-md">
+              <div class="text-center">
+                <span
+                  class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-6"
+                >
+                  <span class="material-icons-outlined text-3xl text-green-600"
+                    >check_circle</span
+                  >
+                </span>
+                <DialogTitle
+                  as="h3"
+                  class="text-2xl font-bold mb-4 text-gray-900"
+                >
+                  {{
+                    props.concert.is_voluntary
+                      ? "Rezervace vytvořena!"
+                      : "Objednávka vytvořena!"
+                  }}
+                </DialogTitle>
+                <div class="space-y-4">
+                  <p class="text-gray-600">
+                    <template v-if="props.concert.is_voluntary">
+                      Na email
+                      <span class="font-medium">{{ contactInfo.email }}</span>
+                      vám přijde potvrzení rezervace.
+                    </template>
+                    <template v-else>
+                      Po zpracování objednávky vám na email
+                      <span class="font-medium">{{ contactInfo.email }}</span>
+                      zašleme potvrzení s elektronickou vstupenkou.
+                    </template>
+                  </p>
+
+                  <template v-if="!props.concert.is_voluntary">
+                    <div class="bg-gray-50 p-4 rounded-xl space-y-2 text-left">
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Částka k úhradě:</span>
+                        <span class="font-bold">{{ totalPrice }} Kč</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Číslo účtu:</span>
+                        <span class="font-bold">{{
+                          formatAccountNumber(
+                            bankDetails.accountNumber,
+                            bankDetails.bankCode
+                          )
+                        }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Variabilní symbol:</span>
+                        <span class="font-bold">{{
+                          formattedVariableSymbol
+                        }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Rekapitulace koncertu -->
+                    <div class="bg-gray-50 p-4 rounded-xl mt-4 text-left">
+                      <h4 class="font-medium text-gray-900 mb-2">
+                        Rekapitulace koncertu
+                      </h4>
+                      <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">Název:</span>
+                          <span class="font-medium">{{
+                            props.concert.title
+                          }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">Datum:</span>
+                          <span class="font-medium">{{
+                            formatDate(props.concert.date)
+                          }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">Čas:</span>
+                          <span class="font-medium">{{
+                            props.concert.time || "19:00"
+                          }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                          <span class="text-gray-600">Počet vstupenek:</span>
+                          <span class="font-medium">{{ ticketCount }}×</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Přidat do kalendáře -->
+                    <div class="mt-4 flex justify-center gap-3">
+                      <a
+                        :href="generateGoogleCalendarUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        <span class="material-icons-outlined mr-2 text-red-600"
+                          >event</span
+                        >
+                        Google Calendar
+                      </a>
+                      <a
+                        :href="generateICalUrl"
+                        class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        <span class="material-icons-outlined mr-2 text-blue-600"
+                          >event</span
+                        >
+                        iCal (iOS)
+                      </a>
+                    </div>
+                  </template>
+                </div>
+
+                <div class="mt-8">
+                  <button
+                    @click="handleConfirmationClose"
+                    class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+                  >
+                    Rozumím
+                  </button>
+                </div>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup>
@@ -499,6 +654,9 @@ const closeModal = () => {
   emit("close");
 };
 
+// Přidáme ref pro potvrzovací modál
+const showConfirmationModal = ref(false);
+
 const handleSubmit = async () => {
   if (currentStep.value === steps.value.length - 1) {
     try {
@@ -520,20 +678,65 @@ const handleSubmit = async () => {
       };
 
       await createOrder(orderData);
-      toast.success(
-        props.concert.is_voluntary
-          ? "Rezervace byla úspěšně vytvořena"
-          : "Objednávka byla úspěšně vytvořena"
-      );
-      closeModal();
+      emit("close");
+      showConfirmationModal.value = true;
     } catch (err) {
       console.error("Error saving order:", err);
       toast.error(
         props.concert.is_voluntary
-          ? "Nepodařilo se vytvořit rezervaci"
-          : "Nepodařilo se vytvořit objednávku"
+          ? "Nepodařilo se vytvořit rezervaci. Zkuste to prosím znovu."
+          : "Nepodařilo se vytvořit objednávku. Zkuste to prosím znovu."
       );
     }
   }
 };
+
+const handleConfirmationClose = () => {
+  showConfirmationModal.value = false;
+};
+
+// Přidáme computed properties pro kalendáře
+const generateGoogleCalendarUrl = computed(() => {
+  const eventTitle = encodeURIComponent(props.concert.title);
+  const eventDate = new Date(props.concert.date);
+  const eventTime = props.concert.time || "19:00";
+  const [hours, minutes] = eventTime.split(":");
+
+  const startDate = new Date(eventDate);
+  startDate.setHours(parseInt(hours), parseInt(minutes));
+
+  const endDate = new Date(startDate);
+  endDate.setHours(startDate.getHours() + 2); // Předpokládáme délku koncertu 2 hodiny
+
+  const start = startDate.toISOString().replace(/-|:|\.\d\d\d/g, "");
+  const end = endDate.toISOString().replace(/-|:|\.\d\d\d/g, "");
+
+  return `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${start}/${end}`;
+});
+
+const generateICalUrl = computed(() => {
+  const eventTitle = props.concert.title;
+  const eventDate = new Date(props.concert.date);
+  const eventTime = props.concert.time || "19:00";
+  const [hours, minutes] = eventTime.split(":");
+
+  const startDate = new Date(eventDate);
+  startDate.setHours(parseInt(hours), parseInt(minutes));
+
+  const endDate = new Date(startDate);
+  endDate.setHours(startDate.getHours() + 2);
+
+  const icalData = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "BEGIN:VEVENT",
+    `SUMMARY:${eventTitle}`,
+    `DTSTART:${startDate.toISOString().replace(/-|:|\.\d\d\d/g, "")}`,
+    `DTEND:${endDate.toISOString().replace(/-|:|\.\d\d\d/g, "")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\n");
+
+  return `data:text/calendar;charset=utf8,${encodeURIComponent(icalData)}`;
+});
 </script>

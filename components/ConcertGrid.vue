@@ -19,6 +19,11 @@
                 :src="concert.image"
                 :alt="concert.title"
                 class="w-full h-full object-cover"
+                :style="
+                  concert.image_position
+                    ? { objectPosition: concert.image_position }
+                    : {}
+                "
                 loading="lazy"
               />
               <div
