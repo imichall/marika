@@ -407,18 +407,39 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="relative bg-white rounded-lg shadow-xl w-auto max-h-[90vh] mx-4"
+              class="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-4 overflow-hidden"
             >
-              <div class="p-6">
-                <DialogTitle
-                  as="h3"
-                  class="text-2xl font-bold mb-4 text-gray-900"
-                >
-                  Plakát koncertu {{ concert.title }}
-                </DialogTitle>
+              <div class="flex flex-col max-h-[90vh]">
+                <div class="p-6 border-b">
+                  <DialogTitle
+                    as="h3"
+                    class="text-2xl font-bold text-gray-900 flex items-center justify-between"
+                  >
+                    <span>Plakát koncertu {{ concert.title }}</span>
+                    <button
+                      @click="showPosterModal = false"
+                      class="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-6 h-6 text-gray-500"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </DialogTitle>
+                </div>
 
-                <div class="p-4 sm:p-6">
-                  <div class="relative">
+                <div class="p-6 overflow-y-auto">
+                  <div class="relative flex justify-center">
                     <img
                       v-if="
                         concert.poster?.image_url &&
@@ -426,7 +447,7 @@
                       "
                       :src="concert.poster.image_url"
                       :alt="concert.title"
-                      class="w-full h-auto rounded-lg shadow-lg"
+                      class="max-w-full h-auto rounded-lg shadow-lg"
                     />
                     <object
                       v-else-if="
@@ -435,7 +456,7 @@
                       "
                       :data="concert.poster.image_url"
                       type="application/pdf"
-                      class="w-full h-[80vh] rounded-lg shadow-lg"
+                      class="w-full h-[70vh] rounded-lg shadow-lg"
                     >
                       <div class="text-center p-4">
                         <p class="text-gray-600">
@@ -447,33 +468,37 @@
                   </div>
                 </div>
 
-                <div class="flex justify-end gap-4">
-                  <button
-                    @click="showPosterModal = false"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-                  >
-                    Zavřít
-                  </button>
-                  <button
-                    @click="downloadPoster"
-                    class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-900 transition-colors duration-200 inline-flex items-center gap-2"
-                  >
-                    Stáhnout plakát
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke-width="1.5"
-                      stroke="currentColor"
-                      class="w-5 h-5"
+                <div class="p-6 border-t bg-gray-50">
+                  <div class="flex justify-end gap-4">
+                    <a
+                      v-if="concert.poster?.image_url"
+                      :href="concert.poster.image_url"
+                      download
+                      class="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-2 font-medium"
                     >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                        />
+                      </svg>
+                      Stáhnout plakát
+                    </a>
+                    <button
+                      @click="showPosterModal = false"
+                      class="px-6 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                    >
+                      Zavřít
+                    </button>
+                  </div>
                 </div>
               </div>
             </DialogPanel>
