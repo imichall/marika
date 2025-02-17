@@ -109,7 +109,8 @@
                         type="number"
                         min="1"
                         max="10"
-                        class="w-20 text-center p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        class="w-20 text-center p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 touch-manipulation select-none"
+                        style="-webkit-tap-highlight-color: transparent"
                       />
                       <button
                         @click="incrementTickets"

@@ -189,7 +189,8 @@
                 </button>
                 <button
                   @click="previousImage"
-                  class="absolute -left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200"
+                  class="absolute -left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 touch-manipulation select-none"
+                  style="-webkit-tap-highlight-color: transparent"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -209,7 +210,8 @@
 
                 <button
                   @click="nextImage"
-                  class="absolute -right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200"
+                  class="absolute -right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors duration-200 touch-manipulation select-none"
+                  style="-webkit-tap-highlight-color: transparent"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
