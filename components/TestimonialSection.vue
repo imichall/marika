@@ -292,6 +292,7 @@
                 </DialogTitle>
 
                 <form
+                  v-if="!testimonialForm.submitted"
                   @submit.prevent="handleSubmitTestimonial"
                   class="space-y-4"
                 >
@@ -370,6 +371,30 @@
                     </button>
                   </div>
                 </form>
+
+                <!-- Potvrzující zpráva -->
+                <div v-else class="text-center py-8 space-y-4">
+                  <svg
+                    class="w-16 h-16 text-green-500 mx-auto"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <h3 class="text-xl font-medium text-gray-900">
+                    Reference úspěšně odeslána
+                  </h3>
+                  <p class="text-gray-600">
+                    Děkujeme za vaši referenci. Po schválení bude zveřejněna na
+                    našich stránkách.
+                  </p>
+                </div>
               </DialogPanel>
             </TransitionChild>
           </div>
@@ -549,6 +574,7 @@ const testimonialForm = ref({
   email: "",
   name: "",
   text: "",
+  submitted: false,
 });
 
 const testimonialErrors = ref({
@@ -589,6 +615,7 @@ const handleSubmitTestimonial = async () => {
   if (!validateForm()) return;
 
   try {
+    isSubmitting.value = true;
     const { error } = await supabase.from("form_messages").insert([
       {
         email: testimonialForm.value.email,
@@ -602,16 +629,33 @@ const handleSubmitTestimonial = async () => {
     if (error) throw error;
 
     toast.success("Děkujeme za vaši referenci. Po schválení bude zveřejněna.");
+
+    // Resetujeme formulář
     resetForm();
-    showAddModal.value = false;
+
+    // Zobrazíme potvrzující zprávu v modálu
+    testimonialForm.value.submitted = true;
+
+    // Zavřeme modál po 3 sekundách
+    setTimeout(() => {
+      showAddModal.value = false;
+      testimonialForm.value.submitted = false;
+    }, 3000);
   } catch (err) {
     console.error("Error submitting testimonial:", err);
     toast.error("Nepodařilo se odeslat referenci. Zkuste to prosím později.");
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
 const resetForm = () => {
-  testimonialForm.value = { email: "", name: "", text: "" };
+  testimonialForm.value = {
+    email: "",
+    name: "",
+    text: "",
+    submitted: false,
+  };
   testimonialErrors.value = { email: "", name: "", text: "" };
 };
 </script>
