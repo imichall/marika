@@ -1308,7 +1308,14 @@
                   <div class="flex items-center justify-center">Odkaz</div>
                 </th>
                 <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
-                  <div class="flex items-center justify-center">Akce</div>
+                  <div class="flex items-center justify-center">
+                    Přiřazené koncerty
+                  </div>
+                </th>
+                <th
+                  class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Akce
                 </th>
               </tr>
             </thead>
@@ -1346,14 +1353,36 @@
                     Odkaz na vstupenky
                   </a>
                 </td>
+                <td class="px-6 py-4">
+                  <div
+                    v-if="
+                      ticket.assigned_concerts &&
+                      ticket.assigned_concerts.length > 0
+                    "
+                    class="space-y-1"
+                  >
+                    <div
+                      v-for="concert in ticket.assigned_concerts"
+                      :key="concert.id"
+                      class="text-sm"
+                    >
+                      <span class="font-medium">{{ concert.title }}</span>
+                      <span class="text-gray-500 ml-2"
+                        >({{ formatDate(concert.date) }})</span
+                      >
+                    </div>
+                  </div>
+                  <span v-else class="text-gray-500 text-sm"
+                    >Žádné přiřazené koncerty</span
+                  >
+                </td>
                 <td
                   class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
                 >
-                  <div class="flex justify-end space-x-2">
+                  <div class="flex justify-end gap-2">
                     <button
-                      v-if="permissions.edit"
                       @click="editTicket(ticket)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors duration-150"
+                      class="text-blue-600 hover:text-blue-800"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1372,7 +1401,7 @@
                     </button>
                     <button
                       v-if="permissions.delete"
-                      @click="handleDeleteTicket(ticket.id)"
+                      @click="handleDeleteTicket(ticket)"
                       class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
                     >
                       <svg
@@ -1686,7 +1715,11 @@
                               </svg>
                             </button>
                             <button
-                              v-if="permissions.delete"
+                              v-if="
+                                permissions.delete &&
+                                (!ticket.assigned_concerts ||
+                                  ticket.assigned_concerts.length === 0)
+                              "
                               @click="handleDeleteTicket(ticket.id)"
                               class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
                             >
@@ -1797,7 +1830,48 @@
                   Smazat odkaz na vstupenky
                 </DialogTitle>
                 <p class="text-gray-600 mb-6">
-                  Opravdu chcete smazat tento odkaz na vstupenky?
+                  Opravdu chcete smazat tento odkaz na vstupenky? Tuto akci
+                  nelze vrátit zpět.
+                  <template
+                    v-if="
+                      ticketToDelete &&
+                      ticketToDelete.assigned_concerts &&
+                      ticketToDelete.assigned_concerts.length > 0
+                    "
+                  >
+                    <br /><br />
+                    <strong class="text-red-600">Upozornění:</strong> Tuto
+                    vstupenku nelze smazat, protože je přiřazena ke koncertům.
+                    Nejprve je potřeba odebrat vstupenku ze všech koncertů.
+                    <br /><br />
+                    <span class="text-sm">
+                      <div class="mt-3 space-y-4">
+                        <div class="text-gray-600 font-medium">
+                          Přiřazené koncerty:
+                        </div>
+                        <div class="space-y-2">
+                          <div
+                            v-for="concert in ticketToDelete.assigned_concerts"
+                            :key="concert.id"
+                            class="flex items-center gap-2 p-2 bg-red-50 border border-red-100 rounded-lg"
+                          >
+                            <span
+                              class="material-icons-outlined text-red-500 text-sm"
+                              >event</span
+                            >
+                            <div>
+                              <div class="font-medium text-red-700">
+                                {{ concert.title }}
+                              </div>
+                              <div class="text-xs text-red-600">
+                                {{ formatDate(concert.date) }}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </span>
+                  </template>
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
@@ -1808,7 +1882,19 @@
                   </button>
                   <button
                     @click="confirmDeleteTicket"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    :disabled="
+                      ticketToDelete &&
+                      ticketToDelete.assigned_concerts &&
+                      ticketToDelete.assigned_concerts.length > 0
+                    "
+                    :class="[
+                      'px-4 py-2 rounded transition-colors duration-200',
+                      ticketToDelete &&
+                      ticketToDelete.assigned_concerts &&
+                      ticketToDelete.assigned_concerts.length > 0
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-red-600 text-white hover:bg-red-700',
+                    ]"
                   >
                     Smazat
                   </button>
@@ -2631,7 +2717,7 @@ const handleSubmit = async () => {
     }
 
     resetForm();
-    await fetchConcerts();
+    await Promise.all([fetchConcerts(), fetchConcertTickets()]); // Aktualizujeme oba seznamy
     toast.success(
       editingConcert.value ? "Koncert byl upraven" : "Koncert byl přidán"
     );
@@ -2697,7 +2783,14 @@ const confirmDelete = async () => {
 
 const fetchConcertTickets = async () => {
   try {
-    const { data, error } = await supabase.from("concert_tickets").select("*");
+    const { data, error } = await supabase.from("concert_tickets").select(`
+        *,
+        assigned_concerts:concerts(
+          id,
+          title,
+          date
+        )
+      `);
 
     if (error) throw error;
     concertTickets.value = data;
@@ -2782,32 +2875,6 @@ const getGroupName = (groupId) => {
 
 // Přidáme nové refs pro mazací modal
 const showDeleteTicketModal = ref(false);
-const ticketToDelete = ref(null);
-
-// Přejmenujeme na handleDeleteTicket
-const handleDeleteTicket = (id) => {
-  ticketToDelete.value = id;
-  showDeleteTicketModal.value = true;
-};
-
-// Přejmenujeme na confirmDeleteTicket
-const confirmDeleteTicket = async () => {
-  try {
-    const { error } = await supabase
-      .from("concert_tickets")
-      .delete()
-      .eq("id", ticketToDelete.value);
-
-    if (error) throw error;
-
-    await fetchConcertTickets();
-    toast.success("Odkaz byl úspěšně smazán");
-    showDeleteTicketModal.value = false;
-    ticketToDelete.value = null;
-  } catch (err) {
-    toast.error("Chyba při mazání odkazu: " + err.message);
-  }
-};
 
 // Přidáme computed property pro zobrazení/skrytí QR sekce
 const showQRSection = computed(
@@ -3028,6 +3095,43 @@ watch(imagePreview, (newValue) => {
     form.value.image_position = "25% 25%";
   }
 });
+
+// Přidáme nové proměnné do setup
+const isTicketAssigned = ref(false);
+const ticketToDelete = ref(null);
+
+// Upravíme funkci pro otevření delete modalu
+const handleDeleteTicket = (ticket) => {
+  ticketToDelete.value = ticket;
+  showDeleteTicketModal.value = true;
+};
+
+// Upravíme funkci pro potvrzení smazání
+const confirmDeleteTicket = async () => {
+  if (
+    !ticketToDelete.value ||
+    (ticketToDelete.value.assigned_concerts &&
+      ticketToDelete.value.assigned_concerts.length > 0)
+  ) {
+    return;
+  }
+
+  try {
+    const { error } = await supabase
+      .from("concert_tickets")
+      .delete()
+      .eq("id", ticketToDelete.value.id);
+
+    if (error) throw error;
+
+    await fetchConcertTickets();
+    toast.success("Odkaz byl úspěšně smazán");
+    showDeleteTicketModal.value = false;
+    ticketToDelete.value = null;
+  } catch (err) {
+    toast.error("Chyba při mazání odkazu: " + err.message);
+  }
+};
 </script>
 
 <style scoped>
