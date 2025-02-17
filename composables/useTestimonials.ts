@@ -22,7 +22,7 @@ export const useTestimonials = () => {
       const { data, error: err } = await supabase
         .from('testimonials')
         .select('*')
-        .order('id', { ascending: false })
+        .order('created_at', { ascending: false })
 
       if (err) throw err
 

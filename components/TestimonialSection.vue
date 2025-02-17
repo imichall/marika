@@ -232,7 +232,7 @@
               @click="showAddModal = true"
               class="inline-flex items-center gap-2 bg-transparent text-black border-2 border-black px-6 py-3 rounded-xl hover:bg-black hover:text-white transition-all duration-300 group"
             >
-              <span>Napište nám reference</span>
+              <span>Napište nám</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="h-5 w-5 transform transition-transform duration-200 group-hover:translate-x-1"
@@ -394,11 +394,16 @@ import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 import { useToast } from "~/composables/useToast";
 
 const supabase = useSupabaseClient();
+const {
+  testimonials: testimonialsFromHook,
+  loading: loadingTestimonials,
+  error: errorTestimonials,
+  fetchTestimonials,
+} = useTestimonials();
 const testimonials = ref([]);
 const currentSlide = ref(0);
 const visibleSlides = ref(3);
 const isTransitioning = ref(false);
-const autoplayInterval = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
@@ -408,15 +413,10 @@ const fetchAllTestimonials = async () => {
     loading.value = true;
     error.value = null;
 
-    // Načteme testimonials
-    const { data: testimonialsData, error: testimonialsError } = await supabase
-      .from("testimonials")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // Načteme testimonials pomocí composable
+    await fetchTestimonials();
 
-    if (testimonialsError) throw testimonialsError;
-
-    // Načteme schválené zprávy z formuláře
+    // Načteme schválené zprávy z formuláře pomocí anonymního klienta
     const { data: formMessages, error: formError } = await supabase
       .from("form_messages")
       .select("*")
@@ -428,11 +428,11 @@ const fetchAllTestimonials = async () => {
 
     // Spojíme data dohromady
     testimonials.value = [
-      ...testimonialsData,
-      ...formMessages.map((msg) => ({
-        id: msg.id,
+      ...testimonialsFromHook.value,
+      ...(formMessages || []).map((msg) => ({
+        id: `form_${msg.id}`,
         text: msg.message,
-        author: msg.name || msg.email, // Použijeme jméno, pokud existuje, jinak email
+        author: msg.name || msg.email,
         source: "",
         created_at: msg.created_at,
       })),
@@ -516,56 +516,24 @@ const goToSlide = (index) => {
   currentSlide.value = index;
 };
 
-const startAutoplay = () => {
-  // Spustíme autoplay pouze na zařízeních s šířkou větší než 768px
-  if (window.innerWidth >= 768) {
-    autoplayInterval.value = setInterval(() => {
-      nextSlide();
-    }, 5000);
-  }
-};
-
-const stopAutoplay = () => {
-  if (autoplayInterval.value) {
-    clearInterval(autoplayInterval.value);
-    autoplayInterval.value = null;
-  }
-};
-
-// Přidáme watch na změnu velikosti okna pro kontrolu autoplay
-watch(
-  () => visibleSlides.value,
-  (newValue) => {
-    // Pokud jsme na mobilu (1 viditelný slide), zastavíme autoplay
-    if (newValue === 1) {
-      stopAutoplay();
-    } else {
-      // Na větších obrazovkách spustíme autoplay
-      startAutoplay();
-    }
-  }
-);
-
 // Event listeners a lifecycle hooks
 onMounted(() => {
   updateVisibleSlides();
   window.addEventListener("resize", updateVisibleSlides);
   fetchAllTestimonials();
-  startAutoplay();
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", updateVisibleSlides);
-  stopAutoplay();
 });
 
 // Zastavíme autoplay při hoveru nad sliderem
 const handleMouseEnter = () => {
-  stopAutoplay();
+  // Autoplay is disabled in the new version
 };
 
 const handleMouseLeave = () => {
-  startAutoplay();
+  // Autoplay is disabled in the new version
 };
 
 // Sledujeme změny v testimonials a resetujeme slider
