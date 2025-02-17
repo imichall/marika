@@ -1,10 +1,14 @@
 <template>
   <div class="fixed right-4 z-40" style="top: 80px">
-    <TransitionGroup name="toast" tag="div" class="space-y-4">
+    <TransitionGroup
+      name="toast"
+      tag="div"
+      class="space-y-4 flex flex-col items-end"
+    >
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="transform transition-all duration-300 ease-in-out bg-white shadow-lg rounded-lg pointer-events-auto ring-1 inline-block whitespace-nowrap"
+        class="transform transition-all duration-300 ease-in-out bg-white shadow-lg rounded-lg pointer-events-auto ring-1 min-w-[320px] max-w-[420px]"
         :class="{
           'ring-green-600/20 bg-green-50': toast.type === 'success',
           'ring-red-600/20 bg-red-50': toast.type === 'error',
