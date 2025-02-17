@@ -1,6 +1,7 @@
 <template>
   <div
     class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white overflow-hidden relative"
+    :class="{ 'fade-out': isLoggingOut }"
   >
     <!-- Animated background elements -->
     <div class="absolute inset-0 overflow-hidden">
@@ -128,6 +129,7 @@ const email = ref("");
 const password = ref("");
 const error = ref("");
 const loading = ref(false);
+const isLoggingOut = ref(false);
 const router = useRouter();
 
 const handleLogin = async () => {
@@ -137,6 +139,9 @@ const handleLogin = async () => {
     const success = await login(email.value, password.value);
     if (success) {
       toast.success("Přihlášení proběhlo úspěšně");
+      isLoggingOut.value = true;
+      // Wait for animation to complete before redirecting
+      await new Promise((resolve) => setTimeout(resolve, 500));
       router.push("/admin");
     } else {
       error.value = "Nesprávné přihlašovací údaje";
@@ -183,6 +188,19 @@ const handleLogin = async () => {
   50% {
     transform: translateY(0);
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 </style>

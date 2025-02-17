@@ -590,7 +590,6 @@
 <script setup>
 definePageMeta({
   layout: "admin",
-  middleware: ["auth", "admin"],
 });
 
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
