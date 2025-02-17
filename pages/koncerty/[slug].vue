@@ -77,6 +77,9 @@
                 :src="concert.image"
                 :alt="concert.title"
                 class="w-full h-full object-cover rounded-lg shadow-lg"
+                :style="{
+                  objectPosition: concert.image_position || 'center center',
+                }"
                 loading="lazy"
               />
               <div

@@ -532,11 +532,39 @@
                     </div>
                   </div>
                   <div v-else class="relative">
-                    <img
-                      :src="imagePreview"
-                      alt="Náhled obrázku"
-                      class="max-h-48 mx-auto rounded-lg shadow-sm"
-                    />
+                    <div class="mb-4">
+                      <label
+                        class="block text-gray-700 text-sm font-medium mb-2"
+                      >
+                        Náhled a pozice obrázku
+                      </label>
+                      <div
+                        class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border-2 border-gray-200"
+                      >
+                        <div
+                          class="absolute inset-0 cursor-move"
+                          @mousedown="startImageDrag"
+                          @mousemove="handleImageDrag"
+                          @mouseup="stopImageDrag"
+                          @mouseleave="stopImageDrag"
+                        >
+                          <img
+                            ref="previewImage"
+                            :src="imagePreview"
+                            alt="Náhled obrázku"
+                            class="absolute w-[150%] max-w-none"
+                            :style="{
+                              top: `${imagePosition.y}%`,
+                              left: `${imagePosition.x}%`,
+                            }"
+                          />
+                        </div>
+                      </div>
+                      <p class="mt-2 text-sm text-gray-500">
+                        Klikněte a táhněte pro nastavení pozice obrázku v
+                        náhledu
+                      </p>
+                    </div>
                     <button
                       @click.prevent="removeImage"
                       class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors duration-200 shadow-lg transform hover:scale-110"
@@ -2211,6 +2239,7 @@ const form = ref({
   price: 0,
   is_voluntary: false,
   image: "",
+  image_position: "25% 25%", // Výchozí pozice
   variable_symbol: "",
   qr_session: "",
   account_number: "123456789",
@@ -2517,6 +2546,7 @@ const resetForm = () => {
     price: 0,
     is_voluntary: false,
     image: "",
+    image_position: "25% 25%", // Výchozí pozice
     variable_symbol: "",
     qr_session: "",
     account_number: "123456789",
@@ -2623,6 +2653,7 @@ const editConcert = (concert) => {
     price: concert.price,
     is_voluntary: concert.is_voluntary || false,
     image: concert.image,
+    image_position: concert.image_position || "25% 25%", // Výchozí pozice
     ticket_id: concert.ticket_id?.toString() || "",
     variable_symbol: concert.variable_symbol || "",
     account_number: concert.account_number || "123456789",
@@ -2632,10 +2663,18 @@ const editConcert = (concert) => {
     posterFile: null,
     is_archived: concert.is_archived,
   };
+
+  // Nastavení počáteční pozice náhledu
+  if (concert.image_position) {
+    const [x, y] = concert.image_position.split(" ").map((v) => -parseInt(v));
+    imagePosition.value = { x, y };
+  } else {
+    imagePosition.value = { x: -25, y: -25 }; // Výchozí pozice
+  }
+
   imagePreview.value = concert.image ? getFullImageUrl(concert.image) : null;
   posterPreview.value = concert.poster ? concert.poster.image_url : null;
   isFormVisible.value = true;
-  // Scrollujeme na začátek stránky k formuláři
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
@@ -2913,6 +2952,82 @@ const showArchivePreview = (concert) => {
   selectedConcert.value = concert;
   showArchiveModal.value = true;
 };
+
+const startPosition = ref({ x: 0, y: 0 });
+const imagePosition = ref({ x: -25, y: -25 }); // Výchozí pozice obrázku
+const previewImage = ref(null);
+
+const startDragging = (e) => {
+  isDragging.value = true;
+  startPosition.value = {
+    x: e.clientX - imagePosition.value.x,
+    y: e.clientY - imagePosition.value.y,
+  };
+};
+
+const handleDrag = (e) => {
+  if (!isDragging.value) return;
+
+  let newX = e.clientX - startPosition.value.x;
+  let newY = e.clientY - startPosition.value.y;
+
+  // Omezení pohybu
+  newX = Math.min(Math.max(newX, -50), 0);
+  newY = Math.min(Math.max(newY, -50), 0);
+
+  imagePosition.value = { x: newX, y: newY };
+  form.value.image_position = `${-newX}% ${-newY}%`; // Uložíme pozici jako CSS hodnotu
+};
+
+const stopDragging = () => {
+  isDragging.value = false;
+};
+
+// Přidáme hook pro resetování pozice obrázku při nahrání nového
+watch(imagePreview, (newValue) => {
+  if (newValue) {
+    imagePosition.value = { x: -25, y: -25 }; // Reset na výchozí pozici
+    form.value.image_position = "25% 25%";
+  }
+});
+
+// Proměnné pro ovládání pozice obrázku
+const isImageDragging = ref(false);
+
+// Funkce pro ovládání pozice obrázku
+const startImageDrag = (e) => {
+  isImageDragging.value = true;
+  startPosition.value = {
+    x: e.clientX - imagePosition.value.x,
+    y: e.clientY - imagePosition.value.y,
+  };
+};
+
+const handleImageDrag = (e) => {
+  if (!isImageDragging.value) return;
+
+  let newX = e.clientX - startPosition.value.x;
+  let newY = e.clientY - startPosition.value.y;
+
+  // Omezení pohybu
+  newX = Math.min(Math.max(newX, -50), 0);
+  newY = Math.min(Math.max(newY, -50), 0);
+
+  imagePosition.value = { x: newX, y: newY };
+  form.value.image_position = `${-newX}% ${-newY}%`; // Uložíme pozici jako CSS hodnotu
+};
+
+const stopImageDrag = () => {
+  isImageDragging.value = false;
+};
+
+// Resetování pozice obrázku při nahrání nového
+watch(imagePreview, (newValue) => {
+  if (newValue) {
+    imagePosition.value = { x: -25, y: -25 }; // Reset na výchozí pozici
+    form.value.image_position = "25% 25%";
+  }
+});
 </script>
 
 <style scoped>
