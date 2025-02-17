@@ -68,14 +68,14 @@
         </div>
       </NuxtLink>
 
-      <!-- Skupiny -->
+      <!-- Tělesa -->
       <NuxtLink
         v-if="permissions.choir_groups.view"
         to="/admin/skupiny"
         class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
       >
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Skupiny</h2>
+          <h2 class="text-xl font-semibold">Tělesa</h2>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-6 w-6 text-blue-600"
@@ -91,12 +91,12 @@
             />
           </svg>
         </div>
-        <p class="text-gray-600">Správa pěveckých skupin</p>
+        <p class="text-gray-600">Správa těles</p>
         <div class="mt-4 flex items-center">
           <span
             class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
           >
-            3 skupiny
+            3 tělesa
           </span>
         </div>
       </NuxtLink>
@@ -278,39 +278,6 @@
         </div>
       </NuxtLink>
 
-      <!-- Kontakty -->
-      <NuxtLink
-        v-if="permissions.contacts.view"
-        to="/admin/kontakty"
-        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
-      >
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Kontakty</h2>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-6 w-6 text-rose-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-            />
-          </svg>
-        </div>
-        <p class="text-gray-600">Správa kontaktních údajů</p>
-        <div class="mt-4 flex items-center">
-          <span
-            class="px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-sm"
-          >
-            Upravit
-          </span>
-        </div>
-      </NuxtLink>
-
       <!-- Zprávy z formuláře -->
       <NuxtLink
         v-if="permissions.form_messages.view"
@@ -373,6 +340,39 @@
               />
             </svg>
             {{ approvedMessages }} schváleno
+          </span>
+        </div>
+      </NuxtLink>
+
+      <!-- Kontakty -->
+      <NuxtLink
+        v-if="permissions.contacts.view"
+        to="/admin/kontakty"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold">Kontakty</h2>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-6 w-6 text-rose-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+        </div>
+        <p class="text-gray-600">Správa kontaktních údajů</p>
+        <div class="mt-4 flex items-center">
+          <span
+            class="px-3 py-1 bg-rose-100 text-rose-800 rounded-full text-sm"
+          >
+            Upravit
           </span>
         </div>
       </NuxtLink>

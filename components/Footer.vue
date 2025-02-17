@@ -22,33 +22,35 @@
               'bg-white': contact.group_name === 'VOICES',
               'bg-gray-50': contact.group_name === 'FIVE',
             }"
-            class="p-6"
+            class="p-6 h-full flex flex-col"
           >
             <h3 class="font-bold mb-2">{{ contact.group_name }}</h3>
-            <div v-if="contact.address" class="whitespace-pre-line">
+            <div v-if="contact.address" class="whitespace-pre-line flex-grow">
               {{ contact.address }}
             </div>
-            <div v-if="contact.ico || contact.dic" class="mt-4">
-              <template v-if="contact.ico && contact.dic">
-                IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
-              </template>
-              <template v-else-if="contact.ico">
-                IČO: {{ contact.ico }}
-              </template>
-            </div>
-            <div v-if="contact.email" class="mt-4">
-              <a
-                :href="`mailto:${contact.email}`"
-                class="text-gray-600 hover:text-gray-900"
-              >
-                {{ contact.email }}
-              </a>
-            </div>
-            <div v-if="getBankAccount(contact.group_name)" class="mt-4">
-              <span class="text-gray-600">
-                Bankovní účet:
-                {{ formatBankAccount(getBankAccount(contact.group_name)) }}
-              </span>
+            <div class="mt-auto space-y-4">
+              <div v-if="contact.ico || contact.dic">
+                <template v-if="contact.ico && contact.dic">
+                  IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
+                </template>
+                <template v-else-if="contact.ico">
+                  IČO: {{ contact.ico }}
+                </template>
+              </div>
+              <div v-if="contact.email">
+                <a
+                  :href="`mailto:${contact.email}`"
+                  class="text-gray-600 hover:text-gray-900"
+                >
+                  {{ contact.email }}
+                </a>
+              </div>
+              <div v-if="getBankAccount(contact.group_name)">
+                <span class="text-gray-600">
+                  Bankovní účet:
+                  {{ formatBankAccount(getBankAccount(contact.group_name)) }}
+                </span>
+              </div>
             </div>
           </div>
         </FadeUpOnScroll>
