@@ -11,15 +11,65 @@
     <div class="container mx-auto px-4">
       <h1 class="text-3xl font-bold mb-8 text-center">Všechny koncerty</h1>
 
-      <!-- Moderní filtr pro tělesa -->
-      <div class="flex justify-center mb-12">
+      <!-- Mobilní filtr (zobrazí se pouze na mobilech) -->
+      <div class="md:hidden mb-12">
+        <nav class="flex flex-col gap-2">
+          <button
+            @click="selectedGroup = ''"
+            :class="[
+              'w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left',
+              selectedGroup === ''
+                ? 'bg-red-50 text-red-800 font-semibold'
+                : 'bg-white text-gray-500 hover:text-gray-900',
+            ]"
+          >
+            Všechna tělesa
+          </button>
+          <button
+            @click="selectedGroup = 'Marika Singers'"
+            :class="[
+              'w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left',
+              selectedGroup === 'Marika Singers'
+                ? 'bg-red-50 text-red-800 font-semibold'
+                : 'bg-white text-gray-500 hover:text-gray-900',
+            ]"
+          >
+            Marika Singers
+          </button>
+          <button
+            @click="selectedGroup = 'Voices'"
+            :class="[
+              'w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left',
+              selectedGroup === 'Voices'
+                ? 'bg-red-50 text-red-800 font-semibold'
+                : 'bg-white text-gray-500 hover:text-gray-900',
+            ]"
+          >
+            Voices
+          </button>
+          <button
+            @click="selectedGroup = 'Five'"
+            :class="[
+              'w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 text-left',
+              selectedGroup === 'Five'
+                ? 'bg-red-50 text-red-800 font-semibold'
+                : 'bg-white text-gray-500 hover:text-gray-900',
+            ]"
+          >
+            Five
+          </button>
+        </nav>
+      </div>
+
+      <!-- Desktop filtr (zobrazí se pouze na desktopu) -->
+      <div class="hidden md:block mb-12">
         <nav
-          class="flex gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100"
+          class="flex justify-center gap-1 p-1.5 bg-white rounded-2xl shadow-sm border border-gray-100 mx-auto max-w-fit"
         >
           <button
             @click="selectedGroup = ''"
             :class="[
-              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              'relative whitespace-nowrap px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
               selectedGroup === ''
                 ? 'text-red-800 bg-red-50'
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
@@ -30,7 +80,7 @@
           <button
             @click="selectedGroup = 'Marika Singers'"
             :class="[
-              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              'relative whitespace-nowrap px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
               selectedGroup === 'Marika Singers'
                 ? 'text-red-800 bg-red-50'
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
@@ -41,7 +91,7 @@
           <button
             @click="selectedGroup = 'Voices'"
             :class="[
-              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              'relative whitespace-nowrap px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
               selectedGroup === 'Voices'
                 ? 'text-red-800 bg-red-50'
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
@@ -52,7 +102,7 @@
           <button
             @click="selectedGroup = 'Five'"
             :class="[
-              'relative px-8 py-3 rounded-xl text-sm font-medium transition-all duration-300',
+              'relative whitespace-nowrap px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
               selectedGroup === 'Five'
                 ? 'text-red-800 bg-red-50'
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50',
