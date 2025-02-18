@@ -396,11 +396,10 @@
                     />
                   </svg>
                   <h3 class="text-xl font-medium text-gray-900">
-                    Reference úspěšně odeslána
+                    Vaše zpráva byla úspěšně odeslána.
                   </h3>
                   <p class="text-gray-600">
-                    Děkujeme za vaši referenci. Po schválení bude zveřejněna na
-                    našich stránkách.
+                    Děkujeme
                   </p>
                 </div>
               </DialogPanel>

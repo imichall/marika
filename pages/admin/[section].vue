@@ -37,7 +37,7 @@ const pageTitle = computed(() => {
     case "reference":
       return "Správa referencí";
     case "skupiny":
-      return "Správa skupin";
+      return "Správa těles";
     default:
       return "Admin";
   }

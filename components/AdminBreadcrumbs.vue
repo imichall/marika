@@ -59,7 +59,7 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
 
     const nameMap: Record<string, string> = {
       koncerty: "Koncerty",
-      skupiny: "Skupiny",
+      skupiny: "Tělesa",
       galerie: "Galerie",
       reference: "Reference",
       novinky: "Novinky",
