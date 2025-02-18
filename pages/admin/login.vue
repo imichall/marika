@@ -63,6 +63,9 @@
               id="email"
               v-model="email"
               type="email"
+              name="email"
+              autocomplete="username email"
+              inputmode="email"
               required
               class="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
               placeholder="Email"
@@ -74,6 +77,8 @@
               id="password"
               v-model="password"
               type="password"
+              name="password"
+              autocomplete="current-password"
               required
               class="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
               placeholder="Heslo"
