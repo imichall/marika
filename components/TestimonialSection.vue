@@ -303,6 +303,9 @@
                     <input
                       v-model="testimonialForm.name"
                       type="text"
+                      name="name"
+                      autocomplete="name given-name"
+                      inputmode="text"
                       required
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       :class="{ 'border-red-500': testimonialErrors.name }"
@@ -316,12 +319,17 @@
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label
+                      class="block text-gray-700 text-sm font-bold mb-2 mt-4"
+                    >
                       Váš email
                     </label>
                     <input
                       v-model="testimonialForm.email"
                       type="email"
+                      name="email"
+                      autocomplete="email username"
+                      inputmode="email"
                       required
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       :class="{ 'border-red-500': testimonialErrors.email }"

@@ -153,6 +153,9 @@
                     <input
                       v-model="contactInfo.name"
                       type="text"
+                      name="name"
+                      autocomplete="name"
+                      inputmode="text"
                       required
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       :class="{ 'border-red-500': errors.name }"
@@ -169,6 +172,9 @@
                     <input
                       v-model="contactInfo.email"
                       type="email"
+                      name="email"
+                      autocomplete="email"
+                      inputmode="email"
                       required
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       :class="{ 'border-red-500': errors.email }"
