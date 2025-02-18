@@ -8,7 +8,7 @@
         <h1
           class="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
         >
-          Správa skupin
+          Správa těles
         </h1>
         <button
           v-if="permissions.create"
@@ -17,7 +17,7 @@
           :disabled="loading"
         >
           <span class="material-icons-outlined">add_circle</span>
-          Přidat skupinu
+          Přidat těleso
         </button>
       </div>
 
@@ -108,9 +108,9 @@
           <span class="material-icons-outlined text-6xl text-gray-400 mb-4"
             >group_off</span
           >
-          <h3 class="text-xl font-medium text-gray-900 mb-2">Žádné skupiny</h3>
+          <h3 class="text-xl font-medium text-gray-900 mb-2">Žádná tělesa</h3>
           <p class="text-gray-500 text-center mb-6">
-            Zatím nebyly přidány žádné skupiny. Začněte přidáním první skupiny.
+            Zatím nebyly přidány žádná tělesa. Začněte přidáním prvního tělesa.
           </p>
           <button
             v-if="permissions.create"
@@ -118,7 +118,7 @@
             class="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
             <span class="material-icons-outlined">add_circle</span>
-            Přidat první skupinu
+            Přidat první těleso
           </button>
         </div>
       </div>
@@ -143,13 +143,13 @@
           <div class="flex min-h-full items-center justify-center p-4">
             <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-2xl">
               <DialogTitle as="h2" class="text-xl font-bold mb-4">
-                {{ editingGroup ? "Upravit" : "Přidat" }} skupinu
+                {{ editingGroup ? "Upravit" : "Přidat" }} těleso
               </DialogTitle>
 
               <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">
-                    Název skupiny
+                    Název tělesa
                   </label>
                   <input
                     v-model="form.name"
@@ -174,7 +174,7 @@
                 <!-- Nahrávání obrázku -->
                 <div>
                   <label class="block text-gray-700 text-sm font-bold mb-2">
-                    Obrázek skupiny
+                    Obrázek tělesa
                   </label>
                   <div
                     class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
@@ -370,10 +370,10 @@
             >
               <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
                 <DialogTitle as="h2" class="text-xl font-bold mb-4">
-                  Smazat skupinu
+                  Smazat těleso
                 </DialogTitle>
                 <p class="text-gray-600 mb-6">
-                  Opravdu chcete smazat tuto skupinu?
+                  Opravdu chcete smazat toto těleso?
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
@@ -582,7 +582,7 @@ const handleSubmit = async () => {
         editingGroup.value.id,
         selectedSocialMedia.value
       );
-      toast.success("Skupina byla úspěšně upravena");
+      toast.success("Těleso bylo úspěšně upraveno");
     } else {
       const newGroup = await addGroup(groupData);
       if (newGroup?.id && selectedSocialMedia.value.length > 0) {
@@ -591,13 +591,13 @@ const handleSubmit = async () => {
           selectedSocialMedia.value
         );
       }
-      toast.success("Skupina byla úspěšně přidána");
+      toast.success("Těleso bylo úspěšně přidáno");
     }
 
     handleClose();
   } catch (error) {
     console.error("Error saving group:", error);
-    toast.error("Chyba při ukládání skupiny");
+    toast.error("Chyba při ukládání tělesa");
   }
 };
 
@@ -630,7 +630,7 @@ const editGroup = async (group) => {
     showAddModal.value = true;
   } catch (error) {
     console.error("Error loading group data:", error);
-    toast.error("Chyba při načítání dat skupiny");
+    toast.error("Chyba při načítání dat těles");
   }
 };
 
@@ -659,9 +659,9 @@ const confirmDelete = async () => {
     await deleteGroup(groupToDelete.value);
     showDeleteModal.value = false;
     groupToDelete.value = null;
-    toast.success("Skupina byla úspěšně smazána");
+    toast.success("Těleso bylo úspěšně smazáno");
   } catch (err) {
-    toast.error("Chyba při mazání skupiny: " + err.message);
+    toast.error("Chyba při mazání tělesa: " + err.message);
   }
 };
 
