@@ -30,7 +30,10 @@
               </DialogTitle>
 
               <!-- Progress Steps -->
-              <div v-if="!concert.is_voluntary" class="mb-8">
+              <div
+                v-if="!concert.is_voluntary && !concert.has_presale"
+                class="mb-8"
+              >
                 <div class="flex justify-between mb-2">
                   <span
                     v-for="(step, index) in steps"
@@ -79,7 +82,9 @@
                       </template>
                       <template v-else>
                         {{ concert.price }} Kč
-                        <template v-if="ticketCount > 1">
+                        <template
+                          v-if="ticketCount > 1 && !concert.has_presale"
+                        >
                           <span class="text-gray-500">
                             ({{ ticketCount }}× vstupenka, celkem
                             {{ totalPrice }} Kč)
@@ -90,7 +95,11 @@
                   </div>
 
                   <div
-                    v-if="!concert.is_voluntary && currentStep === 0"
+                    v-if="
+                      !concert.is_voluntary &&
+                      !concert.has_presale &&
+                      currentStep === 0
+                    "
                     class="border-t border-b border-gray-200 py-4 my-4"
                   >
                     <label class="block text-gray-700 text-sm font-bold mb-2">
@@ -133,7 +142,20 @@
                   </div>
 
                   <div
-                    v-if="!concert.is_voluntary && currentStep === 0"
+                    v-if="concert.has_presale"
+                    class="bg-yellow-50 p-4 rounded-lg mt-4"
+                  >
+                    <p class="text-yellow-800">
+                      {{ concert.presale_text }}
+                    </p>
+                  </div>
+
+                  <div
+                    v-if="
+                      !concert.is_voluntary &&
+                      !concert.has_presale &&
+                      currentStep === 0
+                    "
                     class="flex justify-between items-center text-lg font-bold"
                   >
                     <span>Celková cena:</span>
@@ -141,9 +163,13 @@
                   </div>
                 </div>
 
-                <!-- Step 2: Kontaktní údaje - pouze pro placené koncerty -->
+                <!-- Step 2: Kontaktní údaje - pouze pro placené koncerty bez předprodeje -->
                 <div
-                  v-if="!concert.is_voluntary && currentStep === 1"
+                  v-if="
+                    !concert.is_voluntary &&
+                    !concert.has_presale &&
+                    currentStep === 1
+                  "
                   class="space-y-4"
                 >
                   <div>
@@ -185,9 +211,13 @@
                   </div>
                 </div>
 
-                <!-- Step 3: Platební údaje - pouze pro placené koncerty -->
+                <!-- Step 3: Platební údaje - pouze pro placené koncerty bez předprodeje -->
                 <div
-                  v-if="!concert.is_voluntary && currentStep === 2"
+                  v-if="
+                    !concert.is_voluntary &&
+                    !concert.has_presale &&
+                    currentStep === 2
+                  "
                   class="space-y-6"
                 >
                   <div class="text-center">
@@ -247,7 +277,7 @@
                 <!-- Navigation Buttons -->
                 <div class="flex justify-end space-x-4 mt-6">
                   <button
-                    v-if="concert.is_voluntary"
+                    v-if="concert.is_voluntary || concert.has_presale"
                     @click="handleClose"
                     class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
                   >

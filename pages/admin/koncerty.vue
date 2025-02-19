@@ -244,6 +244,22 @@
                   />
                   <span class="text-gray-700">Dobrovolné vstupné</span>
                 </div>
+                <div class="flex items-center space-x-2 mt-2">
+                  <input
+                    type="checkbox"
+                    v-model="form.has_presale"
+                    class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <span class="text-gray-700">Předprodej</span>
+                </div>
+                <div v-if="form.has_presale" class="mt-2">
+                  <input
+                    v-model="form.presale_text"
+                    type="text"
+                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                    placeholder="Předprodej bude zahájen..."
+                  />
+                </div>
               </div>
 
               <div>
@@ -2421,6 +2437,8 @@ const form = ref({
   group_name: "",
   price: 0,
   is_voluntary: false,
+  has_presale: false,
+  presale_text: "",
   image: "",
   image_position: "25% 25%", // Výchozí pozice
   variable_symbol: "",
@@ -2728,6 +2746,8 @@ const resetForm = () => {
     group_name: "",
     price: 0,
     is_voluntary: false,
+    has_presale: false,
+    presale_text: "",
     image: "",
     image_position: "25% 25%", // Výchozí pozice
     variable_symbol: "",
