@@ -210,7 +210,6 @@ export async function startEmailServer() {
             if (err) {
                 console.error('Subscription error:', err);
             } else {
-                console.log('Subscription status:', status);
                 if (status === 'SUBSCRIBED') {
                     // Po úspěšném připojení znovu zkontrolujeme nevyřízené emaily
                     const { data: newPendingEmails } = await supabase
