@@ -224,9 +224,6 @@ export const useTicketOrders = () => {
           handleOrderDelete(payload);
         }
       )
-      .subscribe((status) => {
-        console.log('Subscription status:', status); // Debug log
-      });
   };
 
   // Funkce pro přidání nové objednávky do lokálního stavu
@@ -319,7 +316,6 @@ export const useTicketOrders = () => {
   // Cleanup subscriptions
   const cleanupSubscriptions = () => {
     if (subscription) {
-      console.log('Cleaning up subscription'); // Debug log
       subscription.unsubscribe();
       subscription = null;
     }
@@ -327,12 +323,10 @@ export const useTicketOrders = () => {
   };
 
   onMounted(() => {
-    console.log('Setting up subscriptions'); // Debug log
     setupSubscriptions();
   });
 
   onUnmounted(() => {
-    console.log('Cleaning up subscriptions'); // Debug log
     cleanupSubscriptions();
   });
 
