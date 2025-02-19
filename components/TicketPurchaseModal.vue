@@ -80,11 +80,9 @@
                       <template v-if="concert.is_voluntary">
                         Dobrovolné
                       </template>
-                      <template v-else>
+                      <template v-else-if="!concert.has_presale">
                         {{ concert.price }} Kč
-                        <template
-                          v-if="ticketCount > 1 && !concert.has_presale"
-                        >
+                        <template v-if="ticketCount > 1">
                           <span class="text-gray-500">
                             ({{ ticketCount }}× vstupenka, celkem
                             {{ totalPrice }} Kč)

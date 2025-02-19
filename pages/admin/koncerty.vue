@@ -2855,6 +2855,8 @@ const editConcert = (concert) => {
     group_name: concert.group_name,
     price: concert.price,
     is_voluntary: concert.is_voluntary || false,
+    has_presale: concert.has_presale || false,
+    presale_text: concert.presale_text || "",
     image: concert.image,
     image_position: concert.image_position || "25% 25%", // Výchozí pozice
     ticket_id: concert.ticket_id?.toString() || "",
