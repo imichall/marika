@@ -71,147 +71,160 @@
         <div class="mx-auto">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <!-- Image Column -->
-            <div class="relative aspect-[4/3] overflow-hidden">
-              <img
-                v-if="concert.image"
-                :src="concert.image"
-                :alt="concert.title"
-                class="w-full h-full object-cover rounded-lg shadow-lg"
-                :style="{
-                  objectPosition: concert.image_position || 'center center',
-                }"
-                loading="lazy"
-              />
-              <div
-                v-else
-                class="w-full h-full bg-gray-100 flex items-center justify-center rounded-lg"
-              >
-                <span class="text-gray-400">Bez obrázku</span>
+            <div class="flex items-start" ref="imageColumn">
+              <div class="w-full bg-white p-4 rounded-lg shadow-lg">
+                <div class="relative w-full">
+                  <img
+                    v-if="concert.image"
+                    :src="concert.image"
+                    :alt="concert.title"
+                    class="w-full h-auto rounded-lg"
+                    loading="lazy"
+                  />
+                  <div
+                    v-else
+                    class="w-full aspect-[4/3] bg-gray-100 flex items-center justify-center rounded-lg"
+                  >
+                    <span class="text-gray-400">Bez obrázku</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Content Column -->
-            <div class="flex flex-col bg-white rounded-lg shadow-sm p-8 h-full">
-              <div class="flex-grow space-y-6">
-                <header>
-                  <div class="flex items-center gap-2 mb-2">
-                    <div class="relative inline-flex items-center">
+            <div class="relative">
+              <div
+                class="bg-white rounded-lg shadow-sm p-8"
+                :class="{ 'md:sticky': true }"
+                :style="stickyStyle"
+                ref="contentBlock"
+              >
+                <div class="space-y-6">
+                  <header>
+                    <div class="flex items-center gap-2 mb-2">
+                      <div class="relative inline-flex items-center">
+                        <svg
+                          class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                          />
+                        </svg>
+                        <span
+                          class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
+                          :class="{
+                            'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
+                              concert.group_name === 'Marika Singers',
+                            'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
+                              concert.group_name === 'Voices',
+                            'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
+                              concert.group_name === 'Five',
+                          }"
+                        >
+                          {{ concert.group_name }}
+                        </span>
+                      </div>
+                    </div>
+                    <h1 class="text-4xl font-bold text-custom-gray mb-4">
+                      {{ concert.title }}
+                    </h1>
+                    <p class="text-gray-600 text-base mb-6 leading-relaxed">
+                      {{ concert.description }}
+                    </p>
+                  </header>
+
+                  <div class="bg-gray-50 rounded-lg p-6 space-y-4">
+                    <div class="flex items-center gap-2">
                       <svg
-                        class="absolute -top-2 -right-2 w-4 h-4 text-red-800 opacity-50 animate-bounce"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-red-600"
+                        fill="none"
                         viewBox="0 0 24 24"
-                        fill="currentColor"
+                        stroke="currentColor"
                       >
                         <path
-                          d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      <span
-                        class="text-sm font-medium px-3 py-0.5 rounded-full whitespace-nowrap transform transition-transform hover:scale-105 shadow-sm"
-                        :class="{
-                          'bg-gradient-to-r from-red-100 to-red-200 text-red-900 ring-1 ring-red-200':
-                            concert.group_name === 'Marika Singers',
-                          'bg-gradient-to-r from-rose-100 to-rose-200 text-rose-900 ring-1 ring-rose-200':
-                            concert.group_name === 'Voices',
-                          'bg-gradient-to-r from-pink-100 to-pink-200 text-pink-900 ring-1 ring-pink-200':
-                            concert.group_name === 'Five',
-                        }"
-                      >
-                        {{ concert.group_name }}
-                      </span>
+                      <div>
+                        <span class="text-sm text-gray-500"
+                          >Čas a datum vystoupení</span
+                        >
+                        <p class="text-lg font-semibold text-gray-900">
+                          {{ formatDateWithTime(concert.date, concert.time) }}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <h1 class="text-4xl font-bold text-custom-gray mb-4">
-                    {{ concert.title }}
-                  </h1>
-                  <p class="text-gray-600 text-base mb-6 leading-relaxed">
-                    {{ concert.description }}
-                  </p>
-                </header>
 
-                <div class="bg-gray-50 rounded-lg p-6 space-y-4">
-                  <div class="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <div>
-                      <span class="text-sm text-gray-500"
-                        >Čas a datum vystoupení</span
+                    <div class="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-red-600"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
                       >
-                      <p class="text-lg font-semibold text-gray-900">
-                        {{ formatDateWithTime(concert.date, concert.time) }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-red-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    <div>
-                      <span class="text-sm text-gray-500">Cena vstupenky</span>
-                      <p class="text-lg font-semibold text-gray-900">
-                        {{
-                          concert.is_voluntary
-                            ? "Dobrovolné vstupné"
-                            : `${concert.price},- Kč`
-                        }}
-                      </p>
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <div>
+                        <span class="text-sm text-gray-500"
+                          >Cena vstupenky</span
+                        >
+                        <p class="text-lg font-semibold text-gray-900">
+                          {{
+                            concert.is_voluntary
+                              ? "Dobrovolné vstupné"
+                              : `${concert.price},- Kč`
+                          }}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="flex gap-4 mt-6">
-                <button
-                  v-if="concert.ticket_id"
-                  @click="openTicketInfoModal(concert)"
-                  class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
-                >
-                  Koupit vstupenky
-                </button>
-                <button
-                  v-else
-                  @click="openTicketModal(concert)"
-                  class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
-                >
-                  Koupit vstupenky
-                </button>
-                <button
-                  v-if="concert.poster"
-                  @click="showPosterModal = true"
-                  class="flex-1 bg-transparent border border-black text-black px-4 py-3 hover:bg-black hover:text-white transition-colors duration-200"
-                >
-                  Stáhnout plakát akce
-                </button>
-                <button
-                  v-else
-                  class="flex-1 bg-transparent border border-gray-300 text-gray-400 px-4 py-3 cursor-not-allowed"
-                  disabled
-                >
-                  Plakát není k dispozici
-                </button>
+                <!-- Buttons container -->
+                <div class="pt-6">
+                  <div class="flex gap-4">
+                    <button
+                      v-if="concert.ticket_id"
+                      @click="openTicketInfoModal(concert)"
+                      class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
+                    >
+                      Koupit vstupenky
+                    </button>
+                    <button
+                      v-else
+                      @click="openTicketModal(concert)"
+                      class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
+                    >
+                      Koupit vstupenky
+                    </button>
+                    <button
+                      v-if="concert.poster"
+                      @click="showPosterModal = true"
+                      class="flex-1 bg-transparent border border-black text-black px-4 py-3 hover:bg-black hover:text-white transition-colors duration-200"
+                    >
+                      Stáhnout plakát akce
+                    </button>
+                    <button
+                      v-else
+                      class="flex-1 bg-transparent border border-gray-300 text-gray-400 px-4 py-3 cursor-not-allowed"
+                      disabled
+                    >
+                      Plakát není k dispozici
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -521,7 +534,7 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 import { formatDateWithTime } from "~/utils/date";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 const route = useRoute();
 const { concerts, getConcert } = useConcerts();
@@ -533,6 +546,10 @@ const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
 const showPosterModal = ref(false);
+const isAtBottom = ref(false);
+const imageColumn = ref(null);
+const contentBlock = ref(null);
+const stickyStyle = ref({});
 
 // Extract ID from the slug parameter (format: "id-title-slug")
 const getId = (slug) => {
@@ -632,6 +649,98 @@ const convertUrlsToLinks = (text) => {
 
   return processedText;
 };
+
+// Přidáme watch efekt pro sledování scrollu
+onMounted(() => {
+  const checkScroll = () => {
+    const container = document.querySelector(".concert-detail-bg");
+    const buttonsContainer = document.querySelector(".sticky-buttons");
+    if (!container || !buttonsContainer) return;
+
+    const containerBottom = container.getBoundingClientRect().bottom;
+    const buttonsHeight = buttonsContainer.offsetHeight;
+    const windowHeight = window.innerHeight;
+
+    // Když je spodek containeru blízko spodku viewportu, přepneme na statickou pozici
+    isAtBottom.value = containerBottom - buttonsHeight <= windowHeight;
+  };
+
+  window.addEventListener("scroll", checkScroll);
+  window.addEventListener("resize", checkScroll);
+
+  // Initial check
+  checkScroll();
+
+  // Cleanup
+  onUnmounted(() => {
+    window.removeEventListener("scroll", checkScroll);
+    window.removeEventListener("resize", checkScroll);
+  });
+});
+
+// Přidáme watch efekt pro sledování scrollu
+onMounted(() => {
+  const updateStickyPosition = () => {
+    if (!imageColumn.value || !contentBlock.value) return;
+
+    const imageRect = imageColumn.value.getBoundingClientRect();
+    const contentRect = contentBlock.value.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+
+    // Výška obrázku a obsahu
+    const imageHeight = imageRect.height;
+    const contentHeight = contentRect.height;
+
+    // Pozice horní hrany obrázku od vrchu viewportu
+    const imageTop = imageRect.top;
+
+    // Maximální povolený posun (výška obrázku mínus výška obsahu)
+    const maxOffset = imageHeight - contentHeight;
+
+    if (imageHeight > contentHeight) {
+      // Pokud je obrázek vyšší než obsah
+      if (imageTop <= 100) {
+        // Když je horní hrana obrázku pod navigací
+        if (Math.abs(imageTop - 100) > maxOffset) {
+          // Dosáhli jsme maximálního posunu
+          stickyStyle.value = {
+            position: "sticky",
+            top: `${maxOffset + 100}px`,
+          };
+        } else {
+          // Stále můžeme scrollovat
+          stickyStyle.value = {
+            position: "sticky",
+            top: "100px",
+          };
+        }
+      } else {
+        // Obrázek je stále viditelný nad viewportem
+        stickyStyle.value = {
+          position: "sticky",
+          top: "100px",
+        };
+      }
+    } else {
+      // Pokud je obsah vyšší než obrázek, necháme ho statický
+      stickyStyle.value = {
+        position: "static",
+      };
+    }
+  };
+
+  window.addEventListener("scroll", updateStickyPosition);
+  window.addEventListener("resize", updateStickyPosition);
+
+  // Initial check
+  updateStickyPosition();
+
+  // Cleanup
+  onUnmounted(() => {
+    window.removeEventListener("scroll", updateStickyPosition);
+    window.removeEventListener("resize", updateStickyPosition);
+  });
+});
 </script>
 
 <style>
@@ -664,6 +773,34 @@ const convertUrlsToLinks = (text) => {
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+/* Přidáme styly pro sticky buttons */
+.sticky-buttons {
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(to top, white 80%, rgba(255, 255, 255, 0.9) 100%);
+  padding-bottom: 1rem;
+  margin: 0 -2rem -2rem -2rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  z-index: 10;
+}
+
+.sticky-buttons.md:static {
+  position: static;
+  background: transparent;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Styly pro sticky content */
+@media (min-width: 768px) {
+  .md\:sticky {
+    position: sticky;
+    transition: top 0.2s ease;
   }
 }
 </style>
