@@ -174,11 +174,18 @@
     >
       <div class="bg-white p-6 rounded-lg shadow-xl w-96">
         <h2 class="text-xl font-bold mb-4">Přihlášení do privátní sekce</h2>
-        <form @submit.prevent="handleLogin">
+        <form
+          method="post"
+          action="https://www.marikasingers.cz/prihlaseni.aspx"
+          target="_blank"
+          ref="loginForm"
+        >
           <div class="mb-4">
             <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
             <input
               v-model="loginForm.username"
+              name="username"
+              id="username"
               type="text"
               class="w-full p-2 border rounded"
               required
@@ -188,6 +195,8 @@
             <label class="block text-gray-700 mb-2">Heslo:</label>
             <input
               v-model="loginForm.password"
+              name="password"
+              id="password"
               type="password"
               class="w-full p-2 border rounded"
               required
@@ -196,6 +205,9 @@
           <div class="flex justify-between">
             <button
               type="submit"
+              name="submit"
+              id="submit"
+              value="přihlásit"
               class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
             >
               Přihlásit
@@ -321,9 +333,8 @@ const loginForm = ref({
 });
 
 const handleLogin = () => {
-  localStorage.setItem("ms_username", loginForm.value.username);
-  localStorage.setItem("ms_password", loginForm.value.password);
-  window.location.href = "https://www.marikasingers.cz/prihlaseni.aspx";
+  // Zavření modálního okna po odeslání
+  showLoginModal.value = false;
 };
 
 defineComponent({
