@@ -362,7 +362,18 @@
                 <label class="block text-gray-700 text-sm font-medium mb-2">
                   Detailní popis koncertu
                 </label>
+                <div class="mb-2 flex gap-2">
+                  <button
+                    type="button"
+                    @click="insertLink"
+                    class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-1 transition-colors"
+                  >
+                    <span class="material-icons-outlined text-base">link</span>
+                    Vložit odkaz
+                  </button>
+                </div>
                 <textarea
+                  ref="textareaRef"
                   v-model="form.detailed_description"
                   rows="6"
                   class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
@@ -2233,6 +2244,92 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Modal pro vložení odkazu -->
+    <TransitionRoot appear :show="showLinkModal" as="template">
+      <Dialog as="div" @close="closeLinkModal" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+              >
+                <DialogTitle
+                  as="h3"
+                  class="text-lg font-medium leading-6 text-gray-900 mb-4"
+                >
+                  Vložit odkaz
+                </DialogTitle>
+
+                <form @submit.prevent="handleLinkSubmit" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      Text odkazu
+                    </label>
+                    <input
+                      v-model="linkForm.text"
+                      type="text"
+                      class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="Např.: Navštivte nás zde"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                      URL adresa
+                    </label>
+                    <input
+                      v-model="linkForm.url"
+                      type="url"
+                      class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="https://example.com"
+                      required
+                    />
+                  </div>
+
+                  <div class="flex justify-end gap-3 mt-6">
+                    <button
+                      type="button"
+                      @click="closeLinkModal"
+                      class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Vložit odkaz
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -3132,6 +3229,82 @@ const confirmDeleteTicket = async () => {
     toast.error("Chyba při mazání odkazu: " + err.message);
   }
 };
+
+const insertLink = () => {
+  showLinkModal.value = true;
+};
+
+const handleLinkSubmit = () => {
+  if (!linkForm.value.text || !linkForm.value.url) return;
+
+  const linkMarkdown = `[${linkForm.value.text}](${linkForm.value.url})`;
+
+  // Get the textarea element
+  const textarea = textareaRef.value;
+  if (!textarea) return;
+
+  // Get the current cursor position
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  // Insert the link at cursor position
+  const text = form.value.detailed_description || "";
+  form.value.detailed_description =
+    text.substring(0, start) + linkMarkdown + text.substring(end);
+
+  // Reset form and close modal
+  linkForm.value = { text: "", url: "" };
+  showLinkModal.value = false;
+};
+
+// Přidáme potřebné refs
+const showLinkModal = ref(false);
+const linkForm = ref({
+  text: "",
+  url: "",
+});
+const savedCursorPosition = ref({
+  start: 0,
+  end: 0,
+});
+
+const closeLinkModal = () => {
+  showLinkModal.value = false;
+  linkForm.value = {
+    text: "",
+    url: "",
+    cursorStart: 0,
+    cursorEnd: 0,
+  };
+};
+
+const confirmInsertLink = () => {
+  if (!linkForm.value.text || !linkForm.value.url) return;
+
+  const linkText = `[${linkForm.value.text}](${linkForm.value.url})`;
+  const textarea = document.querySelector("textarea");
+
+  // Získáme aktuální pozici kurzoru nebo označeného textu
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+
+  // Vložíme odkaz na místo kurzoru nebo nahradíme označený text
+  form.value.detailed_description =
+    form.value.detailed_description.substring(0, start) +
+    linkText +
+    form.value.detailed_description.substring(end);
+
+  // Nastavíme kurzor za vložený odkaz
+  setTimeout(() => {
+    textarea.focus();
+    const newPosition = start + linkText.length;
+    textarea.setSelectionRange(newPosition, newPosition);
+  }, 0);
+
+  closeLinkModal();
+};
+
+const textareaRef = ref(null);
 </script>
 
 <style scoped>

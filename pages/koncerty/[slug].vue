@@ -624,13 +624,13 @@ const downloadPoster = async () => {
 const convertUrlsToLinks = (text) => {
   if (!text) return "";
 
-  // Regex pro detekci URL (podporuje http://, https://, www.)
-  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/g;
-
-  return text.replace(urlRegex, (url) => {
-    const href = url.startsWith("www.") ? `https://${url}` : url;
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:text-red-800 underline">${url}</a>`;
+  // Zpracujeme markdown-style odkazy [text](url)
+  const markdownRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const processedText = text.replace(markdownRegex, (_, text, url) => {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:text-red-800 underline">${text}</a>`;
   });
+
+  return processedText;
 };
 </script>
 
