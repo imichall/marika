@@ -74,7 +74,7 @@
             </svg>
           </NuxtLink>
           <button
-            @click="showLoginModal = true"
+            @click="openLoginModal"
             class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
             Členská sekce
@@ -178,28 +178,27 @@
           method="post"
           action="https://www.marikasingers.cz/prihlaseni.aspx"
           target="_blank"
-          ref="loginForm"
         >
           <div class="mb-4">
             <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
             <input
-              v-model="loginForm.username"
+              type="text"
               name="username"
               id="username"
-              type="text"
               class="w-full p-2 border rounded"
               required
+              @input="e => loginForm.username = (e.target as HTMLInputElement).value"
             />
           </div>
           <div class="mb-4">
             <label class="block text-gray-700 mb-2">Heslo:</label>
             <input
-              v-model="loginForm.password"
+              type="password"
               name="password"
               id="password"
-              type="password"
               class="w-full p-2 border rounded"
               required
+              @input="e => loginForm.password = (e.target as HTMLInputElement).value"
             />
           </div>
           <div class="flex justify-between">
@@ -332,9 +331,23 @@ const loginForm = ref({
   password: "",
 });
 
-const handleLogin = () => {
-  // Zavření modálního okna po odeslání
-  showLoginModal.value = false;
+const openLoginModal = () => {
+  // Reset form values when opening
+  loginForm.value = {
+    username: "",
+    password: "",
+  };
+  showLoginModal.value = true;
+
+  /* // Log values after 5 seconds
+  setTimeout(() => {
+    const usernameInput = document.querySelector(
+      "#username"
+    ) as HTMLInputElement;
+    const passwordInput = document.querySelector(
+      "#password"
+    ) as HTMLInputElement;
+  }, 5000); */
 };
 
 defineComponent({
@@ -371,3 +384,4 @@ button {
   color: #ef4444; /* text-red-500 */
 }
 </style>
+No newline at end of file
