@@ -177,7 +177,11 @@
         <form
           method="post"
           action="https://www.marikasingers.cz/prihlaseni.aspx"
-          target="_blank"
+          autocomplete="off"
+          data-lpignore="true"
+          data-form-type="other"
+          data-kwimpalastatus="dead"
+          data-kwimpalaid="1234567890"
         >
           <div class="mb-4">
             <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
@@ -188,6 +192,11 @@
               class="w-full p-2 border rounded"
               required
               @input="e => loginForm.username = (e.target as HTMLInputElement).value"
+              autocomplete="chrome-off"
+              data-lpignore="true"
+              data-form-type="other"
+              data-kwimpalastatus="dead"
+              data-kwimpalaid="1234567890"
             />
           </div>
           <div class="mb-4">
@@ -199,6 +208,13 @@
               class="w-full p-2 border rounded"
               required
               @input="e => loginForm.password = (e.target as HTMLInputElement).value"
+              autocomplete="chrome-off"
+              data-lpignore="true"
+              data-form-type="other"
+              data-kwimpalastatus="dead"
+              data-kwimpalaid="1234567890"
+              readonly
+              onfocus="this.removeAttribute('readonly');"
             />
           </div>
           <div class="flex justify-between">
