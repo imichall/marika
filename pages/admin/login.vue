@@ -57,34 +57,34 @@
 
       <form class="mt-8 space-y-6 relative" @submit.prevent="handleLogin">
         <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="email" class="sr-only">Email</label>
-            <input
-              id="email"
-              v-model="email"
-              type="email"
-              name="email"
-              autocomplete="username email"
-              inputmode="email"
-              required
-              class="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
-              placeholder="Email"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">Heslo</label>
-            <input
-              id="password"
-              v-model="password"
-              type="password"
-              name="password"
-              autocomplete="current-password"
-              required
-              class="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
-              placeholder="Heslo"
-            />
-          </div>
-        </div>
+    <div>
+      <label for="email" class="sr-only">Email</label>
+      <input
+        id="email"
+        v-model="email"
+        type="email"
+        name="username"  
+        autocomplete="username"
+        inputmode="email"
+        required
+        class="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
+        placeholder="Email"
+      />
+    </div>
+    <div>
+      <label for="password" class="sr-only">Heslo</label>
+      <input
+        id="password"
+        v-model="password"
+        type="password"
+        name="current-password"
+        autocomplete="current-password"
+        required
+        class="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
+        placeholder="Heslo"
+      />
+    </div>
+  </div>
 
         <div
           v-if="error"
