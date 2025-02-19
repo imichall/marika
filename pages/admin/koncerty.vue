@@ -3231,6 +3231,18 @@ const confirmDeleteTicket = async () => {
 };
 
 const insertLink = () => {
+  // Get the textarea element and check for selected text
+  const textarea = textareaRef.value;
+  if (textarea) {
+    const selectedText = form.value.detailed_description.substring(
+      textarea.selectionStart,
+      textarea.selectionEnd
+    );
+    // If there is selected text, pre-fill the link form text
+    if (selectedText) {
+      linkForm.value.text = selectedText;
+    }
+  }
   showLinkModal.value = true;
 };
 
@@ -3243,11 +3255,11 @@ const handleLinkSubmit = () => {
   const textarea = textareaRef.value;
   if (!textarea) return;
 
-  // Get the current cursor position
+  // Get the current cursor position or selection
   const start = textarea.selectionStart;
   const end = textarea.selectionEnd;
 
-  // Insert the link at cursor position
+  // Insert the link at cursor position or replace selected text
   const text = form.value.detailed_description || "";
   form.value.detailed_description =
     text.substring(0, start) + linkMarkdown + text.substring(end);
@@ -3255,6 +3267,11 @@ const handleLinkSubmit = () => {
   // Reset form and close modal
   linkForm.value = { text: "", url: "" };
   showLinkModal.value = false;
+
+  // Focus back on textarea and place cursor after the inserted link
+  textarea.focus();
+  const newPosition = start + linkMarkdown.length;
+  textarea.setSelectionRange(newPosition, newPosition);
 };
 
 // Přidáme potřebné refs
