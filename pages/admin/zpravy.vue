@@ -1,6 +1,6 @@
 # Vytvořím novou stránku pro správu zpráv z formuláře
 <template>
-  <div class="container mx-auto px-4 my-[100px]">
+  <div class="container mx-auto px-4 py-8 pb-20">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 

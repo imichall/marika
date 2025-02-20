@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 mt-[100px]">
+  <div class="container mx-auto px-4 py-8 pb-10">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 

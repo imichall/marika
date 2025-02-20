@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 space-y-8 mt-[100px] mb-[100px]">
+  <div class="container mx-auto px-4 py-8 pb-20">
     <AdminBreadcrumbs />
 
     <!-- Nadpis -->
