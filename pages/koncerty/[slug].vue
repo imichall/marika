@@ -250,37 +250,137 @@
           <div class="flex-grow border-t border-gray-400"></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div
-            v-for="otherConcert in otherConcerts"
+          <FadeUpOnScroll
+            v-for="(otherConcert, index) in otherConcerts"
             :key="otherConcert.id"
-            class="bg-white shadow-lg"
           >
-            <NuxtLink
-              :to="`/koncerty/${otherConcert.id}-${slugify(
-                otherConcert.title
-              )}`"
+            <div
+              class="concert-card group flex flex-col bg-white rounded-3xl shadow-md ring-1 ring-black/5 hover:ring-2 hover:ring-red-800/20 hover:shadow-xl hover:shadow-red-800/10 transition-all duration-500"
+              :class="{
+                'md:col-span-2': index % 5 === 0,
+                'lg:row-span-2': index % 7 === 3,
+              }"
             >
-              <img
-                :src="otherConcert.image"
-                :alt="otherConcert.title"
-                class="w-full h-48 object-cover"
-              />
-              <div class="p-4">
-                <h3 class="text-xl font-semibold mb-2">
-                  {{ otherConcert.title }}
-                  <span
-                    v-if="otherConcert.group"
-                    class="text-gray-600 text-sm block mt-1"
+              <NuxtLink
+                :to="`/koncerty/${otherConcert.id}-${slugify(
+                  otherConcert.title
+                )}`"
+                class="flex flex-col h-full"
+              >
+                <div
+                  class="relative w-full"
+                  :class="{
+                    'aspect-[16/9]': index % 5 === 0,
+                    'aspect-[4/3]': !(index % 5 === 0),
+                  }"
+                >
+                  <img
+                    v-if="otherConcert.image"
+                    :src="otherConcert.image"
+                    :alt="otherConcert.title"
+                    class="w-full h-full rounded-t-3xl object-cover transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
+                    loading="lazy"
+                  />
+                  <div
+                    v-else
+                    class="w-full h-full rounded-t-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center"
                   >
-                    ({{ otherConcert.group }})
-                  </span>
-                </h3>
-                <p class="text-gray-600">
-                  {{ formatDateWithTime(otherConcert.date, otherConcert.time) }}
-                </p>
-              </div>
-            </NuxtLink>
-          </div>
+                    <svg
+                      class="w-16 h-16 text-gray-300 mb-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p class="text-gray-400 font-medium">
+                      Obrázek není k dispozici
+                    </p>
+                  </div>
+                  <div
+                    class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-700 ease-in-out group-hover:opacity-100"
+                  >
+                    <div class="absolute bottom-0 w-full p-6">
+                      <time
+                        :datetime="otherConcert.date"
+                        class="text-white text-sm font-medium mb-2 block"
+                      >
+                        {{
+                          formatDateWithTime(
+                            otherConcert.date,
+                            otherConcert.time
+                          )
+                        }}
+                      </time>
+                      <h3
+                        class="font-bold text-2xl text-white group-hover:text-red-50 transition-colors duration-300"
+                      >
+                        {{ otherConcert.title }}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-col flex-grow p-6 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <div class="relative inline-flex items-center">
+                      <div class="absolute -top-3 -right-3">
+                        <svg
+                          class="w-4.5 h-4.5 text-red-800/70 absolute -translate-y-1 animate-[noteFloat1_2s_ease-in-out_infinite]"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                          />
+                        </svg>
+                        <svg
+                          class="w-4 h-4 text-red-800/60 absolute translate-x-5 translate-y-1 animate-[noteFloat2_2.2s_ease-in-out_0.2s_infinite]"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                          />
+                        </svg>
+                        <svg
+                          class="w-3.5 h-3.5 text-red-800/50 absolute translate-x-10 animate-[noteFloat3_1.8s_ease-in-out_0.4s_infinite]"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path
+                            d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                          />
+                        </svg>
+                      </div>
+                      <span
+                        class="text-sm font-medium px-4 py-1.5 rounded-full whitespace-nowrap transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                        :class="{
+                          'bg-gradient-to-r from-red-50 to-red-100 text-red-800 ring-1 ring-red-200 shadow-sm shadow-red-800/5':
+                            otherConcert.group_name === 'Marika Singers',
+                          'bg-gradient-to-r from-rose-50 to-rose-100 text-rose-800 ring-1 ring-rose-200 shadow-sm shadow-rose-800/5':
+                            otherConcert.group_name === 'Voices',
+                          'bg-gradient-to-r from-pink-50 to-pink-100 text-pink-800 ring-1 ring-pink-200 shadow-sm shadow-pink-800/5':
+                            otherConcert.group_name === 'Five',
+                        }"
+                      >
+                        {{ otherConcert.group_name }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="text-gray-600 flex-grow line-clamp-3 text-lg">
+                    {{ otherConcert.description }}
+                  </p>
+                </div>
+              </NuxtLink>
+            </div>
+          </FadeUpOnScroll>
         </div>
       </div>
     </div>
@@ -535,6 +635,7 @@ import {
 } from "@headlessui/vue";
 import { formatDateWithTime } from "~/utils/date";
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 
 const route = useRoute();
 const { concerts, getConcert } = useConcerts();
@@ -801,6 +902,57 @@ onMounted(() => {
   .md\:sticky {
     position: sticky;
     transition: top 0.2s ease;
+  }
+}
+
+@keyframes noteFloat1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-10px, -20px) rotate(-10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes noteFloat2 {
+  0% {
+    transform: translate(2px, 0) rotate(5deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-5px, -25px) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes noteFloat3 {
+  0% {
+    transform: translate(4px, 0) rotate(-5deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0px, -22px) rotate(10deg);
+    opacity: 0;
   }
 }
 </style>

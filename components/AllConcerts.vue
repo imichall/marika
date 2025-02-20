@@ -106,55 +106,66 @@
         Nenalezeny žádné koncerty pro vybrané těleso
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <div
           v-for="concert in filteredConcerts"
           :key="concert.id"
-          class="concert-card grid gap-4"
+          class="concert-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col"
         >
-          <img
-            :src="concert.image"
-            :alt="concert.title"
-            class="w-full h-48 object-cover"
-            :style="
-              concert.image_position
-                ? { objectPosition: concert.image_position }
-                : {}
-            "
-          />
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-4">
+          <div class="relative h-[300px] overflow-hidden">
+            <img
+              :src="concert.image"
+              :alt="concert.title"
+              class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              :style="
+                concert.image_position
+                  ? { objectPosition: concert.image_position }
+                  : {}
+              "
+            />
+            <div
+              class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4"
+            >
+              <p class="text-white font-medium">
+                {{ formatDateWithTime(concert.date, concert.time) }}
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-col gap-4 p-6 flex-grow">
+            <h3 class="font-bold text-2xl group">
+              {{ concert.title }}
+              <span
+                v-if="concert.group"
+                class="block text-gray-600 text-sm mt-1"
+              >
+                {{ concert.group }}
+              </span>
+            </h3>
+            <p class="text-gray-600 font-light line-clamp-3">
+              {{ concert.desc }}
+            </p>
+            <div class="flex gap-4 mt-auto pt-4">
               <NuxtLink
                 :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
-                class="flex-1 bg-transparent text-black border border-black px-4 py-2 text-center hover:bg-black hover:text-white transition-colors duration-200"
+                class="flex-1 bg-transparent text-black border-2 border-black px-4 py-2.5 text-center hover:bg-black hover:text-white transition-all duration-200 rounded-xl font-medium"
               >
                 Informace
               </NuxtLink>
               <button
                 v-if="concert.ticket_id"
                 @click="openTicketInfoModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200"
               >
                 Vstupenky
               </button>
               <button
                 v-else
                 @click="openTicketModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border border-red-800 text-white px-4 py-2 transition-colors duration-200"
+                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200"
               >
                 Vstupenky
               </button>
             </div>
-            <p class="text-gray-600">
-              {{ formatDateWithTime(concert.date, concert.time) }}
-            </p>
-            <h3 class="font-bold text-2xl">
-              {{ concert.title }}<br />
-              <span v-if="concert.group" class="text-gray-600 text-sm">
-                ({{ concert.group }})
-              </span>
-            </h3>
-            <p class="text-gray-600 font-thin">{{ concert.desc }}</p>
           </div>
         </div>
       </div>
