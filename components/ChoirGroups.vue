@@ -16,73 +16,87 @@
       <div v-else-if="error" class="text-center text-red-600 py-8">
         {{ error }}
       </div>
-      <div v-else class="grid grid-cols-1 gap-12">
-        <FadeUpOnScroll
-          v-for="group in groups"
-          :key="group.id"
-          class="text-center grid grid-cols-1 md:grid-cols-2 gap-14"
-        >
-          <div>
-            <img
-              :src="group.image"
-              :alt="group.name"
-              class="w-full h-full object-cover mb-4 border border-gray-200 p-2"
-            />
-          </div>
-          <div class="grid grid-rows-[50px_auto_auto] justify-items-start">
-            <h3 class="text-[36px] font-regular mb-2">{{ group.name }}</h3>
+      <div v-else class="grid grid-cols-1 gap-16">
+        <FadeUpOnScroll v-for="group in groups" :key="group.id" class="group">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div
-              v-if="getSocialMediaForGroup(group.id).length"
-              class="flex gap-3 mb-4"
+              class="relative aspect-[4/3] overflow-hidden bg-white p-4 rounded-3xl ring-1 ring-black/10 shadow-md"
             >
-              <a
-                v-for="social in getSocialMediaForGroup(group.id)"
-                :key="social.id"
-                :href="social.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                :class="[
-                  'hover:opacity-80 transition-opacity',
-                  getPlatformColor(social.platform),
-                ]"
-                :title="social.platform"
-              >
-                <svg class="w-6 h-6" viewBox="0 0 24 24">
-                  <path
-                    :d="getPlatformIcon(social.platform)"
-                    fill="currentColor"
-                  />
-                </svg>
-              </a>
+              <div class="relative w-full h-full overflow-hidden rounded-2xl">
+                <img
+                  :src="group.image"
+                  :alt="group.name"
+                  class="w-full h-full object-cover transition-all duration-700 group-hover:brightness-[1.02]"
+                />
+                <div
+                  class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                ></div>
+              </div>
             </div>
-            <p class="text-gray-600 mb-4 text-left">{{ group.description }}</p>
-            <a
-              v-if="
-                group.button_link &&
-                group.button_link !== 'null' &&
-                group.button_link !== null
-              "
-              :href="group.button_link"
-              target="_blank"
-              class="border border-black px-6 py-2 self-end uppercase inline-flex items-center gap-2 group hover:bg-black hover:text-white transition-all duration-300"
-            >
-              Poslechnout
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="transform transition-transform duration-300 group-hover:translate-x-1"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </a>
+
+            <div class="flex flex-col gap-6 p-2">
+              <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-[36px] font-regular">{{ group.name }}</h3>
+                  <div
+                    v-if="getSocialMediaForGroup(group.id).length"
+                    class="flex gap-4 items-center"
+                  >
+                    <a
+                      v-for="social in getSocialMediaForGroup(group.id)"
+                      :key="social.id"
+                      :href="social.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      :class="[
+                        'hover:opacity-80 transition-all duration-300 hover:scale-110',
+                        getPlatformColor(social.platform),
+                      ]"
+                      :title="social.platform"
+                    >
+                      <svg class="w-8 h-8" viewBox="0 0 24 24">
+                        <path
+                          :d="getPlatformIcon(social.platform)"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+
+                <p class="text-gray-600 text-lg leading-relaxed">
+                  {{ group.description }}
+                </p>
+
+                <a
+                  v-if="
+                    group.button_link &&
+                    group.button_link !== 'null' &&
+                    group.button_link !== null
+                  "
+                  :href="group.button_link"
+                  target="_blank"
+                  class="inline-flex items-center gap-2 bg-transparent text-black border-2 border-black/90 px-6 py-3 text-center hover:bg-black hover:text-white transition-all duration-300 rounded-xl font-medium shadow-sm hover:shadow-lg mt-4 group/link"
+                >
+                  <span>Poslechnout</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="transform transition-transform duration-300 group-hover/link:translate-x-1"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
+            </div>
           </div>
         </FadeUpOnScroll>
       </div>
@@ -133,3 +147,7 @@ onMounted(async () => {
   await Promise.all([fetchGroups(), fetchSocialMedia()]);
 });
 </script>
+
+<style>
+/* Remove all keyframe animations since we're not using musical notes anymore */
+</style>
