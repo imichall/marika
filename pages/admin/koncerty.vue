@@ -432,6 +432,7 @@
                 v-model="form.variable_symbol"
                 v-model:account-number="form.account_number"
                 v-model:bank-code="form.bank_code"
+                v-model:payment-message="form.payment_message"
               />
             </div>
           </div>
@@ -2449,6 +2450,7 @@ const form = ref({
   poster: null,
   posterFile: null,
   is_archived: false,
+  payment_message: "",
 });
 
 const showTicketModal = ref(false);
@@ -2758,6 +2760,7 @@ const resetForm = () => {
     poster: null,
     posterFile: null,
     is_archived: false,
+    payment_message: "",
   };
   imagePreview.value = null;
   posterPreview.value = null;
@@ -2785,62 +2788,95 @@ const validateVariableSymbol = (vs) => {
 
 const handleSubmit = async () => {
   try {
-    // Očistíme variabilní symbol před uložením
-    const cleanVS = validateVariableSymbol(form.value.variable_symbol);
+    loading.value = true;
+    error.value = null;
+
+    // Prepare concert data
+    const concertData = {
+      title: form.value.title,
+      date: form.value.date,
+      time: form.value.time,
+      description: form.value.description,
+      detailed_description: form.value.detailed_description,
+      group_name: form.value.group_name,
+      price: form.value.price,
+      variable_symbol: validateVariableSymbol(form.value.variable_symbol),
+      bank_account_id: form.value.bank_account?.id,
+      account_number: form.value.bank_account?.accountNumber,
+      bank_code: form.value.bank_account?.bankCode,
+      is_archived: form.value.is_archived,
+      is_voluntary: form.value.is_voluntary,
+      has_presale: form.value.has_presale,
+      presale_text: form.value.presale_text,
+      payment_message: form.value.payment_message,
+    };
 
     // Pokud není vybraná vstupenka, vygenerujeme QR session data
-    let qrSessionData = "";
     if (!form.value.ticket_id) {
-      qrSessionData = JSON.stringify({
+      const qrSessionData = {
         title: form.value.title,
         date: form.value.date,
         price: form.value.price,
-        vs: cleanVS,
+        vs: concertData.variable_symbol,
         account: form.value.account_number,
         bank_code: form.value.bank_code,
         timestamp: Date.now(),
+      };
+
+      // Přidáme QR session data a ticket ID do dat koncertu
+      Object.assign(concertData, {
+        qr_session: qrSessionData,
+        ticket_id: form.value.ticket_id || null,
       });
     }
 
-    // Připravíme data koncertu
-    const concertData = {
-      ...form.value,
-      variable_symbol: cleanVS,
-      qr_session: qrSessionData,
-      ticket_id: form.value.ticket_id || null,
-    };
+    // Upload image if provided
+    if (form.value.posterFile) {
+      const { data: imageData, error: imageError } = await uploadImage(
+        form.value.posterFile,
+        "concerts"
+      );
 
-    // Odstraníme nepotřebné hodnoty
-    delete concertData.poster;
-    delete concertData.posterFile;
+      if (imageError) throw imageError;
 
-    // Odstraníme prázdné hodnoty, které by mohly způsobit problémy s UUID
-    Object.keys(concertData).forEach((key) => {
-      if (concertData[key] === "") {
-        concertData[key] = null;
+      if (imageData) {
+        concertData.image = imageData.path;
+        concertData.poster_id = imageData.id;
       }
-    });
+    }
 
-    let savedConcert;
+    // Save to database
     if (editingConcert.value) {
-      savedConcert = await updateConcert(editingConcert.value.id, concertData);
+      const { error: updateError } = await supabase
+        .from("concerts")
+        .update(concertData)
+        .eq("id", editingConcert.value.id);
+
+      if (updateError) throw updateError;
     } else {
-      savedConcert = await addConcert(concertData);
+      const { error: insertError } = await supabase
+        .from("concerts")
+        .insert([concertData]);
+
+      if (insertError) throw insertError;
     }
 
-    // Pokud máme nový plakát k nahrání
-    if (form.value.posterFile && savedConcert) {
-      await uploadPoster(savedConcert.id, form.value.posterFile);
-    }
-
+    // Reset form and close modal
     resetForm();
-    await Promise.all([fetchConcerts(), fetchConcertTickets()]); // Aktualizujeme oba seznamy
+    isFormVisible.value = false;
     toast.success(
-      editingConcert.value ? "Koncert byl upraven" : "Koncert byl přidán"
+      editingConcert.value
+        ? "Koncert byl úspěšně upraven"
+        : "Koncert byl úspěšně přidán"
     );
+
+    // Refresh concerts list
+    await fetchConcerts();
   } catch (err) {
     console.error("Error saving concert:", err);
     toast.error("Chyba při ukládání koncertu");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -2867,6 +2903,7 @@ const editConcert = (concert) => {
     poster: concert.poster || null,
     posterFile: null,
     is_archived: concert.is_archived,
+    payment_message: concert.payment_message || "",
   };
 
   // Nastavení počáteční pozice náhledu

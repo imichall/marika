@@ -150,6 +150,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  paymentMessage: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits([
@@ -157,6 +161,7 @@ const emit = defineEmits([
   "update:accountNumber",
   "update:bankCode",
   "update:price",
+  "update:paymentMessage",
 ]);
 
 const accountPrefix = ref("");
@@ -166,7 +171,7 @@ const accountNumberError = ref("");
 const bankCode = ref("3030");
 const amount = ref(props.price);
 const variableSymbol = ref(props.modelValue);
-const message = ref(props.concertTitle);
+const message = ref(props.paymentMessage || props.concertTitle);
 const qrCodeData = ref("");
 const isAccountLocked = ref(false);
 
@@ -444,10 +449,15 @@ defineExpose({
   }),
 });
 
+// Přidáme watch pro paymentMessage
 watch(
-  () => props.concertTitle,
-  (newTitle) => {
-    message.value = removeDiacritics(newTitle).toUpperCase();
+  () => props.paymentMessage,
+  (newMessage) => {
+    if (newMessage) {
+      message.value = removeDiacritics(newMessage);
+    } else if (props.concertTitle) {
+      message.value = removeDiacritics(props.concertTitle);
+    }
   },
   { immediate: true }
 );
@@ -468,5 +478,10 @@ watch(variableSymbol, (newValue) => {
   if (newValue !== props.modelValue) {
     emit("update:modelValue", newValue);
   }
+});
+
+// Watch for changes in payment message
+watch(message, (newMessage) => {
+  emit("update:paymentMessage", newMessage);
 });
 </script>

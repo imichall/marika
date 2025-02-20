@@ -249,7 +249,9 @@
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-600">Zpráva pro příjemce:</span>
-                      <span class="font-bold">{{ concert.title }}</span>
+                      <span class="font-bold">{{
+                        concert.payment_message || concert.title
+                      }}</span>
                     </div>
                   </div>
 
@@ -708,7 +710,7 @@ const handleSubmit = async () => {
               account_number: bankDetails.value.accountNumber,
               bank_code: bankDetails.value.bankCode,
               amount: totalPrice.value,
-              message: props.concert.title,
+              message: props.concert.payment_message || props.concert.title,
             },
       };
 

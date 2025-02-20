@@ -131,7 +131,7 @@ const generateQRCode = () => {
 
   try {
     // Příprava dat pro QR kód
-    const message = removeDiacritics(props.concert.title);
+    const message = removeDiacritics(props.concert.payment_message);
     const amount = (props.concert.price * props.ticketCount).toFixed(2);
 
     // Výpočet IBAN
