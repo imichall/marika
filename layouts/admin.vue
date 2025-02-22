@@ -43,10 +43,8 @@ const permissions = ref({
 const checkChatAccess = async () => {
   try {
     if (!user.value?.email) {
-      console.log("No user email");
       return;
     }
-    console.log("Checking access for user:", user.value.email);
 
     // Kontrola, zda je uživatel v chat_users tabulce
     const { data: chatUser, error: chatError } = await supabase
@@ -67,21 +65,21 @@ const checkChatAccess = async () => {
     }
 
     // Přidáme více informací o výsledku
-    console.log("Chat user query result:", {
+    /* console.log("Chat user query result:", {
       rawData: chatUser,
       exists: !!chatUser,
       userEmail: user.value.email,
-    });
+    }); */
 
     // Kontrola RLS politik
     const { data: policies, error: policyError } = await supabase
       .from("chat_users")
       .select("*");
 
-    console.log("All chat users (RLS check):", {
+    /* console.log("All chat users (RLS check):", {
       data: policies,
       error: policyError,
-    });
+    }); */
 
     // Získání role ID
     const { data: roleData, error: roleError } = await supabase
@@ -94,7 +92,6 @@ const checkChatAccess = async () => {
       console.error("Error getting role:", roleError);
       return;
     }
-    console.log("User role data:", roleData);
 
     // Kontrola oprávnění pro zobrazení chatu
     const { data: userPermissions, error: permError } = await supabase
@@ -113,7 +110,6 @@ const checkChatAccess = async () => {
     if (permError) {
       console.error("Error getting permissions:", permError);
     }
-    console.log("User permissions raw data:", userPermissions);
 
     // Nastavíme oprávnění pro chat
     const hasViewPermission = userPermissions?.some(
@@ -128,28 +124,28 @@ const checkChatAccess = async () => {
         permission.permissions.action === "manage"
     );
 
-    console.log("Has view permission:", hasViewPermission);
-    console.log("Has manage permission:", hasManagePermission);
+    /* console.log("Has view permission:", hasViewPermission);
+    console.log("Has manage permission:", hasManagePermission); */
 
     // Chat se zobrazí pouze pokud má uživatel oprávnění k zobrazení A je v seznamu uživatelů chatu
     const shouldHaveAccess = !!chatUser && hasViewPermission;
-    console.log("Should have access calculation:", {
+    /* console.log("Should have access calculation:", {
       chatUserExists: !!chatUser,
       hasViewPermission,
       finalResult: shouldHaveAccess,
-    });
+    }); */
 
     hasChatAccess.value = shouldHaveAccess;
-    console.log("Final chat access:", hasChatAccess.value);
+    /* console.log("Final chat access:", hasChatAccess.value); */
 
     // Nastavíme oprávnění pro zobrazení a správu chatu
     permissions.value.chat = {
       view: hasViewPermission,
       manage: hasManagePermission,
     };
-    console.log("Final permissions state:", permissions.value);
+    /* console.log("Final permissions state:", permissions.value); */
   } catch (err) {
-    console.error("Error checking chat access:", err);
+    /* console.error("Error checking chat access:", err); */
     hasChatAccess.value = false;
   }
 };

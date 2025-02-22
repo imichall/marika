@@ -187,15 +187,12 @@ const setupSubscriptions = () => {
         new: any;
         old: any;
       }) => {
-        console.log("Chat users change detected:", payload.eventType);
-
         // Okamžitě aktualizujeme oba seznamy
         await Promise.all([fetchChatUsers(), fetchAllUsers()]);
       }
     )
     .subscribe((status: string) => {
       if (status === "SUBSCRIBED") {
-        console.log("Připojeno k chat_users změnám");
       }
     });
 };
@@ -206,7 +203,7 @@ const cleanup = () => {
     try {
       subscription.unsubscribe();
     } catch (err) {
-      console.error("Error during subscription cleanup:", err);
+      /* console.error("Error during subscription cleanup:", err); */
     }
     subscription = null;
   }
@@ -219,7 +216,7 @@ const fetchAllUsers = async () => {
     if (error) throw error;
     allUsers.value = data || [];
   } catch (err) {
-    console.error("Error fetching users:", err);
+    /* console.error("Error fetching users:", err); */
     toast.error("Nepodařilo se načíst seznam uživatelů");
   }
 };
@@ -236,7 +233,7 @@ const fetchChatUsers = async () => {
     if (error) throw error;
     chatUsers.value = data || [];
   } catch (err) {
-    console.error("Error fetching chat users:", err);
+    /* console.error("Error fetching chat users:", err); */
     toast.error("Nepodařilo se načíst uživatele chatu");
   } finally {
     loading.value = false;
@@ -263,7 +260,7 @@ const addUserAccess = async () => {
     showAddUserModal.value = false;
     selectedUser.value = null;
   } catch (err) {
-    console.error("Error adding chat user:", err);
+    /* console.error("Error adding chat user:", err); */
     toast.error("Nepodařilo se přidat uživatele");
   } finally {
     loading.value = false;

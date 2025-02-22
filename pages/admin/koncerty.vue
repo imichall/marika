@@ -3026,8 +3026,8 @@ const showQRSection = computed(
 watch(
   () => form.value.ticket_id,
   (newVal, oldVal) => {
-    console.log("ticket_id changed from", oldVal, "to", newVal);
-    console.log("current form state:", form.value);
+    /* console.log("ticket_id changed from", oldVal, "to", newVal);
+    console.log("current form state:", form.value); */
   }
 );
 

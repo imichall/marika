@@ -55,7 +55,7 @@ export const useAdminChat = () => {
     broadcastChannel = supabase.channel('chat-updates')
       .subscribe(async (status: string) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Připojeno k broadcast channelu')
+
         }
       })
   }
@@ -191,7 +191,6 @@ export const useAdminChat = () => {
         'broadcast',
         { event: 'new_message' },
         async (payload: BroadcastPayload) => {
-          console.log('Přijat signál o nové zprávě', payload)
 
           // Načteme aktuální stav přečtení
           const { data: { user } } = await supabase.auth.getUser()
@@ -279,7 +278,6 @@ export const useAdminChat = () => {
         'broadcast',
         { event: 'chat_archived' },
         () => {
-          console.log('Přijat signál o archivaci chatu')
           // Vyčistíme všechny zprávy a resetujeme stav
           messages.value = []
           unreadCount.value = 0
@@ -309,13 +307,13 @@ export const useAdminChat = () => {
           table: 'chat_users'
         },
         async () => {
-          console.log('Detekována změna v chat_users, aktualizuji seznam')
+
           await fetchOnlineUsers()
         }
       )
       .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Připojeno k admin-chat kanálu')
+
         }
       })
   }
@@ -404,7 +402,6 @@ export const useAdminChat = () => {
         .single()
 
       if (!chatUser) {
-        console.log('Uživatel nemá přístup k chatu')
         return
       }
 
@@ -416,7 +413,6 @@ export const useAdminChat = () => {
         .single()
 
       if (!userRole?.name) {
-        console.error('Uživatel nemá nastavené jméno')
         return
       }
 
@@ -438,7 +434,6 @@ export const useAdminChat = () => {
   // Načtení online uživatelů
   const fetchOnlineUsers = async () => {
     try {
-      console.log('Načítám aktuální seznam uživatelů...');
       const { data, error } = await supabase
         .from('chat_users')
         .select('email, name')
@@ -446,7 +441,6 @@ export const useAdminChat = () => {
 
       if (error) throw error;
 
-      console.log('Načtená data:', data);
 
       // Získáme aktuálního uživatele pro porovnání
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -462,9 +456,7 @@ export const useAdminChat = () => {
 
       // Vždy aktualizujeme seznam uživatelů
       users.value = newUsers;
-      console.log('Seznam uživatelů aktualizován:', users.value.length, 'uživatelů');
     } catch (err) {
-      console.error('Chyba při načítání uživatelů:', err);
     }
   };
 

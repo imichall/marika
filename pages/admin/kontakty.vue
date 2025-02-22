@@ -586,7 +586,7 @@ const bankAccounts = computed(() => {
 
 onMounted(async () => {
   await Promise.all([loadPermissions(), fetchContacts(), fetchSettings()]);
-  console.log("Settings loaded:", settings.value);
+  /* console.log("Settings loaded:", settings.value); */
 });
 
 const resetForm = () => {
@@ -671,7 +671,7 @@ const confirmDelete = async () => {
 watch(
   settings,
   (newSettings) => {
-    console.log("Settings changed:", newSettings);
+    /* console.log("Settings changed:", newSettings); */
   },
   { immediate: true, deep: true }
 );

@@ -500,8 +500,6 @@ const setupSubscriptions = () => {
   subscription = supabase
     .channel("admin-chat")
     .on("broadcast", { event: "new_message" }, async (payload) => {
-      console.log("Přijat signál o nové zprávě", payload);
-
       // Načteme aktuální stav přečtení
       const {
         data: { user },
@@ -546,7 +544,6 @@ const setupSubscriptions = () => {
       }
     })
     .on("broadcast", { event: "chat_archived" }, () => {
-      console.log("Přijat signál o archivaci chatu");
       // Vyčistíme všechny zprávy a resetujeme stav
       messages.value = [];
       unreadCount.value = 0;
@@ -569,9 +566,7 @@ const setupSubscriptions = () => {
 // Sledování změn v users array
 watch(
   () => onlineUsers.value,
-  (newUsers) => {
-    console.log("Users updated:", newUsers.length);
-  },
+  (newUsers) => {},
   { deep: true }
 );
 </script>

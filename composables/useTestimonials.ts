@@ -35,7 +35,6 @@ export const useTestimonials = () => {
           created_at: String(item.created_at)
         }))
       } else {
-        console.log('Žádná data nebyla načtena')
       }
     } catch (err) {
       console.error('Error fetching testimonials:', err)

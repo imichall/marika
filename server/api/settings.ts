@@ -46,17 +46,17 @@ export default defineEventHandler(async (event) => {
   // GET request - načtení nastavení
   if (event.method === 'GET') {
     try {
-      console.log('Fetching bank accounts from Supabase...');
+      /* console.log('Fetching bank accounts from Supabase...'); */
       const { data: bankAccounts, error } = await client
         .from('bank_accounts')
         .select('*') as { data: BankAccount[] | null; error: any };
 
       if (error) {
-        console.error('Supabase error:', error);
+        /* console.error('Supabase error:', error); */
         throw error;
       }
 
-      console.log('Raw bank accounts data:', bankAccounts);
+      /* console.log('Raw bank accounts data:', bankAccounts); */
 
       // Převedeme na formát, který očekává frontend
       const settings: Settings = {
@@ -77,14 +77,14 @@ export default defineEventHandler(async (event) => {
       // Naplníme daty z databáze
       if (bankAccounts) {
         bankAccounts.forEach(account => {
-          console.log('Processing account:', account);
+          /* console.log('Processing account:', account); */
           const key = account.group_name.toLowerCase().replace(/\s+/g, '');
-          console.log('Mapped key:', key);
+          /* console.log('Mapped key:', key); */
 
           if (key === 'marikasingers' || key === 'five' || key === 'voices') {
             const mappedKey = key === 'marikasingers' ? 'marikaSingers' : key;
             const extractedAccount = extractAccountFromIBAN(account.account_number);
-            console.log('Extracted account number:', extractedAccount);
+            /* console.log('Extracted account number:', extractedAccount); */
 
             settings[mappedKey] = {
               accountNumber: extractedAccount,
@@ -94,10 +94,10 @@ export default defineEventHandler(async (event) => {
         });
       }
 
-      console.log('Final settings object:', settings);
+      /* console.log('Final settings object:', settings); */
       return settings;
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      /* console.error('Error fetching settings:', error); */
       throw createError({
         statusCode: 500,
         message: 'Chyba při načítání nastavení'
@@ -109,7 +109,7 @@ export default defineEventHandler(async (event) => {
   if (event.method === 'POST') {
     try {
       const body = await readBody(event) as Settings;
-      console.log('Received POST data:', body);
+      /* console.log('Received POST data:', body); */
 
       // Připravíme data pro upsert
       const upsertData = Object.entries(body).map(([key, value]) => {
@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
         };
       });
 
-      console.log('Upserting data:', upsertData);
+      /* console.log('Upserting data:', upsertData); */
 
       const { error } = await client
         .from('bank_accounts')
@@ -135,14 +135,14 @@ export default defineEventHandler(async (event) => {
         });
 
       if (error) {
-        console.error('Supabase upsert error:', error);
+        /* console.error('Supabase upsert error:', error); */
         throw error;
       }
 
-      console.log('Upsert successful');
+      /* console.log('Upsert successful'); */
       return { success: true };
     } catch (error) {
-      console.error('Error saving settings:', error);
+      /* console.error('Error saving settings:', error); */
       throw createError({
         statusCode: 500,
         message: 'Chyba při ukládání nastavení'

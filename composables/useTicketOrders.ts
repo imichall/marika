@@ -196,7 +196,6 @@ export const useTicketOrders = () => {
           table: 'ticket_orders'
         },
         (payload) => {
-          console.log('New order received:', payload); // Debug log
           handleNewOrder(payload);
         }
       )
@@ -208,7 +207,6 @@ export const useTicketOrders = () => {
           table: 'ticket_orders'
         },
         (payload) => {
-          console.log('Order updated:', payload); // Debug log
           handleOrderUpdate(payload);
         }
       )
@@ -220,7 +218,6 @@ export const useTicketOrders = () => {
           table: 'ticket_orders'
         },
         (payload) => {
-          console.log('Order deleted:', payload); // Debug log
           handleOrderDelete(payload);
         }
       )
@@ -228,7 +225,6 @@ export const useTicketOrders = () => {
 
   // Funkce pro přidání nové objednávky do lokálního stavu
   const handleNewOrder = async (payload: any) => {
-    console.log('Handling new order:', payload);
     const newOrder = payload.new;
 
     try {
@@ -266,7 +262,6 @@ export const useTicketOrders = () => {
 
   // Funkce pro aktualizaci existující objednávky v lokálním stavu
   const handleOrderUpdate = (payload: any) => {
-    console.log('Handling order update:', payload);
     const updatedOrder = payload.new;
     const oldOrder = payload.old;
 
@@ -301,7 +296,6 @@ export const useTicketOrders = () => {
 
   // Funkce pro smazání objednávky z lokálního stavu
   const handleOrderDelete = (payload: any) => {
-    console.log('Handling order delete:', payload);
     const deletedOrderId = payload.old.id;
     const deletedOrder = orders.value.find(order => order.id === deletedOrderId);
 

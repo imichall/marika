@@ -30,7 +30,6 @@ export const useUsers = () => {
 
       users.value = data || []
     } catch (err) {
-      console.error('Error fetching users:', err)
       error.value = 'Nepodařilo se načíst seznam uživatelů'
       throw err
     } finally {
@@ -60,7 +59,6 @@ export const useUsers = () => {
       await fetchUsers()
       return data
     } catch (err) {
-      console.error('Error adding user:', err)
       error.value = 'Nepodařilo se vytvořit uživatele'
       throw err
     } finally {
@@ -93,7 +91,6 @@ export const useUsers = () => {
 
       await fetchUsers()
     } catch (err) {
-      console.error('Error updating user:', err)
       error.value = 'Nepodařilo se upravit uživatele'
       throw err
     } finally {
@@ -112,7 +109,6 @@ export const useUsers = () => {
 
       await fetchUsers()
     } catch (err) {
-      console.error('Error deleting user:', err)
       error.value = 'Nepodařilo se smazat uživatele'
       throw err
     } finally {
