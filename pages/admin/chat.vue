@@ -53,37 +53,216 @@
         </div>
 
         <ul v-else class="divide-y divide-gray-200">
-          <li
-            v-for="archive in chatArchives"
-            :key="archive.id"
-            class="py-4 flex justify-between items-center"
-          >
-            <div>
-              <p class="text-sm font-medium">
-                Archiv z {{ formatDate(archive.created_at) }}
-              </p>
-              <p class="text-sm text-gray-500">
-                {{ archive.message_count }} zpráv
-              </p>
-            </div>
-            <div class="flex space-x-3">
-              <button
-                @click="downloadArchive(archive.id)"
-                class="text-indigo-600 hover:text-indigo-800"
-              >
-                Stáhnout
-              </button>
-              <button
-                @click="deleteArchive(archive.id)"
-                class="text-red-600 hover:text-red-800"
-              >
-                Smazat
-              </button>
+          <li v-for="archive in chatArchives" :key="archive.id" class="py-4">
+            <div class="flex flex-col gap-2">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="text-sm font-medium text-gray-900">
+                    Archiv z {{ formatDate(archive.created_at) }}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    {{ archive.message_count }} zpráv
+                  </p>
+                </div>
+                <div class="flex space-x-3">
+                  <button
+                    @click="viewArchive(archive)"
+                    class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  >
+                    <span class="material-icons-outlined text-[20px]"
+                      >visibility</span
+                    >
+                    <span>Zobrazit</span>
+                  </button>
+                  <button
+                    @click="downloadArchive(archive.id)"
+                    class="text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                  >
+                    <span class="material-icons-outlined text-[20px]"
+                      >download</span
+                    >
+                    <span>Stáhnout</span>
+                  </button>
+                  <button
+                    @click="confirmDelete(archive)"
+                    class="text-red-600 hover:text-red-800 flex items-center gap-1"
+                  >
+                    <span class="material-icons-outlined text-[20px]"
+                      >delete</span
+                    >
+                    <span>Smazat</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </li>
         </ul>
       </div>
     </div>
+
+    <!-- Modal pro zobrazení archivu -->
+    <TransitionRoot appear :show="!!selectedArchive" as="template">
+      <Dialog as="div" @close="selectedArchive = null" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+              >
+                <div class="absolute right-6 top-6">
+                  <button
+                    @click="selectedArchive = null"
+                    class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <span class="material-icons-outlined">close</span>
+                  </button>
+                </div>
+
+                <DialogTitle as="h3" class="text-xl font-semibold mb-4">
+                  Archivovaný chat z
+                  {{ formatDate(selectedArchive?.created_at) }}
+                </DialogTitle>
+
+                <div class="mt-4 max-h-[60vh] overflow-y-auto pr-2">
+                  <div class="space-y-4">
+                    <template v-if="selectedArchive">
+                      <div
+                        v-for="message in selectedArchive.messages"
+                        :key="message.id"
+                        class="flex gap-3"
+                        :class="{
+                          'justify-end':
+                            message.sender_email === currentUserEmail,
+                        }"
+                      >
+                        <div
+                          v-if="message.sender_email !== currentUserEmail"
+                          class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center"
+                        >
+                          <span class="text-sm font-medium text-indigo-600">
+                            {{ message.sender_name[0].toUpperCase() }}
+                          </span>
+                        </div>
+                        <div
+                          class="message-content max-w-[70%] rounded-2xl px-4 py-2 shadow-sm"
+                          :class="{
+                            'bg-gradient-to-br from-indigo-600 to-violet-600 text-white':
+                              message.sender_email === currentUserEmail,
+                            'bg-white border border-gray-100':
+                              message.sender_email !== currentUserEmail,
+                          }"
+                        >
+                          <div
+                            v-if="message.sender_email !== currentUserEmail"
+                            class="text-xs font-medium mb-1 text-gray-500"
+                          >
+                            {{ message.sender_name }}
+                          </div>
+                          <p class="text-sm">{{ message.message }}</p>
+                          <div
+                            class="text-[11px] mt-1 opacity-80"
+                            :class="{
+                              'text-white/70':
+                                message.sender_email === currentUserEmail,
+                              'text-gray-400':
+                                message.sender_email !== currentUserEmail,
+                            }"
+                          >
+                            {{ formatTime(message.created_at) }}
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Modal pro potvrzení smazání -->
+    <TransitionRoot appear :show="!!archiveToDelete" as="template">
+      <Dialog as="div" @close="archiveToDelete = null" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+              >
+                <DialogTitle as="h3" class="text-lg font-medium text-gray-900">
+                  Smazat archiv chatu
+                </DialogTitle>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500">
+                    Opravdu chcete smazat tento archiv chatu? Tato akce je
+                    nevratná.
+                  </p>
+                </div>
+
+                <div class="mt-4 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    @click="archiveToDelete = null"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                    @click="deleteArchiveConfirmed"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
 
     <!-- Správa uživatelů -->
     <div v-if="activeTab === 'users'" class="space-y-6">
@@ -103,11 +282,26 @@ import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import ChatManagement from "~/components/ChatManagement.vue";
+import {
+  TransitionRoot,
+  TransitionChild,
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+} from "@headlessui/vue";
+
+interface ChatMessage {
+  id: string;
+  sender_email: string;
+  sender_name: string;
+  message: string;
+  created_at: string;
+}
 
 interface ChatArchive {
   id: string;
   created_at: string;
-  messages: any[];
+  messages: ChatMessage[];
   message_count: number;
 }
 
@@ -116,12 +310,16 @@ const toast = useToast();
 const loading = ref(false);
 const activeTab = ref("history");
 const chatArchives = ref<ChatArchive[]>([]);
+const currentUserEmail = ref<string | null>(null);
 let subscription: any = null;
 
 const tabs = [
   { id: "history", name: "Historie chatu" },
   { id: "users", name: "Správa uživatelů" },
 ];
+
+const selectedArchive = ref<ChatArchive | null>(null);
+const archiveToDelete = ref<ChatArchive | null>(null);
 
 // Setup realtime subscriptions
 const setupSubscriptions = () => {
@@ -263,15 +461,25 @@ const downloadArchive = async (archiveId: string) => {
   }
 };
 
-// Smazání archivu
-const deleteArchive = async (archiveId: string) => {
-  if (!confirm("Opravdu chcete smazat tento archiv?")) return;
+// Zobrazení archivu
+const viewArchive = (archive: ChatArchive) => {
+  selectedArchive.value = archive;
+};
+
+// Potvrzení smazání
+const confirmDelete = (archive: ChatArchive) => {
+  archiveToDelete.value = archive;
+};
+
+// Smazání archivu po potvrzení
+const deleteArchiveConfirmed = async () => {
+  if (!archiveToDelete.value) return;
 
   try {
     const { error } = await supabase
       .from("chat_archives")
       .delete()
-      .eq("id", archiveId);
+      .eq("id", archiveToDelete.value.id);
 
     if (error) throw error;
 
@@ -280,6 +488,8 @@ const deleteArchive = async (archiveId: string) => {
   } catch (err) {
     console.error("Error deleting archive:", err);
     toast.error("Nepodařilo se smazat archiv");
+  } finally {
+    archiveToDelete.value = null;
   }
 };
 
@@ -294,7 +504,41 @@ const formatDate = (date: string) => {
   });
 };
 
+// Formátování času
+const formatTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return date.toLocaleTimeString("cs-CZ", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return (
+      "Včera " +
+      date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })
+    );
+  } else {
+    return (
+      date.toLocaleDateString("cs-CZ", { day: "2-digit", month: "2-digit" }) +
+      " " +
+      date.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })
+    );
+  }
+};
+
 onMounted(async () => {
+  // Získáme aktuálního uživatele
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    currentUserEmail.value = user.email;
+  }
+
   await loadChatArchives();
   setupSubscriptions();
 });
