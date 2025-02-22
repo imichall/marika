@@ -110,61 +110,129 @@
         <div
           v-for="concert in filteredConcerts"
           :key="concert.id"
-          class="concert-card bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col"
+          class="concert-card group flex flex-col bg-white rounded-3xl shadow-md ring-1 ring-black/5 hover:ring-2 hover:ring-red-800/20 hover:shadow-xl hover:shadow-red-800/10 transition-all duration-500 h-full"
         >
-          <div class="relative h-[300px] overflow-hidden">
+          <div class="relative w-full h-[300px] flex-shrink-0">
             <img
+              v-if="concert.image"
               :src="concert.image"
               :alt="concert.title"
-              class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-              :style="
-                concert.image_position
-                  ? { objectPosition: concert.image_position }
-                  : {}
-              "
+              class="w-full h-full rounded-t-3xl object-cover transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
+              loading="lazy"
             />
             <div
-              class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4"
+              v-else
+              class="w-full h-full rounded-t-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center"
             >
-              <p class="text-white font-medium">
-                {{ formatDateWithTime(concert.date, concert.time) }}
-              </p>
+              <svg
+                class="w-16 h-16 text-gray-300 mb-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p class="text-gray-400 font-medium">Obrázek není k dispozici</p>
+            </div>
+            <div
+              class="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-90 transition-opacity duration-700 ease-in-out group-hover:opacity-100"
+            >
+              <div class="absolute bottom-0 w-full p-6">
+                <time
+                  :datetime="concert.date"
+                  class="text-white text-sm font-medium mb-2 block"
+                >
+                  {{ formatDateWithTime(concert.date, concert.time) }}
+                </time>
+                <h2
+                  class="font-bold text-2xl text-white group-hover:text-red-50 transition-colors duration-300"
+                >
+                  {{ concert.title }}
+                </h2>
+              </div>
             </div>
           </div>
-          <div class="flex flex-col gap-4 p-6 flex-grow">
-            <h3 class="font-bold text-2xl group">
-              {{ concert.title }}
-              <span
-                v-if="concert.group"
-                class="block text-gray-600 text-sm mt-1"
-              >
-                {{ concert.group }}
-              </span>
-            </h3>
-            <p class="text-gray-600 font-light line-clamp-3">
-              {{ concert.desc }}
+
+          <div class="flex flex-col flex-grow p-6">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="relative inline-flex items-center">
+                <div class="absolute -top-3 -right-3">
+                  <svg
+                    class="w-4.5 h-4.5 text-red-800/70 absolute -translate-y-1 animate-[noteFloat1_2s_ease-in-out_infinite]"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-4 h-4 text-red-800/60 absolute translate-x-5 translate-y-1 animate-[noteFloat2_2.2s_ease-in-out_0.2s_infinite]"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                    />
+                  </svg>
+                  <svg
+                    class="w-3.5 h-3.5 text-red-800/50 absolute translate-x-10 animate-[noteFloat3_1.8s_ease-in-out_0.4s_infinite]"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
+                    />
+                  </svg>
+                </div>
+                <span
+                  class="text-sm font-medium px-4 py-1.5 rounded-full whitespace-nowrap transform transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  :class="{
+                    'bg-gradient-to-r from-red-50 to-red-100 text-red-800 ring-1 ring-red-200 shadow-sm shadow-red-800/5':
+                      concert.group_name === 'Marika Singers',
+                    'bg-gradient-to-r from-rose-50 to-rose-100 text-rose-800 ring-1 ring-rose-200 shadow-sm shadow-rose-800/5':
+                      concert.group_name === 'Voices',
+                    'bg-gradient-to-r from-pink-50 to-pink-100 text-pink-800 ring-1 ring-pink-200 shadow-sm shadow-pink-800/5':
+                      concert.group_name === 'Five',
+                  }"
+                >
+                  {{ concert.group_name }}
+                </span>
+              </div>
+            </div>
+
+            <p class="text-gray-600 line-clamp-3 text-lg mb-6">
+              {{ concert.description }}
             </p>
-            <div class="flex gap-4 mt-auto pt-4">
-              <NuxtLink
-                :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
-                class="flex-1 bg-transparent text-black border-2 border-black px-4 py-2.5 text-center hover:bg-black hover:text-white transition-all duration-200 rounded-xl font-medium"
-              >
-                Informace
-              </NuxtLink>
-              <button
-                v-if="concert.ticket_id"
-                @click="openTicketInfoModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200"
-              >
-                Vstupenky
-              </button>
-              <button
-                v-else
-                @click="openTicketModal(concert)"
-                class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200"
-              >
-                Vstupenky
-              </button>
+
+            <div class="mt-auto">
+              <div class="flex gap-4">
+                <NuxtLink
+                  :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
+                  class="flex-1 bg-transparent text-black border-2 border-black/90 px-5 py-3 text-center hover:bg-black hover:text-white transition-all duration-300 rounded-xl font-medium shadow-sm hover:shadow-lg"
+                >
+                  Informace
+                </NuxtLink>
+                <button
+                  v-if="concert.ticket_id"
+                  @click="openTicketInfoModal(concert)"
+                  class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
+                >
+                  Vstupenky
+                </button>
+                <button
+                  v-else
+                  @click="openTicketModal(concert)"
+                  class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
+                >
+                  Vstupenky
+                </button>
+              </div>
             </div>
           </div>
         </div>

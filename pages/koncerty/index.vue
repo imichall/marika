@@ -122,25 +122,15 @@
           v-for="(concert, index) in filteredConcerts"
           :key="concert.id"
         >
-          <div
-            class="concert-card group flex flex-col bg-white rounded-3xl shadow-md ring-1 ring-black/5 hover:ring-2 hover:ring-red-800/20 hover:shadow-xl hover:shadow-red-800/10 transition-all duration-500"
-            :class="{
-              'md:col-span-2': index % 5 === 0,
-              'lg:row-span-2': index % 7 === 3,
-            }"
+          <article
+            class="concert-card group flex flex-col bg-white rounded-3xl shadow-md ring-1 ring-black/5 hover:ring-2 hover:ring-red-800/20 hover:shadow-xl hover:shadow-red-800/10 transition-all duration-500 h-full"
           >
-            <div
-              class="relative w-full"
-              :class="{
-                'aspect-[16/9]': index % 5 === 0,
-                'aspect-[4/3]': !(index % 5 === 0),
-              }"
-            >
+            <div class="relative w-full h-[300px] flex-shrink-0">
               <img
                 v-if="concert.image"
                 :src="concert.image"
                 :alt="concert.title"
-                class="w-full h-full rounded-t-3xl object-cover transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
+                class="w-full h-full rounded-t-3xl object-contain transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
                 loading="lazy"
               />
               <div
@@ -174,17 +164,17 @@
                   >
                     {{ formatDateWithTime(concert.date, concert.time) }}
                   </time>
-                  <h3
+                  <h2
                     class="font-bold text-2xl text-white group-hover:text-red-50 transition-colors duration-300"
                   >
                     {{ concert.title }}
-                  </h3>
+                  </h2>
                 </div>
               </div>
             </div>
 
-            <div class="flex flex-col flex-grow p-6 space-y-4">
-              <div class="flex items-center gap-2">
+            <div class="flex flex-col flex-grow p-6">
+              <div class="flex items-center gap-2 mb-4">
                 <div class="relative inline-flex items-center">
                   <div class="absolute -top-3 -right-3">
                     <svg
@@ -231,34 +221,36 @@
                 </div>
               </div>
 
-              <p class="text-gray-600 flex-grow line-clamp-3 text-lg">
+              <p class="text-gray-600 line-clamp-3 text-lg mb-6">
                 {{ concert.description }}
               </p>
 
-              <footer class="flex gap-4 mt-6">
-                <NuxtLink
-                  :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
-                  class="flex-1 bg-transparent text-black border-2 border-black/90 px-5 py-3 text-center hover:bg-black hover:text-white transition-all duration-300 rounded-xl font-medium shadow-sm hover:shadow-lg"
-                >
-                  Informace
-                </NuxtLink>
-                <button
-                  v-if="concert.ticket_id"
-                  @click="openTicketInfoModal(concert)"
-                  class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
-                >
-                  Vstupenky
-                </button>
-                <button
-                  v-else
-                  @click="openTicketModal(concert)"
-                  class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
-                >
-                  Vstupenky
-                </button>
-              </footer>
+              <div class="mt-auto">
+                <div class="flex gap-4">
+                  <NuxtLink
+                    :to="`/koncerty/${concert.id}-${slugify(concert.title)}`"
+                    class="flex-1 bg-transparent text-black border-2 border-black/90 px-5 py-3 text-center hover:bg-black hover:text-white transition-all duration-300 rounded-xl font-medium shadow-sm hover:shadow-lg"
+                  >
+                    Informace
+                  </NuxtLink>
+                  <button
+                    v-if="concert.ticket_id"
+                    @click="openTicketInfoModal(concert)"
+                    class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
+                  >
+                    Vstupenky
+                  </button>
+                  <button
+                    v-else
+                    @click="openTicketModal(concert)"
+                    class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
+                  >
+                    Vstupenky
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          </article>
         </FadeUpOnScroll>
       </div>
 
