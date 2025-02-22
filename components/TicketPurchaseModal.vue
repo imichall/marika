@@ -622,7 +622,7 @@ const loadBankDetails = async () => {
   }
 };
 
-// Načteme bankovní údaje při otevření modalu
+// Watch for modal closing and reset form
 watch(
   () => props.isOpen,
   (newValue) => {
@@ -632,6 +632,8 @@ watch(
       if (props.concert.is_voluntary) {
         ticketCount.value = 1;
       }
+    } else {
+      resetForm();
     }
   }
 );
@@ -640,6 +642,11 @@ const handleClose = () => {
   if (currentStep.value === steps.value.length - 1) {
     return;
   }
+  resetForm();
+  emit("close");
+};
+
+const resetForm = () => {
   currentStep.value = 0;
   ticketCount.value = 1;
   contactInfo.value = {
@@ -647,7 +654,6 @@ const handleClose = () => {
     email: "",
   };
   errors.value = {};
-  emit("close");
 };
 
 const formatAccountNumber = (accountNumber, bankCode) => {
@@ -679,13 +685,7 @@ const formattedVariableSymbol = computed(() => {
 });
 
 const closeModal = () => {
-  currentStep.value = 0;
-  ticketCount.value = 1;
-  contactInfo.value = {
-    name: "",
-    email: "",
-  };
-  errors.value = {};
+  resetForm();
   emit("close");
 };
 
@@ -713,6 +713,7 @@ const handleSubmit = async () => {
       };
 
       await createOrder(orderData);
+      resetForm();
       emit("close");
       showConfirmationModal.value = true;
     } catch (err) {
