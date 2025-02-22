@@ -87,7 +87,7 @@
 
     <!-- Správa uživatelů -->
     <div v-if="activeTab === 'users'" class="space-y-6">
-      <ChatManagement />
+      <ChatManagement :key="Date.now()" />
     </div>
   </div>
 </template>
@@ -98,7 +98,7 @@ definePageMeta({
   middleware: ["auth", "permission"],
 });
 
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
@@ -116,11 +116,49 @@ const toast = useToast();
 const loading = ref(false);
 const activeTab = ref("history");
 const chatArchives = ref<ChatArchive[]>([]);
+let subscription: any = null;
 
 const tabs = [
   { id: "history", name: "Historie chatu" },
   { id: "users", name: "Správa uživatelů" },
 ];
+
+// Setup realtime subscriptions
+const setupSubscriptions = () => {
+  if (subscription) {
+    subscription.unsubscribe();
+  }
+
+  subscription = supabase
+    .channel("chat-admin")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_users",
+      },
+      async () => {
+        // Při změně v chat_users tabulce znovu načteme data
+        if (activeTab.value === "users") {
+          await loadChatArchives();
+        }
+      }
+    )
+    .subscribe();
+};
+
+// Cleanup function
+const cleanup = () => {
+  if (subscription) {
+    try {
+      subscription.unsubscribe();
+    } catch (err) {
+      console.error("Error during subscription cleanup:", err);
+    }
+    subscription = null;
+  }
+};
 
 // Načtení archivů chatu
 const loadChatArchives = async () => {
@@ -258,5 +296,17 @@ const formatDate = (date: string) => {
 
 onMounted(async () => {
   await loadChatArchives();
+  setupSubscriptions();
+});
+
+onUnmounted(() => {
+  cleanup();
+});
+
+// Watch for tab changes
+watch(activeTab, async (newTab) => {
+  if (newTab === "users") {
+    await loadChatArchives();
+  }
 });
 </script>

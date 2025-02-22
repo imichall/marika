@@ -1,5 +1,6 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSupabaseClient } from '#imports'
+import { useToast } from 'vue-toastification'
 
 export interface ChatMessage {
   id: string
@@ -19,8 +20,23 @@ export interface ChatUser {
   is_typing?: boolean
 }
 
+// Typy pro Supabase
+interface PresenceState {
+  email: string;
+  timestamp: string;
+}
+
+interface BroadcastPayload {
+  type: string;
+  event: string;
+  payload?: {
+    message?: ChatMessage;
+  };
+}
+
 export const useAdminChat = () => {
   const supabase = useSupabaseClient()
+  const toast = useToast()
   const messages = ref<ChatMessage[]>([])
   const users = ref<ChatUser[]>([])
   const loading = ref(false)
@@ -31,11 +47,13 @@ export const useAdminChat = () => {
   let subscription: any = null
   let typingTimeout: NodeJS.Timeout | null = null
   let broadcastChannel: any = null
+  const isOpen = ref(false)
+  const messagesContainer = ref<HTMLElement | null>(null)
 
   // Nastavení broadcast channelu pro nové zprávy
   const setupBroadcastChannel = () => {
     broadcastChannel = supabase.channel('chat-updates')
-      .subscribe(async (status) => {
+      .subscribe(async (status: string) => {
         if (status === 'SUBSCRIBED') {
           console.log('Připojeno k broadcast channelu')
         }
@@ -158,17 +176,21 @@ export const useAdminChat = () => {
   }
 
   // Nastavení real-time subscriptions
-  const setupSubscriptions = () => {
+  const setupSubscriptions = async () => {
     if (subscription) {
       subscription.unsubscribe()
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) return
+
+    // Vytvoříme jeden kanál pro všechny události
     subscription = supabase
       .channel('admin-chat')
       .on(
         'broadcast',
         { event: 'new_message' },
-        async (payload) => {
+        async (payload: BroadcastPayload) => {
           console.log('Přijat signál o nové zprávě', payload)
 
           // Načteme aktuální stav přečtení
@@ -254,6 +276,19 @@ export const useAdminChat = () => {
         }
       )
       .on(
+        'broadcast',
+        { event: 'chat_archived' },
+        () => {
+          console.log('Přijat signál o archivaci chatu')
+          // Vyčistíme všechny zprávy a resetujeme stav
+          messages.value = []
+          unreadCount.value = 0
+          lastReadTimestamp.value = null
+          // Zobrazíme informaci uživateli
+          toast.info('Chat byl archivován administrátorem')
+        }
+      )
+      .on(
         'presence',
         { event: 'sync' },
         () => {
@@ -266,7 +301,23 @@ export const useAdminChat = () => {
           typingUsers.value = typing
         }
       )
-      .subscribe()
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_users'
+        },
+        async () => {
+          console.log('Detekována změna v chat_users, aktualizuji seznam')
+          await fetchOnlineUsers()
+        }
+      )
+      .subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Připojeno k admin-chat kanálu')
+        }
+      })
   }
 
   // Odeslání nové zprávy
@@ -387,31 +438,33 @@ export const useAdminChat = () => {
   // Načtení online uživatelů
   const fetchOnlineUsers = async () => {
     try {
-      // Načteme uživatele z chat_users a připojíme jejich online status
+      console.log('Načítám aktuální seznam uživatelů...');
       const { data, error } = await supabase
         .from('chat_users')
-        .select(`
-          email,
-          name,
-          created_at,
-          user_roles!inner (
-            name
-          )
-        `);
+        .select('email, name')
+        .order('name');
 
       if (error) throw error;
 
-      // Transformujeme data do požadovaného formátu
-      users.value = (data || []).map(user => ({
+      console.log('Načtená data:', data);
+
+      // Získáme aktuálního uživatele pro porovnání
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      const newUsers = (data || []).map((user: ChatUser) => ({
         email: user.email,
-        name: user.name || user.user_roles.name, // Použijeme jméno z chat_users, nebo z user_roles jako fallback
-        avatar_url: null, // Avatar zatím nepoužíváme
+        name: user.name || user.email,
+        avatar_url: user.email === currentUser?.email ? currentUser?.user_metadata?.avatar_url : null,
         last_seen: new Date().toISOString(),
-        is_online: true, // Prozatím nastavíme všechny jako online
+        is_online: true,
         is_typing: false
       }));
+
+      // Vždy aktualizujeme seznam uživatelů
+      users.value = newUsers;
+      console.log('Seznam uživatelů aktualizován:', users.value.length, 'uživatelů');
     } catch (err) {
-      console.error('Error fetching online users:', err);
+      console.error('Chyba při načítání uživatelů:', err);
     }
   };
 
@@ -437,12 +490,20 @@ export const useAdminChat = () => {
   // Cleanup
   const cleanup = () => {
     if (subscription) {
-      subscription.untrack()
-      subscription.unsubscribe()
+      try {
+        subscription.untrack()
+        subscription.unsubscribe()
+      } catch (err) {
+        console.error('Error during subscription cleanup:', err)
+      }
       subscription = null
     }
     if (broadcastChannel) {
-      broadcastChannel.unsubscribe()
+      try {
+        broadcastChannel.unsubscribe()
+      } catch (err) {
+        console.error('Error during broadcast channel cleanup:', err)
+      }
       broadcastChannel = null
     }
     if (typingTimeout) {
@@ -450,6 +511,37 @@ export const useAdminChat = () => {
     }
     updateUserStatus(false)
   }
+
+  const toggleChat = () => {
+    isOpen.value = !isOpen.value;
+
+    // Pokud otevíráme chat
+    if (isOpen.value) {
+      nextTick(async () => {
+        // Nastavíme subscriptions a aktualizujeme seznam uživatelů
+        await Promise.all([
+          setupSubscriptions(),
+          fetchOnlineUsers()
+        ]);
+
+        const container = messagesContainer.value?.parentElement;
+        if (!container) return;
+
+        // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
+        if (unreadCount.value > 0) {
+          const unreadDivider = container.querySelector(".border-indigo-300");
+          if (unreadDivider) {
+            unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        } else {
+          container.scrollTop = container.scrollHeight;
+        }
+      });
+    } else {
+      // Při zavření chatu vyčistíme subscriptions
+      cleanup();
+    }
+  };
 
   onMounted(async () => {
     try {
@@ -489,6 +581,8 @@ export const useAdminChat = () => {
     fetchOnlineUsers,
     signalTyping,
     markMessageAsRead,
-    markAllAsRead
+    markAllAsRead,
+    toggleChat,
+    isOpen
   }
 }

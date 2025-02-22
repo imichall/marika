@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import {
@@ -155,12 +155,62 @@ const chatUsers = ref<ChatUser[]>([]);
 const showAddUserModal = ref(false);
 const selectedUser = ref<User | null>(null);
 const allUsers = ref<User[]>([]);
+let subscription: any = null;
 
 // Computed pro dostupné uživatele (ti, kteří ještě nemají přístup do chatu)
 const availableUsers = computed(() => {
-  const chatUserEmails = new Set(chatUsers.value.map((u) => u.email));
+  const chatUserEmails = new Set(chatUsers.value.map((user) => user.email));
   return allUsers.value.filter((user) => !chatUserEmails.has(user.email));
 });
+
+// Setup realtime subscriptions
+const setupSubscriptions = () => {
+  // Cleanup any existing subscription
+  if (subscription) {
+    subscription.unsubscribe();
+  }
+
+  // Subscribe to all changes in chat_users table
+  subscription = supabase
+    .channel("chat-management")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "chat_users",
+      },
+      async (payload: {
+        schema: string;
+        table: string;
+        eventType: "INSERT" | "UPDATE" | "DELETE";
+        new: any;
+        old: any;
+      }) => {
+        console.log("Chat users change detected:", payload.eventType);
+
+        // Okamžitě aktualizujeme oba seznamy
+        await Promise.all([fetchChatUsers(), fetchAllUsers()]);
+      }
+    )
+    .subscribe((status: string) => {
+      if (status === "SUBSCRIBED") {
+        console.log("Připojeno k chat_users změnám");
+      }
+    });
+};
+
+// Vylepšený cleanup
+const cleanup = () => {
+  if (subscription) {
+    try {
+      subscription.unsubscribe();
+    } catch (err) {
+      console.error("Error during subscription cleanup:", err);
+    }
+    subscription = null;
+  }
+};
 
 // Načtení všech uživatelů
 const fetchAllUsers = async () => {
@@ -198,41 +248,59 @@ const addUserAccess = async () => {
   if (!selectedUser.value) return;
 
   try {
+    loading.value = true;
     const { error } = await supabase.from("chat_users").insert({
       email: selectedUser.value.email,
       name: selectedUser.value.name,
     });
 
     if (error) throw error;
+
+    // Okamžitě aktualizujeme seznamy
+    await Promise.all([fetchChatUsers(), fetchAllUsers()]);
+
     toast.success("Uživatel byl přidán do chatu");
     showAddUserModal.value = false;
     selectedUser.value = null;
-    await fetchChatUsers();
   } catch (err) {
     console.error("Error adding chat user:", err);
     toast.error("Nepodařilo se přidat uživatele");
+  } finally {
+    loading.value = false;
   }
 };
 
 // Odebrání uživatele z chatu
 const removeUserAccess = async (email: string) => {
   try {
+    loading.value = true;
     const { error } = await supabase
       .from("chat_users")
       .delete()
       .eq("email", email);
 
     if (error) throw error;
+
+    // Okamžitě aktualizujeme seznamy
+    await Promise.all([fetchChatUsers(), fetchAllUsers()]);
+
     toast.success("Uživatel byl odebrán z chatu");
-    await fetchChatUsers();
   } catch (err) {
     console.error("Error removing chat user:", err);
     toast.error("Nepodařilo se odebrat uživatele");
+  } finally {
+    loading.value = false;
   }
 };
 
 // Inicializace
 onMounted(async () => {
   await Promise.all([fetchChatUsers(), fetchAllUsers()]);
+  setupSubscriptions();
+});
+
+// Cleanup při unmount
+onUnmounted(() => {
+  cleanup();
 });
 </script>

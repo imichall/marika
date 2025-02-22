@@ -21,10 +21,10 @@
         </div>
         <h3 class="font-semibold">Admin Chat</h3>
         <span
-          v-if="onlineUsers.length > 0"
+          v-if="onlineUsersCount > 0"
           class="px-2.5 py-1 text-xs bg-white/20 backdrop-blur-sm rounded-full font-medium"
         >
-          {{ onlineUsers.length }} online
+          {{ onlineUsersCount }} online
         </span>
       </div>
       <button
@@ -199,12 +199,12 @@
               v-model="newMessage"
               type="text"
               placeholder="Napište zprávu..."
-              class="w-full px-4 py-2.5 pr-20 border border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
+              class="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
               :disabled="loading"
               @input="handleTyping"
             />
             <div
-              class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"
+              class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center"
             >
               <div v-if="loading">
                 <div
@@ -213,10 +213,10 @@
               </div>
               <button
                 type="button"
-                class="emoji-button p-1.5 text-gray-400 hover:text-indigo-500 focus:outline-none transition-colors"
+                class="emoji-button p-2 text-gray-400 hover:text-indigo-500 focus:outline-none transition-colors"
                 @click.stop="showEmojiPicker = !showEmojiPicker"
               >
-                <span class="material-icons-outlined text-[20px]">mood</span>
+                <span class="material-icons-outlined text-xl">mood</span>
               </button>
             </div>
 
@@ -233,10 +233,10 @@
           </div>
           <button
             type="submit"
-            class="p-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full hover:shadow-lg hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all duration-200"
+            class="p-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-full hover:shadow-lg hover:from-indigo-500 hover:to-violet-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none transition-all duration-200 w-10 h-10 flex items-center justify-center"
             :disabled="!newMessage.trim() || loading"
           >
-            <span class="material-icons-outlined">send</span>
+            <span class="material-icons-outlined text-xl">send</span>
           </button>
         </form>
       </div>
@@ -252,7 +252,6 @@ import type { ChatMessage, ChatUser } from "~/composables/useAdminChat";
 import "emoji-picker-element";
 
 const supabase = useSupabaseClient();
-const isOpen = ref(false);
 const newMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 const currentUserEmail = ref<string | null>(null);
@@ -270,7 +269,11 @@ const {
   lastReadTimestamp,
   markMessageAsRead,
   markAllAsRead,
+  toggleChat,
+  isOpen,
 } = useAdminChat();
+
+const onlineUsersCount = computed(() => onlineUsers.value.length);
 
 // Computed pro zobrazení indikátoru psaní
 const someoneElseIsTyping = computed(() => {
@@ -324,28 +327,6 @@ onMounted(async () => {
     }
   }
 });
-
-const toggleChat = () => {
-  isOpen.value = !isOpen.value;
-
-  // Pokud otevíráme chat
-  if (isOpen.value) {
-    nextTick(() => {
-      const container = messagesContainer.value?.parentElement;
-      if (!container) return;
-
-      // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
-      if (unreadCount.value > 0) {
-        const unreadDivider = container.querySelector(".border-indigo-300");
-        if (unreadDivider) {
-          unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
-    });
-  }
-};
 
 // Funkce pro kontrolu viditelnosti zprávy
 const isMessageVisible = (element: Element) => {
@@ -584,6 +565,15 @@ const setupSubscriptions = () => {
     })
     .subscribe();
 };
+
+// Sledování změn v users array
+watch(
+  () => onlineUsers.value,
+  (newUsers) => {
+    console.log("Users updated:", newUsers.length);
+  },
+  { deep: true }
+);
 </script>
 
 <style scoped>
