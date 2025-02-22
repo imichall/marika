@@ -564,34 +564,17 @@
                       <label
                         class="block text-gray-700 text-sm font-medium mb-2"
                       >
-                        Náhled a pozice obrázku
+                        Náhled obrázku
                       </label>
                       <div
                         class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border-2 border-gray-200"
                       >
-                        <div
-                          class="absolute inset-0 cursor-move"
-                          @mousedown="startImageDrag"
-                          @mousemove="handleImageDrag"
-                          @mouseup="stopImageDrag"
-                          @mouseleave="stopImageDrag"
-                        >
-                          <img
-                            ref="previewImage"
-                            :src="imagePreview"
-                            alt="Náhled obrázku"
-                            class="absolute w-[150%] max-w-none"
-                            :style="{
-                              top: `${imagePosition.y}%`,
-                              left: `${imagePosition.x}%`,
-                            }"
-                          />
-                        </div>
+                        <img
+                          :src="imagePreview"
+                          alt="Náhled obrázku"
+                          class="w-full h-full object-cover"
+                        />
                       </div>
-                      <p class="mt-2 text-sm text-gray-500">
-                        Klikněte a táhněte pro nastavení pozice obrázku v
-                        náhledu
-                      </p>
                     </div>
                     <button
                       @click.prevent="removeImage"
@@ -2751,7 +2734,6 @@ const resetForm = () => {
     has_presale: false,
     presale_text: "",
     image: "",
-    image_position: "25% 25%", // Výchozí pozice
     variable_symbol: "",
     qr_session: "",
     account_number: "123456789",
@@ -2766,6 +2748,8 @@ const resetForm = () => {
   posterPreview.value = null;
   editingConcert.value = null;
   isFormVisible.value = false;
+  isUploading.value = false;
+  uploadProgress.value = 0;
 };
 
 const closeModal = () => {
@@ -2809,6 +2793,7 @@ const handleSubmit = async () => {
       has_presale: form.value.has_presale,
       presale_text: form.value.presale_text,
       payment_message: form.value.payment_message,
+      image: form.value.image, // Add image path to concert data
     };
 
     // Pokud není vybraná vstupenka, vygenerujeme QR session data
@@ -3176,8 +3161,7 @@ const showArchivePreview = (concert) => {
   showArchiveModal.value = true;
 };
 
-const startPosition = ref({ x: 0, y: 0 });
-const imagePosition = ref({ x: -25, y: -25 }); // Výchozí pozice obrázku
+const imagePosition = ref({ x: 0, y: 0 });
 const previewImage = ref(null);
 
 const startDragging = (e) => {
