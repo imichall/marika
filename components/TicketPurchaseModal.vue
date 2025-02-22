@@ -370,14 +370,12 @@
                 <div class="space-y-4">
                   <p class="text-gray-600">
                     <template v-if="props.concert.is_voluntary">
-                      Na email
-                      <span class="font-medium">{{ contactInfo.email }}</span>
-                      vám přijde potvrzení rezervace.
+                      Děkujeme za vaši rezervaci, těšíme se na viděnou na
+                      koncertě!
                     </template>
                     <template v-else>
-                      Po zpracování objednávky vám na email
-                      <span class="font-medium">{{ contactInfo.email }}</span>
-                      zašleme potvrzení s elektronickou vstupenkou.
+                      Děkujeme za vaši objednávku. Po zaplacení se těšíme na
+                      viděnou na koncertě!
                     </template>
                   </p>
 
