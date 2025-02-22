@@ -199,15 +199,9 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
               >
-                <div class="flex items-center justify-between mb-6">
-                  <DialogTitle
-                    as="h3"
-                    class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
-                  >
-                    {{ editingUser ? "Upravit uživatele" : "Přidat uživatele" }}
-                  </DialogTitle>
+                <div class="absolute right-6 top-6">
                   <button
                     @click="showAddModal = false"
                     class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
@@ -216,65 +210,146 @@
                   </button>
                 </div>
 
-                <form @submit.prevent="handleSubmit" class="space-y-4">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      v-model="form.email"
-                      type="email"
-                      required
-                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
-                      :disabled="editingUser"
-                    />
+                <div class="mb-8">
+                  <DialogTitle as="h3" class="text-2xl font-bold">
+                    {{ editingUser ? "Upravit uživatele" : "Přidat uživatele" }}
+                  </DialogTitle>
+                  <p class="mt-2 text-gray-500">
+                    {{
+                      editingUser
+                        ? "Upravte údaje existujícího uživatele"
+                        : "Vytvořte nového uživatele v systému"
+                    }}
+                  </p>
+                </div>
+
+                <form @submit.prevent="handleSubmit" class="space-y-6">
+                  <div class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      >
+                        Email
+                      </label>
+                      <div class="relative group">
+                        <div
+                          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                        >
+                          <span
+                            class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          >
+                            <span class="material-icons-outlined text-[20px]"
+                              >mail</span
+                            >
+                          </span>
+                        </div>
+                        <input
+                          v-model="form.email"
+                          type="email"
+                          required
+                          :disabled="editingUser"
+                          class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200"
+                          :class="{
+                            'bg-gray-50 text-gray-500 cursor-not-allowed':
+                              editingUser,
+                            'hover:border-violet-300': !editingUser,
+                          }"
+                        />
+                      </div>
+                    </div>
+
+                    <div v-if="!editingUser">
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      >
+                        Heslo
+                      </label>
+                      <div class="relative group">
+                        <div
+                          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                        >
+                          <span
+                            class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          >
+                            <span class="material-icons-outlined text-[20px]"
+                              >lock</span
+                            >
+                          </span>
+                        </div>
+                        <input
+                          v-model="form.password"
+                          type="password"
+                          required
+                          class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      >
+                        Role
+                      </label>
+                      <div class="relative group">
+                        <div
+                          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                        >
+                          <span
+                            class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          >
+                            <span class="material-icons-outlined text-[20px]"
+                              >badge</span
+                            >
+                          </span>
+                        </div>
+                        <select
+                          v-model="form.role"
+                          required
+                          class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 appearance-none cursor-pointer"
+                        >
+                          <option value="admin" class="py-2">
+                            Administrátor
+                          </option>
+                          <option value="editor" class="py-2">Editor</option>
+                          <option value="viewer" class="py-2">Prohlížeč</option>
+                        </select>
+                        <div
+                          class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                        >
+                          <span
+                            class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          >
+                            <span class="material-icons-outlined text-[20px]"
+                              >expand_more</span
+                            >
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div v-if="!editingUser">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Heslo
-                    </label>
-                    <input
-                      v-model="form.password"
-                      type="password"
-                      required
-                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
-                    />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                      Role
-                    </label>
-                    <select
-                      v-model="form.role"
-                      required
-                      class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500 transition-colors duration-200"
-                    >
-                      <option value="admin">Administrátor</option>
-                      <option value="editor">Editor</option>
-                      <option value="viewer">Prohlížeč</option>
-                    </select>
-                  </div>
-
-                  <div class="flex justify-end space-x-3 pt-4">
+                  <div class="flex justify-end gap-3 pt-6">
                     <button
                       type="button"
                       @click="showAddModal = false"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200"
                     >
                       Zrušit
                     </button>
                     <button
                       type="submit"
-                      class="px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200"
+                      class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-xl hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200 min-w-[100px]"
                       :disabled="loading"
                     >
                       <span
                         v-if="loading"
                         class="inline-block animate-spin mr-2"
-                        >⌛</span
                       >
+                        <span class="material-icons-outlined text-[20px]"
+                          >refresh</span
+                        >
+                      </span>
                       {{ editingUser ? "Uložit" : "Přidat" }}
                     </button>
                   </div>

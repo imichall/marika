@@ -22,27 +22,16 @@ export const useUsers = () => {
       loading.value = true
       error.value = null
 
-      const { data, error: err } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const { data, error: fetchError } = await supabase
+        .rpc('get_users')
 
-      if (err) throw err
+      if (fetchError) throw fetchError
 
-      if (data) {
-        users.value = data.map(user => ({
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          is_admin: user.is_admin,
-          created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at,
-          confirmed_at: user.confirmed_at
-        }))
-      }
+      users.value = data || []
     } catch (err) {
       console.error('Error fetching users:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      error.value = 'Nepodařilo se načíst seznam uživatelů'
+      throw err
     } finally {
       loading.value = false
     }
@@ -51,95 +40,59 @@ export const useUsers = () => {
   const addUser = async (email: string, password: string, role: User['role']) => {
     try {
       loading.value = true
+      error.value = null
 
-      // Get current user for audit
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      if (!currentUser?.email) throw new Error('User not authenticated')
-
-      // Create user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true
-      })
-
-      if (authError) throw authError
-
-      // Set user role
-      const { error: roleError } = await supabase
-        .from('users')
-        .update({ role })
-        .eq('id', authData.user.id)
-
-      if (roleError) throw roleError
-
-      // Create audit log
-      await supabase.rpc('create_audit_log', {
-        p_user_email: currentUser.email,
-        p_section: 'users',
-        p_action: 'create',
-        p_entity_id: authData.user.id,
-        p_details: {
-          email: email,
-          role: role
+      const response = await fetch('/.netlify/functions/create-user', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, role }),
+        headers: {
+          'Content-Type': 'application/json'
         }
       })
 
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user')
+      }
+
       await fetchUsers()
-      return true
+      return data
     } catch (err) {
       console.error('Error adding user:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      error.value = 'Nepodařilo se vytvořit uživatele'
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  const updateUser = async (id: string, updates: { role?: User['role'] }) => {
+  const updateUser = async (id: string, updates: { role: User['role'] }) => {
     try {
       loading.value = true
+      error.value = null
 
-      // Get current user for audit
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      if (!currentUser?.email) throw new Error('User not authenticated')
+      // Najdeme uživatele v našem seznamu
+      const user = users.value.find(u => u.id === id)
+      if (!user?.email) throw new Error('User email not found')
 
-      // Get user data before update
-      const { data: oldData } = await supabase
-        .from('users')
-        .select('email, role')
-        .eq('id', id)
-        .single()
-
-      // Update user
+      // Aktualizujeme záznam v user_roles podle emailu
       const { error: updateError } = await supabase
-        .from('users')
-        .update(updates)
-        .eq('id', id)
+        .from('user_roles')
+        .upsert({
+          email: user.email,
+          role: updates.role,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'email'
+        })
 
       if (updateError) throw updateError
 
-      // Create audit log
-      if (oldData) {
-        await supabase.rpc('create_audit_log', {
-          p_user_email: currentUser.email,
-          p_section: 'users',
-          p_action: 'update',
-          p_entity_id: id,
-          p_details: {
-            email: oldData.email,
-            changes: Object.keys(updates),
-            old_role: oldData.role,
-            new_role: updates.role
-          }
-        })
-      }
-
       await fetchUsers()
-      return true
     } catch (err) {
       console.error('Error updating user:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      error.value = 'Nepodařilo se upravit uživatele'
       throw err
     } finally {
       loading.value = false
@@ -149,42 +102,16 @@ export const useUsers = () => {
   const deleteUser = async (id: string) => {
     try {
       loading.value = true
+      error.value = null
 
-      // Get current user for audit
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      if (!currentUser?.email) throw new Error('User not authenticated')
-
-      // Get user data before deletion
-      const { data: userData } = await supabase
-        .from('users')
-        .select('email, role')
-        .eq('id', id)
-        .single()
-
-      // Delete user
       const { error: deleteError } = await supabase.auth.admin.deleteUser(id)
 
       if (deleteError) throw deleteError
 
-      // Create audit log
-      if (userData) {
-        await supabase.rpc('create_audit_log', {
-          p_user_email: currentUser.email,
-          p_section: 'users',
-          p_action: 'delete',
-          p_entity_id: id,
-          p_details: {
-            email: userData.email,
-            role: userData.role
-          }
-        })
-      }
-
       await fetchUsers()
-      return true
     } catch (err) {
       console.error('Error deleting user:', err)
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred'
+      error.value = 'Nepodařilo se smazat uživatele'
       throw err
     } finally {
       loading.value = false
