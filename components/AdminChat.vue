@@ -9,7 +9,16 @@
       @click="toggleChat"
     >
       <div class="flex items-center gap-3">
-        <span class="material-icons-outlined text-xl">chat</span>
+        <div class="relative">
+          <span class="material-icons-outlined text-xl">chat</span>
+          <!-- Indikátor nepřečtených zpráv -->
+          <span
+            v-if="unreadCount > 0"
+            class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-[10px] font-medium flex items-center justify-center rounded-full ring-2 ring-white"
+          >
+            {{ unreadCount }}
+          </span>
+        </div>
         <h3 class="font-semibold">Admin Chat</h3>
         <span
           v-if="onlineUsers.length > 0"
@@ -72,61 +81,95 @@
       <!-- Messages Container -->
       <div
         class="flex-1 overflow-y-auto min-h-0 bg-gradient-to-b from-gray-50/50 to-white relative scroll-smooth"
+        @scroll="handleScroll"
       >
         <div ref="messagesContainer" class="p-4 space-y-4 pb-16">
           <div
-            v-for="message in messages"
+            v-for="(message, index) in messages"
             :key="message.id"
-            class="flex gap-3 group"
-            :class="{
-              'justify-end': message.sender_email === currentUserEmail,
-            }"
+            class="space-y-4"
           >
-            <!-- Avatar pro ostatní uživatele -->
-            <template v-if="message.sender_email !== currentUserEmail">
-              <div
-                class="flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
-              >
-                <div
-                  class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-sm"
-                >
-                  <span
-                    class="text-sm font-medium bg-gradient-to-br from-indigo-600 to-violet-600 bg-clip-text text-transparent"
-                  >
-                    {{ message.sender_name[0].toUpperCase() }}
-                  </span>
-                </div>
-              </div>
-            </template>
-
-            <!-- Message content -->
+            <!-- Divider pro nepřečtené zprávy - zobrazí se před první nepřečtenou zprávou -->
             <div
-              class="max-w-[70%] rounded-2xl px-4 py-2 shadow-sm"
+              v-if="
+                unreadCount > 0 &&
+                lastReadTimestamp &&
+                new Date(message.created_at) > new Date(lastReadTimestamp) &&
+                !messages
+                  .slice(0, index)
+                  .some(
+                    (m) => new Date(m.created_at) > new Date(lastReadTimestamp)
+                  ) &&
+                message.sender_email !== currentUserEmail
+              "
+              class="relative py-3"
+            >
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t-2 border-indigo-300"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span
+                  class="px-4 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 rounded-full border border-indigo-200 shadow-sm ring-4 ring-white"
+                >
+                  Nové
+                </span>
+              </div>
+            </div>
+
+            <!-- Message -->
+            <div
+              class="flex gap-3 group"
               :class="{
-                'bg-gradient-to-br from-indigo-600 to-violet-600 text-white':
-                  message.sender_email === currentUserEmail,
-                'bg-white border border-gray-100':
-                  message.sender_email !== currentUserEmail,
+                'justify-end': message.sender_email === currentUserEmail,
               }"
             >
+              <!-- Avatar pro ostatní uživatele -->
+              <template v-if="message.sender_email !== currentUserEmail">
+                <div
+                  class="flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity"
+                >
+                  <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-sm"
+                  >
+                    <span
+                      class="text-sm font-medium bg-gradient-to-br from-indigo-600 to-violet-600 bg-clip-text text-transparent"
+                    >
+                      {{ message.sender_name[0].toUpperCase() }}
+                    </span>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Message content -->
               <div
-                v-if="message.sender_email !== currentUserEmail"
-                class="text-xs font-medium mb-1"
+                class="message-content max-w-[70%] rounded-2xl px-4 py-2 shadow-sm"
+                :data-timestamp="message.created_at"
                 :class="{
-                  'text-gray-500': message.sender_email !== currentUserEmail,
+                  'bg-gradient-to-br from-indigo-600 to-violet-600 text-white':
+                    message.sender_email === currentUserEmail,
+                  'bg-white border border-gray-100':
+                    message.sender_email !== currentUserEmail,
                 }"
               >
-                {{ message.sender_name }}
-              </div>
-              <p class="text-sm">{{ message.message }}</p>
-              <div
-                class="text-[11px] mt-1 opacity-80"
-                :class="{
-                  'text-white/70': message.sender_email === currentUserEmail,
-                  'text-gray-400': message.sender_email !== currentUserEmail,
-                }"
-              >
-                {{ formatTime(message.created_at) }}
+                <div
+                  v-if="message.sender_email !== currentUserEmail"
+                  class="text-xs font-medium mb-1"
+                  :class="{
+                    'text-gray-500': message.sender_email !== currentUserEmail,
+                  }"
+                >
+                  {{ message.sender_name }}
+                </div>
+                <p class="text-sm">{{ message.message }}</p>
+                <div
+                  class="text-[11px] mt-1 opacity-80"
+                  :class="{
+                    'text-white/70': message.sender_email === currentUserEmail,
+                    'text-gray-400': message.sender_email !== currentUserEmail,
+                  }"
+                >
+                  {{ formatTime(message.created_at) }}
+                </div>
               </div>
             </div>
           </div>
@@ -223,6 +266,10 @@ const {
   sendMessage: sendChatMessage,
   typingUsers,
   signalTyping,
+  unreadCount,
+  lastReadTimestamp,
+  markMessageAsRead,
+  markAllAsRead,
 } = useAdminChat();
 
 // Computed pro zobrazení indikátoru psaní
@@ -242,10 +289,9 @@ const typingUserName = computed(() => {
 
 // Sledování nových zpráv pro automatické scrollování
 watch(
-  [messages, typingUsers],
+  messages,
   () => {
     if (!isOpen.value) return;
-
     nextTick(() => {
       scrollToBottom(true);
     });
@@ -282,23 +328,37 @@ onMounted(async () => {
 const toggleChat = () => {
   isOpen.value = !isOpen.value;
 
-  // Pokud otevíráme chat, scrollujeme na konec
+  // Pokud otevíráme chat
   if (isOpen.value) {
-    // Počkáme 1 sekundu před scrollem
-    setTimeout(() => {
+    nextTick(() => {
       const container = messagesContainer.value?.parentElement;
-      if (container) {
-        // Nastavíme smooth scroll
-        container.style.scrollBehavior = "smooth";
-        container.scrollTop = container.scrollHeight;
+      if (!container) return;
 
-        // Po dokončení scrollu vrátíme původní chování
-        setTimeout(() => {
-          container.style.scrollBehavior = "auto";
-        }, 1000);
+      // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
+      if (unreadCount.value > 0) {
+        const unreadDivider = container.querySelector(".border-indigo-300");
+        if (unreadDivider) {
+          unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      } else {
+        container.scrollTop = container.scrollHeight;
       }
-    }, 1000);
+    });
   }
+};
+
+// Funkce pro kontrolu viditelnosti zprávy
+const isMessageVisible = (element: Element) => {
+  const container = messagesContainer.value?.parentElement;
+  if (!container) return false;
+
+  const containerRect = container.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+
+  return (
+    elementRect.top >= containerRect.top &&
+    elementRect.bottom <= containerRect.bottom
+  );
 };
 
 // Vylepšená funkce pro scroll
@@ -310,14 +370,35 @@ const scrollToBottom = (force = false) => {
     container.scrollHeight - container.scrollTop - container.clientHeight < 100;
 
   if (force || isScrolledNearBottom) {
-    // Pro nové zprávy použijeme auto scroll
     container.style.scrollBehavior = "auto";
     container.scrollTop = container.scrollHeight;
+    // Pokud scrollujeme na konec, označíme všechny zprávy jako přečtené
+    markAllAsRead();
   }
 };
 
 const handleScroll = () => {
-  // TODO: Implementovat načítání starších zpráv při scrollování nahoru
+  const container = messagesContainer.value?.parentElement;
+  if (!container || !unreadCount.value) return;
+
+  // Najdeme všechny zprávy v containeru
+  const messageElements = container.querySelectorAll(".message-content");
+  let lastVisibleMessageTime = null;
+
+  // Projdeme všechny zprávy a zkontrolujeme jejich viditelnost
+  messageElements.forEach((element) => {
+    if (isMessageVisible(element)) {
+      const timestamp = element.getAttribute("data-timestamp");
+      if (timestamp) {
+        lastVisibleMessageTime = timestamp;
+      }
+    }
+  });
+
+  // Pokud jsme našli viditelnou zprávu, označíme ji jako přečtenou
+  if (lastVisibleMessageTime) {
+    markMessageAsRead(lastVisibleMessageTime);
+  }
 };
 
 const handleTyping = () => {

@@ -7,6 +7,7 @@ export interface ChatMessage {
   sender_name: string
   message: string
   created_at: string
+  read_by?: string[]
 }
 
 export interface ChatUser {
@@ -25,6 +26,8 @@ export const useAdminChat = () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
   const typingUsers = ref<string[]>([])
+  const unreadCount = ref(0)
+  const lastReadTimestamp = ref<string | null>(null)
   let subscription: any = null
   let typingTimeout: NodeJS.Timeout | null = null
   let broadcastChannel: any = null
@@ -43,6 +46,9 @@ export const useAdminChat = () => {
   const fetchMessages = async () => {
     try {
       loading.value = true
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) throw new Error('Uživatel není přihlášen')
+
       const { data, error: err } = await supabase
         .from('admin_chat_messages')
         .select('*')
@@ -51,11 +57,103 @@ export const useAdminChat = () => {
 
       if (err) throw err
       messages.value = data || []
+
+      // Spočítáme nepřečtené zprávy
+      updateUnreadCount()
     } catch (err) {
       console.error('Error fetching messages:', err)
       error.value = err instanceof Error ? err.message : 'Nepodařilo se načíst zprávy'
     } finally {
       loading.value = false
+    }
+  }
+
+  // Aktualizace počtu nepřečtených zpráv
+  const updateUnreadCount = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) return
+
+      // Načteme poslední čas přečtení
+      const { data: lastRead } = await supabase
+        .from('admin_chat_last_read')
+        .select('last_read_at')
+        .eq('user_email', user.email)
+        .single()
+
+      if (lastRead?.last_read_at) {
+        lastReadTimestamp.value = lastRead.last_read_at
+        // Spočítáme zprávy novější než poslední přečtení
+        const unreadMessages = messages.value.filter(
+          msg => new Date(msg.created_at) > new Date(lastReadTimestamp.value!)
+        )
+        unreadCount.value = unreadMessages.length
+      } else {
+        // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s aktuálním časem
+        const { data: newLastRead, error: insertError } = await supabase
+          .from('admin_chat_last_read')
+          .upsert({
+            user_email: user.email,
+            last_read_at: new Date().toISOString()
+          })
+          .select('last_read_at')
+          .single()
+
+        if (!insertError && newLastRead) {
+          lastReadTimestamp.value = newLastRead.last_read_at
+          unreadCount.value = 0
+        } else {
+          console.error('Error creating last read record:', insertError)
+          unreadCount.value = messages.value.length
+          lastReadTimestamp.value = null
+        }
+      }
+    } catch (err) {
+      console.error('Error updating unread count:', err)
+    }
+  }
+
+  // Označení konkrétní zprávy jako přečtené
+  const markMessageAsRead = async (messageTimestamp: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) return
+
+      // Aktualizujeme čas posledního přečtení pouze pokud je zpráva novější
+      if (!lastReadTimestamp.value || new Date(messageTimestamp) > new Date(lastReadTimestamp.value)) {
+        await supabase
+          .from('admin_chat_last_read')
+          .upsert({
+            user_email: user.email,
+            last_read_at: messageTimestamp
+          })
+
+        lastReadTimestamp.value = messageTimestamp
+
+        // Přepočítáme počet nepřečtených zpráv
+        const unreadMessages = messages.value.filter(
+          msg => new Date(msg.created_at) > new Date(messageTimestamp)
+        )
+        unreadCount.value = unreadMessages.length
+      }
+    } catch (err) {
+      console.error('Error marking message as read:', err)
+    }
+  }
+
+  // Označení všech zpráv jako přečtené
+  const markAllAsRead = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user?.email) return
+
+      // Najdeme nejnovější zprávu
+      const latestMessage = messages.value[messages.value.length - 1]
+      if (!latestMessage) return
+
+      await markMessageAsRead(latestMessage.created_at)
+    } catch (err) {
+      console.error('Error marking all messages as read:', err)
     }
   }
 
@@ -70,9 +168,89 @@ export const useAdminChat = () => {
       .on(
         'broadcast',
         { event: 'new_message' },
-        async () => {
-          console.log('Přijat signál o nové zprávě')
-          await fetchMessages()
+        async (payload) => {
+          console.log('Přijat signál o nové zprávě', payload)
+
+          // Načteme aktuální stav přečtení
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user?.email) return
+
+          const { data: lastRead } = await supabase
+            .from('admin_chat_last_read')
+            .select('last_read_at')
+            .eq('user_email', user.email)
+            .single()
+
+          // Pokud máme data zprávy v payloadu, použijeme je přímo
+          if (payload.payload?.message) {
+            const newMessage = payload.payload.message
+            // Přidáme zprávu do seznamu, pokud tam ještě není
+            if (!messages.value.some(m => m.id === newMessage.id)) {
+              messages.value = [...messages.value, newMessage]
+
+              // Pokud máme poslední čas přečtení a nová zpráva je novější,
+              // zvýšíme počet nepřečtených zpráv
+              if (lastRead?.last_read_at) {
+                if (new Date(newMessage.created_at) > new Date(lastRead.last_read_at)) {
+                  unreadCount.value++
+                }
+              } else {
+                // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s časem před novou zprávou
+                const timestamp = new Date(newMessage.created_at)
+                timestamp.setSeconds(timestamp.getSeconds() - 1)
+
+                await supabase
+                  .from('admin_chat_last_read')
+                  .upsert({
+                    user_email: user.email,
+                    last_read_at: timestamp.toISOString()
+                  })
+
+                lastReadTimestamp.value = timestamp.toISOString()
+                unreadCount.value = 1
+              }
+            }
+          } else {
+            // Fallback na původní chování - načteme všechny zprávy
+            const { data, error: err } = await supabase
+              .from('admin_chat_messages')
+              .select('*')
+              .order('created_at', { ascending: true })
+              .limit(50)
+
+            if (err) {
+              console.error('Error fetching messages:', err)
+              return
+            }
+
+            messages.value = data || []
+
+            // Spočítáme nepřečtené zprávy podle posledního času přečtení
+            if (lastRead?.last_read_at) {
+              lastReadTimestamp.value = lastRead.last_read_at
+              const unreadMessages = messages.value.filter(
+                msg => new Date(msg.created_at) > new Date(lastReadTimestamp.value!)
+              )
+              unreadCount.value = unreadMessages.length
+            } else {
+              // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s časem před nejnovější zprávou
+              const latestMessage = messages.value[messages.value.length - 1]
+              if (latestMessage) {
+                const timestamp = new Date(latestMessage.created_at)
+                timestamp.setSeconds(timestamp.getSeconds() - 1)
+
+                await supabase
+                  .from('admin_chat_last_read')
+                  .upsert({
+                    user_email: user.email,
+                    last_read_at: timestamp.toISOString()
+                  })
+
+                lastReadTimestamp.value = timestamp.toISOString()
+                unreadCount.value = 1
+              }
+            }
+          }
         }
       )
       .on(
@@ -143,11 +321,11 @@ export const useAdminChat = () => {
           m.id === tempMessage.id ? data : m
         )
 
-        // Odešleme broadcast všem připojeným klientům
+        // Odešleme broadcast všem připojeným klientům s kompletními daty zprávy
         await subscription.send({
           type: 'broadcast',
           event: 'new_message',
-          payload: { messageId: data.id }
+          payload: { message: data }
         })
       }
 
@@ -275,9 +453,13 @@ export const useAdminChat = () => {
     loading,
     error,
     typingUsers,
+    unreadCount,
+    lastReadTimestamp,
     sendMessage,
     fetchMessages,
     fetchOnlineUsers,
-    signalTyping
+    signalTyping,
+    markMessageAsRead,
+    markAllAsRead
   }
 }
