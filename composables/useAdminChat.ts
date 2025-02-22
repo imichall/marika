@@ -345,6 +345,18 @@ export const useAdminChat = () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user?.email) return
 
+      // Nejprve zkontrolujeme, zda má uživatel přístup k chatu
+      const { data: chatUser } = await supabase
+        .from('chat_users')
+        .select('email')
+        .eq('email', user.email)
+        .single()
+
+      if (!chatUser) {
+        console.log('Uživatel nemá přístup k chatu')
+        return
+      }
+
       // Získáme jméno z user_roles
       const { data: userRole } = await supabase
         .from('user_roles')
@@ -357,6 +369,7 @@ export const useAdminChat = () => {
         return
       }
 
+      // Aktualizujeme stav pouze pro uživatele s přístupem
       await supabase
         .from('admin_chat_users')
         .upsert({
@@ -374,17 +387,33 @@ export const useAdminChat = () => {
   // Načtení online uživatelů
   const fetchOnlineUsers = async () => {
     try {
-      const { data, error: err } = await supabase
-        .from('admin_chat_users')
-        .select('*')
-        .order('last_seen', { ascending: false })
+      // Načteme uživatele z chat_users a připojíme jejich online status
+      const { data, error } = await supabase
+        .from('chat_users')
+        .select(`
+          email,
+          name,
+          created_at,
+          user_roles!inner (
+            name
+          )
+        `);
 
-      if (err) throw err
-      users.value = data || []
+      if (error) throw error;
+
+      // Transformujeme data do požadovaného formátu
+      users.value = (data || []).map(user => ({
+        email: user.email,
+        name: user.name || user.user_roles.name, // Použijeme jméno z chat_users, nebo z user_roles jako fallback
+        avatar_url: null, // Avatar zatím nepoužíváme
+        last_seen: new Date().toISOString(),
+        is_online: true, // Prozatím nastavíme všechny jako online
+        is_typing: false
+      }));
     } catch (err) {
-      console.error('Error fetching online users:', err)
+      console.error('Error fetching online users:', err);
     }
-  }
+  };
 
   // Signalizace psaní
   const signalTyping = async (isTyping: boolean) => {

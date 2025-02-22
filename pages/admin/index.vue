@@ -410,6 +410,25 @@
         </div>
       </NuxtLink>
 
+      <!-- Správa chatu -->
+      <NuxtLink
+        v-if="permissions.chat.manage"
+        to="/admin/chat"
+        class="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100"
+      >
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+            <span class="material-icons-outlined text-2xl">chat</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">Správa chatu</h3>
+            <p class="text-gray-500 text-sm">
+              Archivace chatu a správa uživatelů
+            </p>
+          </div>
+        </div>
+      </NuxtLink>
+
       <!-- Auditní záznamy -->
       <NuxtLink
         v-if="permissions.audit.view"
@@ -669,6 +688,10 @@ const permissions = ref({
     view: false,
     manage: false,
   },
+  chat: {
+    view: false,
+    manage: false,
+  },
 });
 
 // Načtení oprávnění
@@ -774,4 +797,8 @@ const approvedMessages = computed(
 const clearError = () => {
   router.replace({ query: {} });
 };
+
+// V script části přidáme:
+const archivedChats = ref(0);
+const chatUsers = ref(0);
 </script>

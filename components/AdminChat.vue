@@ -509,6 +509,81 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener("click", closeEmojiPicker);
 });
+
+// Nastavení real-time subscriptions
+const setupSubscriptions = () => {
+  if (subscription) {
+    subscription.unsubscribe();
+  }
+
+  subscription = supabase
+    .channel("admin-chat")
+    .on("broadcast", { event: "new_message" }, async (payload) => {
+      console.log("Přijat signál o nové zprávě", payload);
+
+      // Načteme aktuální stav přečtení
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user?.email) return;
+
+      const { data: lastRead } = await supabase
+        .from("admin_chat_last_read")
+        .select("last_read_at")
+        .eq("user_email", user.email)
+        .single();
+
+      // Pokud máme data zprávy v payloadu, použijeme je přímo
+      if (payload.payload?.message) {
+        const newMessage = payload.payload.message;
+        // Přidáme zprávu do seznamu, pokud tam ještě není
+        if (!messages.value.some((m) => m.id === newMessage.id)) {
+          messages.value = [...messages.value, newMessage];
+
+          // Pokud máme poslední čas přečtení a nová zpráva je novější,
+          // zvýšíme počet nepřečtených zpráv
+          if (lastRead?.last_read_at) {
+            if (
+              new Date(newMessage.created_at) > new Date(lastRead.last_read_at)
+            ) {
+              unreadCount.value++;
+            }
+          } else {
+            // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s časem před novou zprávou
+            const timestamp = new Date(newMessage.created_at);
+            timestamp.setSeconds(timestamp.getSeconds() - 1);
+
+            await supabase.from("admin_chat_last_read").upsert({
+              user_email: user.email,
+              last_read_at: timestamp.toISOString(),
+            });
+
+            lastReadTimestamp.value = timestamp.toISOString();
+            unreadCount.value = 1;
+          }
+        }
+      }
+    })
+    .on("broadcast", { event: "chat_archived" }, () => {
+      console.log("Přijat signál o archivaci chatu");
+      // Vyčistíme všechny zprávy a resetujeme stav
+      messages.value = [];
+      unreadCount.value = 0;
+      lastReadTimestamp.value = null;
+      // Zobrazíme informaci uživateli
+      toast.info("Chat byl archivován administrátorem");
+    })
+    .on("presence", { event: "sync" }, () => {
+      const presenceState = subscription.presenceState();
+      const typing = Object.values(presenceState)
+        .flat()
+        .map((user: any) => user.email)
+        .filter(Boolean);
+
+      typingUsers.value = typing;
+    })
+    .subscribe();
+};
 </script>
 
 <style scoped>
