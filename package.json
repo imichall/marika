@@ -30,9 +30,9 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.3",
-    "vuepress": "^2.0.0-rc.19",
     "vue": "^3.4.14",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vuepress": "^2.0.0-rc.19"
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.17",
@@ -42,16 +42,17 @@
     "chart.js": "^4.4.7",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "emoji-picker-element": "^1.26.1",
     "formidable": "^3.5.2",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "pdfkit": "^0.16.0",
+    "pg": "^8.11.3",
     "qrcode": "^1.5.3",
     "qrcode-vue3": "^1.7.1",
     "sortablejs": "^1.15.2",
     "vue-chartjs": "^5.3.2",
     "vue-toastification": "^2.0.0-rc.5",
-    "vuedraggable": "^4.1.0",
-    "pg": "^8.11.3"
+    "vuedraggable": "^4.1.0"
   }
 }

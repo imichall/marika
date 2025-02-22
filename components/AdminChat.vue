@@ -156,17 +156,36 @@
               v-model="newMessage"
               type="text"
               placeholder="Napište zprávu..."
-              class="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
+              class="w-full px-4 py-2.5 pr-20 border border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
               :disabled="loading"
               @input="handleTyping"
             />
             <div
-              v-if="loading"
-              class="absolute right-3 top-1/2 -translate-y-1/2"
+              class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2"
             >
-              <div
-                class="animate-spin rounded-full h-5 w-5 border-2 border-indigo-500 border-t-transparent"
-              ></div>
+              <div v-if="loading">
+                <div
+                  class="animate-spin rounded-full h-5 w-5 border-2 border-indigo-500 border-t-transparent"
+                ></div>
+              </div>
+              <button
+                type="button"
+                class="emoji-button p-1.5 text-gray-400 hover:text-indigo-500 focus:outline-none transition-colors"
+                @click.stop="showEmojiPicker = !showEmojiPicker"
+              >
+                <span class="material-icons-outlined text-[20px]">mood</span>
+              </button>
+            </div>
+
+            <!-- Emoji Picker -->
+            <div
+              v-if="showEmojiPicker"
+              class="absolute bottom-full right-0 mb-2"
+            >
+              <emoji-picker
+                class="light"
+                @emoji-click="onEmojiSelect"
+              ></emoji-picker>
             </div>
           </div>
           <button
@@ -187,12 +206,14 @@ import { ref, computed, onMounted, nextTick, watch, onUnmounted } from "vue";
 import { useAdminChat } from "~/composables/useAdminChat";
 import { useSupabaseClient } from "#imports";
 import type { ChatMessage, ChatUser } from "~/composables/useAdminChat";
+import "emoji-picker-element";
 
 const supabase = useSupabaseClient();
 const isOpen = ref(false);
 const newMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 const currentUserEmail = ref<string | null>(null);
+const showEmojiPicker = ref(false);
 let typingTimeout: NodeJS.Timeout | null = null;
 
 const {
@@ -360,6 +381,53 @@ const formatTime = (timestamp: string) => {
     );
   }
 };
+
+// Funkce pro vložení emoji
+const onEmojiSelect = (event: CustomEvent) => {
+  const emoji = event.detail.unicode;
+  const input = document.querySelector(
+    'input[type="text"]'
+  ) as HTMLInputElement;
+  const startPos = input.selectionStart || 0;
+  const endPos = input.selectionEnd || 0;
+
+  newMessage.value =
+    newMessage.value.substring(0, startPos) +
+    emoji +
+    newMessage.value.substring(endPos);
+
+  // Nastavíme kurzor za vložené emoji
+  nextTick(() => {
+    input.selectionStart = startPos + emoji.length;
+    input.selectionEnd = startPos + emoji.length;
+    input.focus();
+  });
+
+  showEmojiPicker.value = false;
+};
+
+// Zavření emoji pickeru při kliknutí mimo
+const closeEmojiPicker = (event: MouseEvent) => {
+  const picker = document.querySelector("emoji-picker");
+  const button = document.querySelector(".emoji-button");
+
+  if (
+    picker &&
+    button &&
+    !picker.contains(event.target as Node) &&
+    !button.contains(event.target as Node)
+  ) {
+    showEmojiPicker.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", closeEmojiPicker);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", closeEmojiPicker);
+});
 </script>
 
 <style scoped>
@@ -423,5 +491,25 @@ const formatTime = (timestamp: string) => {
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background-color: rgba(107, 114, 128, 0.5);
+}
+
+emoji-picker {
+  --num-columns: 8;
+  width: 320px;
+  height: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Světlý motiv pro picker */
+emoji-picker.light {
+  --background: #ffffff;
+  --border-color: #e5e7eb;
+  --indicator-color: #6366f1;
+  --input-border-color: #e5e7eb;
+  --input-font-color: #374151;
+  --input-placeholder-color: #9ca3af;
+  --outline-color: #6366f1;
 }
 </style>
