@@ -4,6 +4,7 @@
     <main v-if="isAuthenticated" class="pt-16">
       <div class="container mx-auto px-4">
         <slot />
+        <AdminChat v-if="permissions.chat.view" />
       </div>
     </main>
     <ToastNotifications />
@@ -24,11 +25,18 @@ import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useSupabaseClient } from "#imports";
 import ToastNotifications from "~/components/ToastNotifications.vue";
+import AdminChat from "~/components/AdminChat.vue";
 
 const { user, checkUser } = useAuth();
 const router = useRouter();
 const supabase = useSupabaseClient();
 const isAuthenticated = ref(false);
+const permissions = ref({
+  chat: {
+    view: false,
+  },
+  // ... existing permissions ...
+});
 
 onMounted(async () => {
   await checkUser();
@@ -56,6 +64,8 @@ onMounted(async () => {
   }
 
   isAuthenticated.value = true;
+
+  await loadPermissions();
 });
 
 // Sledování změn v autentizaci
@@ -81,8 +91,66 @@ watch(
     if (!isAuthenticated.value) {
       router.push("/admin/login");
     }
+
+    await loadPermissions();
   }
 );
+
+const loadPermissions = async () => {
+  try {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user?.email) return;
+
+    // Získání role uživatele
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("id, role")
+      .eq("email", user.data.user.email)
+      .single();
+
+    // Pro adminy nastavíme všechna oprávnění na true
+    if (userRole.role === "admin") {
+      Object.keys(permissions.value).forEach((section) => {
+        Object.keys(permissions.value[section]).forEach((action) => {
+          permissions.value[section][action] = true;
+        });
+      });
+      return;
+    }
+
+    // Pro ostatní role načteme oprávnění z databáze
+    const { data: userPermissions } = await supabase
+      .from("user_permissions")
+      .select(
+        `
+        permission_id,
+        permissions:permission_id (
+          section,
+          action
+        )
+      `
+      )
+      .eq("role_id", userRole.id);
+
+    // Resetujeme všechna oprávnění na false
+    Object.keys(permissions.value).forEach((section) => {
+      Object.keys(permissions.value[section]).forEach((action) => {
+        permissions.value[section][action] = false;
+      });
+    });
+
+    // Nastavíme oprávnění podle dat z databáze
+    userPermissions?.forEach((permission) => {
+      const section = permission.permissions.section;
+      const action = permission.permissions.action;
+      if (permissions.value[section]) {
+        permissions.value[section][action] = true;
+      }
+    });
+  } catch (err) {
+    console.error("Error loading permissions:", err);
+  }
+};
 </script>
 
 <style scoped>

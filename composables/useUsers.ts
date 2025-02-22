@@ -4,6 +4,7 @@ import { useSupabaseClient } from '#imports'
 interface User {
   id: string
   email: string
+  name?: string
   role: 'admin' | 'editor' | 'viewer'
   is_admin: boolean
   created_at: string
@@ -67,7 +68,7 @@ export const useUsers = () => {
     }
   }
 
-  const updateUser = async (id: string, updates: { role: User['role'] }) => {
+  const updateUser = async (id: string, updates: { role: User['role']; name?: string }) => {
     try {
       loading.value = true
       error.value = null
@@ -82,6 +83,7 @@ export const useUsers = () => {
         .upsert({
           email: user.email,
           role: updates.role,
+          name: updates.name,
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'email'

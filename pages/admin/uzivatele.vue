@@ -32,6 +32,12 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+                Jméno
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Email
               </th>
               <th
@@ -67,12 +73,19 @@
                   <div
                     class="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center mr-3"
                   >
-                    {{ user.email.charAt(0).toUpperCase() }}
+                    {{
+                      user.name
+                        ? user.name.charAt(0).toUpperCase()
+                        : user.email.charAt(0).toUpperCase()
+                    }}
                   </div>
                   <div class="text-sm font-medium text-gray-900">
-                    {{ user.email }}
+                    {{ user.name || "—" }}
                   </div>
                 </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">{{ user.email }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
@@ -205,6 +218,34 @@
                     <label
                       class="block text-sm font-medium text-gray-700 mb-2 ml-1"
                     >
+                      Jméno
+                    </label>
+                    <div class="relative group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >person</span
+                          >
+                        </span>
+                      </div>
+                      <input
+                        v-if="editingUser"
+                        v-model="editingUser.name"
+                        type="text"
+                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        placeholder="Zadejte jméno uživatele"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                    >
                       Email
                     </label>
                     <div class="relative group">
@@ -332,9 +373,12 @@ const toast = useToast();
 const { users, loading, error, updateUser } = useUsers();
 
 const showEditModal = ref(false);
-const editingUser = ref<{ id: string; email: string; role: string } | null>(
-  null
-);
+const editingUser = ref<{
+  id: string;
+  email: string;
+  role: string;
+  name?: string;
+} | null>(null);
 
 // Stav oprávnění
 const permissions = ref({
@@ -432,6 +476,7 @@ const handleSubmit = async () => {
 
     await updateUser(editingUser.value.id, {
       role: editingUser.value.role as "admin" | "editor" | "viewer",
+      name: editingUser.value.name,
     });
 
     // Aktualizujeme data v tabulce bez překreslení modalu
