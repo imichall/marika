@@ -505,9 +505,6 @@
     <!-- Verze aplikace -->
     <div class="mt-12 mb-12 text-center">
       <div class="inline-flex items-center justify-center gap-2 mb-6">
-        <span class="material-icons-outlined text-2xl text-gray-400"
-          >deployed_code</span
-        >
         <h2
           class="text-xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
         >

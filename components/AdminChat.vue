@@ -1,7 +1,12 @@
 <template>
   <div
-    class="fixed bottom-4 right-4 z-40 flex flex-col bg-white rounded-lg shadow-xl w-96"
-    :class="{ 'h-[32rem]': isOpen, 'h-12': !isOpen }"
+    class="fixed bottom-2 z-40 flex flex-col bg-white rounded-lg shadow-xl transition-all duration-300 ease-in-out transform"
+    :class="{
+      'h-[32rem] scale-100 opacity-100': isOpen,
+      'h-12 scale-95 opacity-90': !isOpen,
+      'right-4 w-96': !isMobile,
+      'left-4 right-4 max-w-lg mx-auto': isMobile,
+    }"
   >
     <!-- Header -->
     <div
@@ -483,11 +488,21 @@ const closeEmojiPicker = (event: MouseEvent) => {
   }
 };
 
+const isMobile = ref(false);
+
+// Přidáme detekci mobilního zařízení
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
 onMounted(() => {
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
   document.addEventListener("click", closeEmojiPicker);
 });
 
 onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile);
   document.removeEventListener("click", closeEmojiPicker);
 });
 
@@ -652,5 +667,28 @@ emoji-picker.light {
   --input-font-color: #374151;
   --input-placeholder-color: #9ca3af;
   --outline-color: #6366f1;
+}
+
+/* Přidáme media query pro mobilní zařízení */
+@media (max-width: 768px) {
+  .max-w-lg {
+    max-width: 32rem;
+  }
+}
+
+/* Vylepšíme animace */
+.scale-95 {
+  transform: scale(0.95);
+}
+
+.scale-100 {
+  transform: scale(1);
+}
+
+/* Přidáme transition pro všechny transformace */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 </style>
