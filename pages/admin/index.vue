@@ -1,7 +1,34 @@
 <template>
-  <div class="flex bg-gray-50">
+  <div class="flex bg-gray-50 min-h-screen">
+    <!-- Mobile menu button -->
+    <div class="lg:hidden fixed top-2 left-1/2 -translate-x-1/2 z-50">
+      <button
+        @click="isSidebarOpen = !isSidebarOpen"
+        class="flex items-center justify-center p-2 rounded-lg bg-white shadow-lg text-gray-600 hover:text-gray-900 focus:outline-none"
+      >
+        <span class="material-icons-outlined">{{
+          isSidebarOpen ? "close" : "menu"
+        }}</span>
+      </button>
+    </div>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div
+      v-if="isSidebarOpen"
+      class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+      @click="isSidebarOpen = false"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-white border-r border-gray-200 fixed h-full">
+    <aside
+      :class="[
+        'bg-white border-r border-gray-200 transition-all duration-300 z-40',
+        'lg:relative lg:w-64 lg:translate-x-0',
+        isSidebarOpen
+          ? 'fixed inset-y-0 left-0 w-64 translate-x-0'
+          : 'fixed inset-y-0 left-0 w-64 -translate-x-full',
+      ]"
+    >
       <div class="p-6">
         <h2
           class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
@@ -33,6 +60,7 @@
                   : 'text-gray-600 hover:bg-gray-50',
                 'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
               ]"
+              @click="isSidebarOpen = false"
             >
               <span
                 class="material-icons-outlined mr-3 text-xl"
@@ -57,31 +85,35 @@
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 ml-64">
+    <main :class="['flex-1', 'lg:ml-0', isSidebarOpen ? 'ml-64' : 'ml-0']">
       <!-- Top bar -->
       <div
-        class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between"
+        class="bg-white border-b border-gray-200 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
       >
         <div class="flex items-center space-x-4">
-          <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
+          <h1 class="text-xl lg:text-2xl font-semibold text-gray-800">
+            Dashboard
+          </h1>
           <span
-            class="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full"
+            class="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full hidden sm:inline-block"
           >
             Live
           </span>
         </div>
       </div>
 
-      <div class="p-8">
+      <div class="p-4 lg:p-8">
         <!-- Stats overview -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8"
+        >
           <div
             v-for="stat in stats"
             :key="stat.name"
-            class="bg-white rounded-xl p-6 border border-gray-100 hover:border-indigo-200 transition-all duration-300"
+            class="bg-white rounded-xl p-4 lg:p-6 border border-gray-100 hover:border-indigo-200 transition-all duration-300"
           >
             <div class="flex items-center justify-between">
-              <span :class="[stat.iconBg, 'p-3 rounded-lg']">
+              <span :class="[stat.iconBg, 'p-2 lg:p-3 rounded-lg']">
                 <span class="material-icons-outlined" :class="stat.iconColor">{{
                   stat.icon
                 }}</span>
@@ -90,18 +122,18 @@
                 stat.trend
               }}</span>
             </div>
-            <h3 class="text-2xl font-bold mt-4">{{ stat.value }}</h3>
+            <h3 class="text-xl lg:text-2xl font-bold mt-4">{{ stat.value }}</h3>
             <p class="text-gray-500 text-sm mt-1">{{ stat.name }}</p>
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-xl border border-gray-100 p-6 mb-8">
+        <div class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 mb-8">
           <div class="flex items-center gap-2 mb-4">
             <span class="material-icons-outlined text-gray-400">bolt</span>
             <h2 class="text-lg font-semibold">Rychlé akce</h2>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <NuxtLink
               v-for="action in quickActions"
               :key="action.name"
@@ -126,10 +158,10 @@
         </div>
 
         <!-- Main content grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           <!-- Recent Activity -->
           <div
-            class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6"
+            class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-4 lg:p-6"
           >
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-2">
@@ -150,9 +182,9 @@
                 v-for="activity in recentActivity"
                 :key="activity.id"
                 @click="openActivityDetail(activity)"
-                class="flex items-start p-4 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+                class="flex items-start p-3 lg:p-4 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer"
               >
-                <span :class="[activity.iconBg, 'p-2 rounded-lg mr-4']">
+                <span :class="[activity.iconBg, 'p-2 rounded-lg mr-3 lg:mr-4']">
                   <span
                     class="material-icons-outlined"
                     :class="activity.iconColor"
@@ -301,7 +333,7 @@
 
           <!-- Nadcházející události -->
           <div
-            class="bg-white rounded-xl border border-gray-100 p-6 flex flex-col h-full"
+            class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 flex flex-col h-full"
           >
             <div class="flex items-center gap-2 mb-6">
               <span class="material-icons-outlined text-gray-400"
@@ -313,13 +345,13 @@
               <div
                 v-for="concert in upcomingConcerts"
                 :key="concert.id"
-                class="flex items-start p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
+                class="flex items-start p-3 lg:p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
                 @click="openConcertDetail(concert)"
               >
                 <div
-                  class="flex-shrink-0 w-12 h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-4"
+                  class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-3 lg:mr-4"
                 >
-                  <span class="text-lg font-bold text-indigo-600">
+                  <span class="text-base lg:text-lg font-bold text-indigo-600">
                     {{ new Date(concert.date).getDate() }}
                   </span>
                 </div>
@@ -345,7 +377,7 @@
                     </p>
                   </div>
                 </div>
-                <div class="ml-4 flex-shrink-0">
+                <div class="ml-2 lg:ml-4 flex-shrink-0">
                   <span
                     :class="[
                       concert.is_sold_out
@@ -357,12 +389,6 @@
                     {{ concert.is_sold_out ? "Vyprodáno" : "Volné vstupenky" }}
                   </span>
                 </div>
-              </div>
-              <div
-                v-if="!upcomingConcerts.length"
-                class="text-center text-gray-500 py-8"
-              >
-                Žádné nadcházející koncerty
               </div>
             </div>
           </div>
@@ -1129,6 +1155,9 @@ const editConcert = (concert) => {
     },
   });
 };
+
+// V script části přidáme:
+const isSidebarOpen = ref(false);
 </script>
 
 <style>

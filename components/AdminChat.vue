@@ -2,8 +2,8 @@
   <div
     class="fixed bottom-2 z-40 flex flex-col bg-white rounded-lg shadow-xl transition-all duration-300 ease-in-out transform"
     :class="{
-      'h-[32rem] scale-100 opacity-100': isOpen,
-      'h-12 scale-95 opacity-90': !isOpen,
+      'h-[32rem]': isOpen,
+      'h-12': !isOpen,
       'right-4 w-96': !isMobile,
       'left-4 right-4 max-w-lg mx-auto': isMobile,
     }"
