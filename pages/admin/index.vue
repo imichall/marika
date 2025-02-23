@@ -97,7 +97,10 @@
 
         <!-- Quick Actions -->
         <div class="bg-white rounded-xl border border-gray-100 p-6 mb-8">
-          <h2 class="text-lg font-semibold mb-4">Rychlé akce</h2>
+          <div class="flex items-center gap-2 mb-4">
+            <span class="material-icons-outlined text-gray-400">bolt</span>
+            <h2 class="text-lg font-semibold">Rychlé akce</h2>
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <NuxtLink
               v-for="action in quickActions"
@@ -129,7 +132,12 @@
             class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-6"
           >
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-lg font-semibold">Nedávná aktivita</h2>
+              <div class="flex items-center gap-2">
+                <span class="material-icons-outlined text-gray-400"
+                  >history</span
+                >
+                <h2 class="text-lg font-semibold">Nedávná aktivita</h2>
+              </div>
               <button
                 @click="openAllActivities"
                 class="text-sm text-indigo-600 hover:text-indigo-700"
@@ -167,13 +175,140 @@
                 Žádná nedávná aktivita
               </div>
             </div>
+
+            <!-- Previous Versions -->
+            <div class="mt-6 border-t border-gray-100 pt-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="material-icons-outlined text-gray-400"
+                    >new_releases</span
+                  >
+                  <h2 class="text-lg font-semibold">Verze aplikace Marika</h2>
+                </div>
+                <NuxtLink
+                  to="/admin/changelog"
+                  class="text-sm text-indigo-600 hover:text-indigo-700"
+                >
+                  Zobrazit changelog
+                </NuxtLink>
+              </div>
+
+              <div class="space-y-4">
+                <!-- Main branch -->
+                <div
+                  v-if="mainBranch"
+                  class="flex flex-col p-4 bg-gray-50 rounded-lg"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+                      >
+                        stable
+                      </span>
+                      <NuxtLink
+                        :to="`/admin/changelog#${
+                          mainBranch.tag || mainBranch.version
+                        }`"
+                        class="text-sm text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        {{ mainBranch.version }}
+                        <span v-if="mainBranch.tag" class="text-gray-500 ml-1">
+                          ({{ mainBranch.tag }})
+                        </span>
+                      </NuxtLink>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                      <span class="flex items-center gap-1">
+                        <span class="material-icons-outlined text-sm"
+                          >person</span
+                        >
+                        {{ mainBranch.author }}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <span class="material-icons-outlined text-sm"
+                          >schedule</span
+                        >
+                        {{ mainBranch.date }}
+                      </span>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ mainBranch.lastCommit?.substring(0, 100)
+                    }}{{ mainBranch.lastCommit?.length > 100 ? "..." : "" }}
+                  </p>
+                </div>
+
+                <!-- Dev branch -->
+                <div
+                  v-if="devBranch"
+                  class="flex flex-col p-4 bg-gray-50 rounded-lg"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"
+                      >
+                        dev
+                      </span>
+                      <NuxtLink
+                        :to="`/admin/changelog#${
+                          devBranch.tag || devBranch.version
+                        }`"
+                        class="text-sm text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                      >
+                        {{ devBranch.version }}
+                        <span v-if="devBranch.tag" class="text-gray-500 ml-1">
+                          ({{ devBranch.tag }})
+                        </span>
+                      </NuxtLink>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                      <span class="flex items-center gap-1">
+                        <span class="material-icons-outlined text-sm"
+                          >person</span
+                        >
+                        {{ devBranch.author }}
+                      </span>
+                      <span class="flex items-center gap-1">
+                        <span class="material-icons-outlined text-sm"
+                          >schedule</span
+                        >
+                        {{ devBranch.date }}
+                      </span>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ devBranch.lastCommit?.substring(0, 100)
+                    }}{{ devBranch.lastCommit?.length > 100 ? "..." : "" }}
+                  </p>
+                </div>
+
+                <!-- Loading state -->
+                <div v-if="versionLoading" class="flex justify-center py-4">
+                  <div
+                    class="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 border-t-transparent"
+                  ></div>
+                </div>
+
+                <!-- Error state -->
+                <div v-if="error" class="text-sm text-red-500 p-4">
+                  {{ error }}
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Nadcházející události -->
           <div
-            class="bg-white rounded-xl border border-gray-100 p-6 flex flex-col h-[calc(100vh-24rem)]"
+            class="bg-white rounded-xl border border-gray-100 p-6 flex flex-col h-full"
           >
-            <h2 class="text-lg font-semibold mb-6">Nadcházející události</h2>
+            <div class="flex items-center gap-2 mb-6">
+              <span class="material-icons-outlined text-gray-400"
+                >event_upcoming</span
+              >
+              <h2 class="text-lg font-semibold">Nadcházející události</h2>
+            </div>
             <div class="space-y-4 overflow-y-auto flex-1 pr-2">
               <div
                 v-for="concert in upcomingConcerts"
