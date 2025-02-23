@@ -254,7 +254,7 @@
 
       <!-- No data message -->
       <div v-else class="text-center text-gray-500">
-        Zatím zde nejsou žádné reference.
+        Zatím zde nejsou žádné zprávy.
       </div>
     </div>
 
@@ -288,7 +288,7 @@
                 class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
               >
                 <DialogTitle as="h3" class="text-2xl font-bold mb-4">
-                  Napište nám reference
+                  Napište nám zprávu
                 </DialogTitle>
 
                 <form
@@ -344,7 +344,7 @@
 
                   <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Vaše reference
+                      Vaše zpráva
                     </label>
                     <textarea
                       v-model="testimonialForm.text"
@@ -352,7 +352,7 @@
                       rows="4"
                       class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                       :class="{ 'border-red-500': testimonialErrors.text }"
-                      placeholder="Napište nám, jak jste byli spokojeni..."
+                      placeholder="Vaše zpráva..."
                     ></textarea>
                     <p
                       v-if="testimonialErrors.text"
@@ -398,9 +398,7 @@
                   <h3 class="text-xl font-medium text-gray-900">
                     Vaše zpráva byla úspěšně odeslána.
                   </h3>
-                  <p class="text-gray-600">
-                    Děkujeme
-                  </p>
+                  <p class="text-gray-600">Děkujeme</p>
                 </div>
               </DialogPanel>
             </TransitionChild>
