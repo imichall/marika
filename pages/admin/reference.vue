@@ -135,6 +135,7 @@ const {
   addTestimonial,
   updateTestimonial,
   deleteTestimonial: removeTestimonial,
+  fetchTestimonials,
 } = useTestimonials();
 
 const sortedTestimonials = computed(() =>
@@ -248,6 +249,6 @@ const loadPermissions = async () => {
 };
 
 onMounted(async () => {
-  await Promise.all([loadPermissions(), loadTestimonials()]);
+  await Promise.all([loadPermissions(), fetchTestimonials()]);
 });
 </script>

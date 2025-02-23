@@ -2349,6 +2349,7 @@ import {
 import ConcertQRCode from "~/components/ConcertQRCode.vue";
 import { format, parse } from "date-fns";
 import { cs } from "date-fns/locale";
+import { useRoute } from "vue-router";
 
 const {
   concerts,
@@ -2399,6 +2400,16 @@ onMounted(async () => {
   await Promise.all([loadPermissions(), fetchConcerts()]);
   checkAndArchiveOldConcerts();
   setInterval(checkAndArchiveOldConcerts, 3600000); // každou hodinu
+
+  // Kontrola query parametrů pro editaci
+  const { action, concert: concertId } = route.query;
+  if (action === "edit" && concertId) {
+    const concert = concerts.value?.find((c) => c.id === parseInt(concertId));
+    if (concert) {
+      editConcert(concert);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
 });
 
 const showAddModal = ref(false);
@@ -3365,6 +3376,40 @@ const confirmInsertLink = () => {
 };
 
 const textareaRef = ref(null);
+
+const route = useRoute();
+
+// Přidáme watch na route.query
+watch(
+  () => route.query.action,
+  (newAction) => {
+    if (newAction === "add") {
+      isFormVisible.value = true;
+    }
+  },
+  { immediate: true }
+);
+
+// Upravíme watch na route.query
+watch(
+  () => ({ action: route.query.action, concert: route.query.concert }),
+  async (query) => {
+    if (query.action === "edit" && query.concert) {
+      // Pokud nemáme data, počkáme na jejich načtení
+      if (!concerts.value?.length) {
+        await fetchConcerts();
+      }
+      const concert = concerts.value?.find(
+        (c) => c.id === parseInt(query.concert)
+      );
+      if (concert) {
+        editConcert(concert);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
 </script>
 
 <style scoped>
