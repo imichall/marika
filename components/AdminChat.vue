@@ -25,12 +25,21 @@
           </span>
         </div>
         <h3 class="font-semibold">Admin Chat</h3>
-        <span
-          v-if="onlineUsersCount > 0"
-          class="px-2.5 py-1 text-xs bg-white/20 backdrop-blur-sm rounded-full font-medium"
-        >
-          {{ onlineUsersCount }} online
-        </span>
+        <div class="flex items-center gap-2">
+          <span
+            v-if="onlineUsersCount > 0"
+            class="px-2.5 py-1 text-xs bg-white/20 backdrop-blur-sm rounded-full font-medium"
+          >
+            {{ onlineUsersCount }} online
+          </span>
+          <span
+            v-if="mentionsCount > 0"
+            class="px-2.5 py-1 text-xs bg-red-500 text-white rounded-full font-medium flex items-center gap-1"
+          >
+            <span class="material-icons-outlined text-sm">alternate_email</span>
+            {{ mentionsCount }}
+          </span>
+        </div>
       </div>
       <button
         class="focus:outline-none hover:bg-white/10 rounded-full p-1 transition-colors"
@@ -165,7 +174,15 @@
                 >
                   {{ message.sender_name }}
                 </div>
-                <p class="text-sm">{{ message.message }}</p>
+                <p
+                  class="text-sm"
+                  v-html="
+                    formatMessageWithMentions(
+                      message.message,
+                      message.sender_email === currentUserEmail
+                    )
+                  "
+                ></p>
                 <div
                   class="text-[11px] mt-1 opacity-80"
                   :class="{
@@ -207,7 +224,29 @@
               class="w-full px-4 py-2.5 pr-12 border border-gray-200 rounded-full focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-gray-400"
               :disabled="loading"
               @input="handleTyping"
+              @keydown="handleKeydown"
             />
+
+            <!-- User suggestions -->
+            <div
+              v-if="showSuggestions && userSuggestions.length > 0"
+              class="absolute bottom-full left-0 mb-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 max-h-48 overflow-y-auto"
+            >
+              <div
+                v-for="user in userSuggestions"
+                :key="user.email"
+                class="px-4 py-2 hover:bg-indigo-50 cursor-pointer flex items-center gap-2"
+                @click="selectUser(user)"
+              >
+                <div
+                  class="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-xs font-medium"
+                >
+                  {{ user.name[0].toUpperCase() }}
+                </div>
+                <span class="text-sm">{{ user.name }}</span>
+              </div>
+            </div>
+
             <div
               class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center"
             >
@@ -261,7 +300,10 @@ const newMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 const currentUserEmail = ref<string | null>(null);
 const showEmojiPicker = ref(false);
+const showSuggestions = ref(false);
+const userSuggestions = ref<ChatUser[]>([]);
 let typingTimeout: NodeJS.Timeout | null = null;
+let currentMentionStart = -1;
 
 const {
   messages,
@@ -271,11 +313,13 @@ const {
   typingUsers,
   signalTyping,
   unreadCount,
+  mentionsCount,
   lastReadTimestamp,
   markMessageAsRead,
   markAllAsRead,
   toggleChat,
   isOpen,
+  getUserSuggestions,
 } = useAdminChat();
 
 const onlineUsersCount = computed(() => onlineUsers.value.length);
@@ -295,13 +339,51 @@ const typingUserName = computed(() => {
   return typingUser?.name || "Někdo";
 });
 
+// Přidáme efekt pro scrollování při otevření chatu
+watch(isOpen, (newValue) => {
+  if (newValue) {
+    // Počkáme 1 sekundu a pak scrollujeme
+    setTimeout(() => {
+      const container = messagesContainer.value?.parentElement;
+      if (!container) return;
+
+      // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
+      if (unreadCount.value > 0) {
+        const unreadDivider = container.querySelector(".border-indigo-300");
+        if (unreadDivider) {
+          unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 1000);
+  }
+});
+
 // Sledování nových zpráv pro automatické scrollování
 watch(
   messages,
   () => {
     if (!isOpen.value) return;
     nextTick(() => {
-      scrollToBottom(true);
+      // Pokud máme nepřečtené zprávy, scrollujeme k divideru
+      if (unreadCount.value > 0) {
+        const container = messagesContainer.value?.parentElement;
+        if (!container) return;
+
+        const unreadDivider = container.querySelector(".border-indigo-300");
+        if (unreadDivider) {
+          setTimeout(() => {
+            unreadDivider.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }, 100);
+        }
+      } else {
+        // Jinak scrollujeme na konec
+        scrollToBottom(true);
+      }
     });
   },
   { deep: true }
@@ -399,6 +481,63 @@ const handleTyping = () => {
   typingTimeout = setTimeout(() => {
     signalTyping(false);
   }, 2000);
+};
+
+const handleKeydown = async (e: KeyboardEvent) => {
+  const input = e.target as HTMLInputElement;
+  const cursorPosition = input.selectionStart || 0;
+
+  // Pokud uživatel píše @ a není v prostředku slova
+  if (
+    e.key === "@" &&
+    (cursorPosition === 0 || newMessage.value[cursorPosition - 1] === " ")
+  ) {
+    currentMentionStart = cursorPosition;
+    showSuggestions.value = true;
+    userSuggestions.value = await getUserSuggestions("");
+  }
+  // Pokud uživatel píše po @
+  else if (currentMentionStart !== -1 && cursorPosition > currentMentionStart) {
+    const query = newMessage.value.slice(
+      currentMentionStart + 1,
+      cursorPosition
+    );
+    userSuggestions.value = await getUserSuggestions(query);
+  }
+  // Zavřeme návrhy při stisknutí mezerníku nebo enteru
+  else if (e.key === " " || e.key === "Enter") {
+    showSuggestions.value = false;
+    currentMentionStart = -1;
+  }
+};
+
+const selectUser = (user: ChatUser) => {
+  if (currentMentionStart === -1) return;
+
+  const beforeMention = newMessage.value.slice(0, currentMentionStart);
+  const afterMention = newMessage.value.slice(currentMentionStart);
+  const mentionText = `@${user.name}`;
+
+  // Najdeme konec aktuálního slova (mezera nebo konec textu)
+  const spaceIndex = afterMention.indexOf(" ");
+  const endIndex = spaceIndex === -1 ? afterMention.length : spaceIndex;
+
+  // Nahradíme text od @ po mezeru nebo konec textu jménem uživatele
+  newMessage.value = beforeMention + mentionText + afterMention.slice(endIndex);
+
+  // Nastavíme kurzor za vložené jméno
+  nextTick(() => {
+    const input = document.querySelector(
+      'input[type="text"]'
+    ) as HTMLInputElement;
+    const newCursorPosition = beforeMention.length + mentionText.length;
+    input.selectionStart = newCursorPosition;
+    input.selectionEnd = newCursorPosition;
+    input.focus();
+  });
+
+  showSuggestions.value = false;
+  currentMentionStart = -1;
 };
 
 // Cleanup při unmount
@@ -584,6 +723,28 @@ watch(
   (newUsers) => {},
   { deep: true }
 );
+
+// Funkce pro zvýraznění mentions ve zprávě
+const formatMessageWithMentions = (message: string, isCurrentUser: boolean) => {
+  return message.replace(/@([^\s]+)/g, (match, username) => {
+    const mentionedUser = onlineUsers.value.find(
+      (user) => user.name.toLowerCase() === username.toLowerCase()
+    );
+
+    if (mentionedUser) {
+      const styles = isCurrentUser
+        ? "display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; background-color: rgba(255, 255, 255, 0.2); color: white; border-radius: 6px; font-weight: 500;"
+        : "display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; background-color: rgb(224, 231, 255); color: rgb(67, 56, 202); border-radius: 6px; font-weight: 500;";
+
+      const iconStyles = isCurrentUser
+        ? 'font-family: "Material Icons Outlined"; font-size: 15px; line-height: 1;'
+        : 'font-family: "Material Icons Outlined"; font-size: 15px; line-height: 1; color: rgb(79, 70, 229);';
+
+      return `<span style="${styles}"><span style="${iconStyles}">alternate_email</span>${username}</span>`;
+    }
+    return match;
+  });
+};
 </script>
 
 <style scoped>
