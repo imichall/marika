@@ -425,9 +425,11 @@
   <div
     v-if="selectedConcert"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    @click="closeConcertDetail"
   >
     <div
       class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+      @click.stop
     >
       <div class="relative">
         <!-- Poster/obrázek koncertu jako header -->
@@ -457,9 +459,12 @@
           ></div>
           <button
             @click="closeConcertDetail"
-            class="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors"
+            class="absolute top-4 right-4 bg-black/40 hover:bg-black/60 w-10 h-10 rounded-full text-white hover:text-white transition-all duration-200 backdrop-blur-sm flex items-center justify-center group"
           >
-            <span class="material-icons-outlined text-2xl">close</span>
+            <span
+              class="material-icons-outlined text-2xl transform group-hover:scale-110 transition-transform duration-200"
+              >close</span
+            >
           </button>
         </div>
 
