@@ -176,7 +176,7 @@
         <h2 class="text-xl font-bold mb-4">Přihlášení do privátní sekce</h2>
         <form
           method="post"
-          action="https://www.marikasingers.cz/prihlaseni.aspx"
+          action="https://ms.marikasingers.cz/prihlaseni.aspx"
           autocomplete="off"
           data-lpignore="true"
           data-form-type="other"
