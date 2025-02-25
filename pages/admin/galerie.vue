@@ -59,12 +59,17 @@
       >
         <div class="relative overflow-hidden rounded-lg h-full cursor-move">
           <picture>
-            <source :srcset="getWebPUrl(image.image_url)" type="image/webp" />
+            <source
+              :srcset="getWebPUrl(image.image_url)"
+              type="image/webp"
+              @error="$event.target.parentElement.removeChild($event.target)"
+            />
             <img
               :src="image.image_url"
               :alt="image.title"
               class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
               @click="openLightbox(index)"
+              @error="handleImageError($event)"
             />
           </picture>
           <div
@@ -730,6 +735,28 @@
                   </p>
                 </div>
 
+                <div class="mt-4">
+                  <h3 class="text-sm font-medium text-gray-700 mb-2">Náhled</h3>
+                  <div
+                    class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden"
+                  >
+                    <img
+                      v-if="previewUrl"
+                      :src="previewUrl"
+                      alt="Náhled"
+                      class="w-full h-full object-contain"
+                    />
+                    <div
+                      v-else
+                      class="w-full h-full flex items-center justify-center"
+                    >
+                      <span class="text-gray-400"
+                        >Vyberte obrázek pro náhled</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
                 <div class="flex justify-end space-x-4 mt-6">
                   <button
                     type="button"
@@ -896,6 +923,7 @@ import {
   DialogTitle,
 } from "@headlessui/vue";
 import { useSupabaseClient } from "#imports";
+import imageCompression from "browser-image-compression";
 
 definePageMeta({
   layout: "admin",
@@ -929,6 +957,7 @@ const {
 const { success, error: showError } = useToast();
 
 const supabase = useSupabaseClient();
+const previewUrl = ref("");
 
 const zobrazitModalNahraniFotek = ref(false);
 const showDeleteModal = ref(false);
@@ -1071,13 +1100,36 @@ const uploadFiles = async () => {
     for (const file of selectedFiles.value) {
       const timestamp = Date.now();
       const fileName = `mansory-${timestamp}-${file.name}`;
+      const webpFileName = fileName.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
 
-      // Upload to storage
+      // Upload original file
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("gallery")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
+
+      // Generate and upload WebP version
+      const options = {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        fileType: "image/webp",
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
+      // Upload WebP version
+      const { error: webpUploadError } = await supabase.storage
+        .from("gallery")
+        .upload(webpFileName, compressedFile, {
+          contentType: "image/webp",
+          upsert: true,
+        });
+
+      if (webpUploadError) {
+        console.error("Error uploading WebP version:", webpUploadError);
+      }
 
       if (uploadData) {
         const { data: imageData } = await supabase
@@ -1101,6 +1153,7 @@ const uploadFiles = async () => {
             p_details: {
               title: file.name,
               file_name: fileName,
+              webp_file_name: webpFileName,
             },
           });
         }
@@ -1115,7 +1168,7 @@ const uploadFiles = async () => {
 
     await fetchImages();
     closeUploadModal();
-    success("Fotografie byly úspěšně nahrány");
+    success("Fotografie byly úspěšně nahrány včetně WebP verzí");
   } catch (error: unknown) {
     console.error("Error uploading files:", error);
     const errorMessage =
@@ -1327,9 +1380,14 @@ const handlePageChange = async (page: number) => {
 };
 
 // Přidáme funkci pro získání WebP URL
-const getWebPUrl = (originalUrl: string | null) => {
+const getWebPUrl = (originalUrl: string): string => {
   if (!originalUrl) return "";
   return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+};
+
+const handleImageError = (event: Event) => {
+  console.error("Error loading image:", event);
+  showError("Nepodařilo se načíst fotografii");
 };
 </script>
 

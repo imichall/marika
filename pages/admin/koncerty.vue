@@ -2361,6 +2361,7 @@ import ConcertQRCode from "~/components/ConcertQRCode.vue";
 import { format, parse } from "date-fns";
 import { cs } from "date-fns/locale";
 import { useRoute } from "vue-router";
+import imageCompression from "browser-image-compression";
 
 const {
   concerts,
@@ -2617,41 +2618,47 @@ const processFile = async (file) => {
     isUploading.value = true;
     uploadProgress.value = 0;
 
-    const formData = new FormData();
     const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name
+    const fileName = `concert-${timestamp}-${file.name
       .toLowerCase()
       .replace(/[^a-z0-9.]/g, "-")}`;
-    formData.append("image", file, fileName);
+    const webpFileName = fileName.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
 
-    const xhr = new XMLHttpRequest();
-
-    // Nastavíme progress handler
-    xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable) {
-        uploadProgress.value = Math.round((event.loaded / event.total) * 100);
-      }
+    // Komprese a konverze do WebP
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      fileType: "image/webp",
     };
 
-    const response = await new Promise((resolve, reject) => {
-      xhr.open("POST", "/api/upload");
+    // Nahrání originálního souboru
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("concerts")
+      .upload(fileName, file);
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(JSON.parse(xhr.response));
-        } else {
-          reject(new Error(xhr.response || "Upload failed"));
-        }
-      };
+    if (uploadError) throw uploadError;
 
-      xhr.onerror = () => reject(new Error("Upload failed"));
-      xhr.send(formData);
-    });
+    // Komprese a konverze do WebP
+    const compressedFile = await imageCompression(file, options);
 
-    if (response.success) {
-      form.value.image = response.path;
-      imagePreview.value = getFullImageUrl(response.path);
-      toast.success("Obrázek byl úspěšně nahrán");
+    // Nahrání WebP verze
+    const { error: webpUploadError } = await supabase.storage
+      .from("concerts")
+      .upload(webpFileName, compressedFile, {
+        contentType: "image/webp",
+        upsert: true,
+      });
+
+    if (webpUploadError) {
+      console.error("Error uploading WebP version:", webpUploadError);
+    }
+
+    // Aktualizace formuláře s URL obrázku
+    if (uploadData) {
+      form.value.image = `${supabase.storageUrl}/object/public/concerts/${fileName}`;
+      imagePreview.value = getFullImageUrl(form.value.image);
+      toast.success("Obrázek byl úspěšně nahrán včetně WebP verze");
     }
   } catch (err) {
     console.error("Error uploading image:", err);
