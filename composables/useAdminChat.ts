@@ -46,11 +46,28 @@ export const useAdminChat = () => {
   const unreadCount = ref(0)
   const mentionsCount = ref(0)
   const lastReadTimestamp = ref<string | null>(null)
+  const currentUser = ref<any>(null)
   let subscription: any = null
   let typingTimeout: NodeJS.Timeout | null = null
   let broadcastChannel: any = null
   const isOpen = ref(false)
   const messagesContainer = ref<HTMLElement | null>(null)
+
+  // Přidáme nové stavové proměnné
+  const PAGE_SIZE = 10;
+  const hasMoreMessages = ref(true);
+  const isLoadingMore = ref(false);
+
+  // Funkce pro získání aktuálního uživatele
+  const getCurrentUser = async () => {
+    if (currentUser.value) return currentUser.value;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      currentUser.value = user;
+    }
+    return currentUser.value;
+  };
 
   // Nastavení broadcast channelu pro nové zprávy
   const setupBroadcastChannel = () => {
@@ -62,66 +79,92 @@ export const useAdminChat = () => {
       })
   }
 
-  // Načtení zpráv
-  const fetchMessages = async () => {
+  // Upravená funkce pro načítání zpráv
+  const fetchMessages = async (loadMore = false) => {
     try {
-      loading.value = true
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) throw new Error('Uživatel není přihlášen')
+      if (!loadMore) {
+        loading.value = true;
+        // Reset stavu při prvním načtení
+        messages.value = [];
+        hasMoreMessages.value = true;
+      } else {
+        isLoadingMore.value = true;
+      }
 
-      // Nejdřív načteme poslední čas přečtení
+      const user = await getCurrentUser();
+      if (!user?.email) throw new Error('Uživatel není přihlášen');
+
+      // Načteme poslední čas přečtení
       const { data: lastRead } = await supabase
         .from('admin_chat_last_read')
         .select('last_read_at')
         .eq('user_email', user.email)
-        .single()
+        .single();
 
-      // Pak načteme zprávy
+      // Určíme offset pro stránkování
+      const offset = loadMore ? messages.value.length : 0;
+
+      // Načteme pouze další stránku zpráv
       const { data, error: err } = await supabase
         .from('admin_chat_messages')
         .select('*')
-        .order('created_at', { ascending: true })
-        .limit(50)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
 
-      if (err) throw err
-      messages.value = data || []
+      if (err) throw err;
+
+      if (!data || data.length === 0) {
+        hasMoreMessages.value = false;
+        return;
+      }
+
+      // Přidáme zprávy do seznamu
+      if (loadMore) {
+        messages.value = [...data.reverse(), ...messages.value];
+      } else {
+        messages.value = data.reverse();
+      }
+
+      // Zkontrolujeme, jestli existují další zprávy
+      hasMoreMessages.value = data.length === PAGE_SIZE;
 
       // Nastavíme lastReadTimestamp a spočítáme nepřečtené
       if (lastRead?.last_read_at) {
-        lastReadTimestamp.value = lastRead.last_read_at
+        lastReadTimestamp.value = lastRead.last_read_at;
         const unreadMessages = messages.value.filter(
           msg => new Date(msg.created_at) > new Date(lastRead.last_read_at) &&
                 msg.sender_email !== user.email
-        )
-        unreadCount.value = unreadMessages.length
+        );
+        unreadCount.value = unreadMessages.length;
       } else {
         // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s časem poslední zprávy
-        const latestMessage = messages.value[messages.value.length - 1]
+        const latestMessage = messages.value[messages.value.length - 1];
         if (latestMessage) {
-          const timestamp = new Date(latestMessage.created_at).toISOString()
+          const timestamp = new Date(latestMessage.created_at).toISOString();
           await supabase
             .from('admin_chat_last_read')
             .upsert({
               user_email: user.email,
               last_read_at: timestamp
-            })
+            });
 
-          lastReadTimestamp.value = timestamp
-          unreadCount.value = 0
+          lastReadTimestamp.value = timestamp;
+          unreadCount.value = 0;
         }
       }
     } catch (err) {
-      console.error('Error fetching messages:', err)
-      error.value = err instanceof Error ? err.message : 'Nepodařilo se načíst zprávy'
+      console.error('Error fetching messages:', err);
+      error.value = err instanceof Error ? err.message : 'Nepodařilo se načíst zprávy';
     } finally {
-      loading.value = false
+      loading.value = false;
+      isLoadingMore.value = false;
     }
-  }
+  };
 
   // Aktualizace počtu nepřečtených zpráv
   const updateUnreadCount = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getCurrentUser();
       if (!user?.email) return
 
       // Načteme poslední čas přečtení
@@ -175,8 +218,8 @@ export const useAdminChat = () => {
   // Označení konkrétní zprávy jako přečtené
   const markMessageAsRead = async (messageTimestamp: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) return
+      const user = await getCurrentUser();
+      if (!user?.email) return;
 
       // Aktualizujeme čas posledního přečtení pouze pokud je zpráva novější
       if (!lastReadTimestamp.value || new Date(messageTimestamp) > new Date(lastReadTimestamp.value)) {
@@ -185,45 +228,45 @@ export const useAdminChat = () => {
           .upsert({
             user_email: user.email,
             last_read_at: messageTimestamp
-          })
+          });
 
-        lastReadTimestamp.value = messageTimestamp
+        lastReadTimestamp.value = messageTimestamp;
 
         // Přepočítáme počet nepřečtených zpráv
         const unreadMessages = messages.value.filter(
           msg => new Date(msg.created_at) > new Date(messageTimestamp)
-        )
-        unreadCount.value = unreadMessages.length
+        );
+        unreadCount.value = unreadMessages.length;
       }
     } catch (err) {
-      console.error('Error marking message as read:', err)
+      console.error('Error marking message as read:', err);
     }
-  }
+  };
 
   // Označení všech zpráv jako přečtené
   const markAllAsRead = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) return
+      const user = await getCurrentUser();
+      if (!user?.email) return;
 
       // Najdeme nejnovější zprávu
-      const latestMessage = messages.value[messages.value.length - 1]
-      if (!latestMessage) return
+      const latestMessage = messages.value[messages.value.length - 1];
+      if (!latestMessage) return;
 
-      await markMessageAsRead(latestMessage.created_at)
+      await markMessageAsRead(latestMessage.created_at);
     } catch (err) {
-      console.error('Error marking all messages as read:', err)
+      console.error('Error marking all messages as read:', err);
     }
-  }
+  };
 
   // Nastavení real-time subscriptions
   const setupSubscriptions = async () => {
     if (subscription) {
-      subscription.unsubscribe()
+      subscription.unsubscribe();
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user?.email) return
+    const user = await getCurrentUser();
+    if (!user?.email) return;
 
     // Vytvoříme jeden kanál pro všechny události
     subscription = supabase
@@ -232,15 +275,14 @@ export const useAdminChat = () => {
         'broadcast',
         { event: 'new_message' },
         async (payload: BroadcastPayload) => {
-          // Načteme aktuální stav přečtení
-          const { data: { user } } = await supabase.auth.getUser()
-          if (!user?.email) return
+          const user = await getCurrentUser();
+          if (!user?.email) return;
 
           const { data: lastRead } = await supabase
             .from('admin_chat_last_read')
             .select('last_read_at')
             .eq('user_email', user.email)
-            .single()
+            .single();
 
           // Pokud máme data zprávy v payloadu, použijeme je přímo
           if (payload.payload?.message) {
@@ -413,18 +455,18 @@ export const useAdminChat = () => {
   // Odeslání nové zprávy
   const sendMessage = async (message: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) throw new Error('Uživatel není přihlášen')
+      const user = await getCurrentUser();
+      if (!user?.email) throw new Error('Uživatel není přihlášen');
 
       // Získáme jméno uživatele z user_roles
       const { data: userRole } = await supabase
         .from('user_roles')
         .select('name')
         .eq('email', user.email)
-        .single()
+        .single();
 
       if (!userRole?.name) {
-        throw new Error('Uživatel nemá nastavené jméno')
+        throw new Error('Uživatel nemá nastavené jméno');
       }
 
       // Vytvoříme novou zprávu s předběžným ID
@@ -509,49 +551,6 @@ export const useAdminChat = () => {
     return data || [];
   };
 
-  // Aktualizace stavu uživatele
-  const updateUserStatus = async (isOnline: boolean) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) return
-
-      // Nejprve zkontrolujeme, zda má uživatel přístup k chatu
-      const { data: chatUser } = await supabase
-        .from('chat_users')
-        .select('email')
-        .eq('email', user.email)
-        .single()
-
-      if (!chatUser) {
-        return
-      }
-
-      // Získáme jméno z user_roles
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('name')
-        .eq('email', user.email)
-        .single()
-
-      if (!userRole?.name) {
-        return
-      }
-
-      // Aktualizujeme stav pouze pro uživatele s přístupem
-      await supabase
-        .from('admin_chat_users')
-        .upsert({
-          email: user.email,
-          name: userRole.name,
-          avatar_url: user.user_metadata?.avatar_url,
-          last_seen: new Date().toISOString(),
-          is_online: isOnline
-        })
-    } catch (err) {
-      console.error('Error updating user status:', err)
-    }
-  }
-
   // Načtení online uživatelů
   const fetchOnlineUsers = async () => {
     try {
@@ -562,14 +561,10 @@ export const useAdminChat = () => {
 
       if (error) throw error;
 
-
-      // Získáme aktuálního uživatele pro porovnání
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-
       const newUsers = (data || []).map((user: ChatUser) => ({
         email: user.email,
         name: user.name || user.email,
-        avatar_url: user.email === currentUser?.email ? currentUser?.user_metadata?.avatar_url : null,
+        avatar_url: null,
         last_seen: new Date().toISOString(),
         is_online: true,
         is_typing: false
@@ -578,108 +573,166 @@ export const useAdminChat = () => {
       // Vždy aktualizujeme seznam uživatelů
       users.value = newUsers;
     } catch (err) {
+      console.error('Error fetching online users:', err);
+    }
+  };
+
+  // Aktualizace stavu uživatele
+  const updateUserStatus = async (isOnline: boolean) => {
+    try {
+      const user = await getCurrentUser();
+      if (!user?.email) return;
+
+      // Nejprve zkontrolujeme, zda má uživatel přístup k chatu
+      const { data: chatUser } = await supabase
+        .from('chat_users')
+        .select('email')
+        .eq('email', user.email)
+        .single();
+
+      if (!chatUser) return;
+
+      // Aktualizujeme stav pouze pro uživatele s přístupem
+      await supabase
+        .from('admin_chat_users')
+        .upsert({
+          email: user.email,
+          name: user.user_metadata?.name || user.email,
+          last_seen: new Date().toISOString(),
+          is_online: isOnline
+        });
+    } catch (err) {
+      console.error('Error updating user status:', err);
     }
   };
 
   // Signalizace psaní
   const signalTyping = async (isTyping: boolean) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user?.email) return
+      const user = await getCurrentUser();
+      if (!user?.email) return;
 
       if (isTyping) {
         await subscription?.track({
           email: user.email,
           timestamp: new Date().toISOString()
-        })
+        });
       } else {
-        await subscription?.untrack()
+        await subscription?.untrack();
       }
     } catch (err) {
-      console.error('Error signaling typing:', err)
+      console.error('Error signaling typing:', err);
     }
-  }
+  };
 
   // Cleanup
   const cleanup = () => {
     if (subscription) {
       try {
-        subscription.untrack()
-        subscription.unsubscribe()
+        subscription.untrack();
+        subscription.unsubscribe();
       } catch (err) {
-        console.error('Error during subscription cleanup:', err)
+        console.error('Error during subscription cleanup:', err);
       }
-      subscription = null
+      subscription = null;
     }
     if (broadcastChannel) {
       try {
-        broadcastChannel.unsubscribe()
+        broadcastChannel.unsubscribe();
       } catch (err) {
-        console.error('Error during broadcast channel cleanup:', err)
+        console.error('Error during broadcast channel cleanup:', err);
       }
-      broadcastChannel = null
+      broadcastChannel = null;
     }
     if (typingTimeout) {
-      clearTimeout(typingTimeout)
+      clearTimeout(typingTimeout);
     }
-    updateUserStatus(false)
-  }
+    updateUserStatus(false);
+  };
+
+  const saveScrollPosition = () => {
+    const container = messagesContainer.value?.parentElement;
+    if (!container) return;
+
+    sessionStorage.setItem('chat-scroll-position', container.scrollTop.toString());
+  };
+
+  const restoreScrollPosition = () => {
+    const container = messagesContainer.value?.parentElement;
+    if (!container) return;
+
+    const savedPosition = sessionStorage.getItem('chat-scroll-position');
+    if (savedPosition) {
+      nextTick(() => {
+        container.scrollTop = parseInt(savedPosition);
+      });
+    } else {
+      // Pokud nemáme uloženou pozici, scrollujeme na konec
+      container.scrollTop = container.scrollHeight;
+    }
+  };
 
   const toggleChat = () => {
+    if (isOpen.value) {
+      // Při zavření chatu uložíme pozici scrollu
+      saveScrollPosition();
+      cleanup();
+    }
+
     isOpen.value = !isOpen.value;
 
     // Pokud otevíráme chat
     if (isOpen.value) {
       nextTick(async () => {
-        // Nastavíme subscriptions a aktualizujeme seznam uživatelů
-        await Promise.all([
-          setupSubscriptions(),
-          fetchOnlineUsers()
-        ]);
+        // Nejdřív nastavíme subscriptions
+        await setupSubscriptions();
 
-        const container = messagesContainer.value?.parentElement;
-        if (!container) return;
+        // Načteme první stránku zpráv
+        await fetchMessages();
 
-        // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
-        if (unreadCount.value > 0) {
-          const unreadDivider = container.querySelector(".border-indigo-300");
-          if (unreadDivider) {
-            unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
-        } else {
-          container.scrollTop = container.scrollHeight;
-        }
+        // Načteme uživatele pouze jednou při otevření chatu
+        await fetchOnlineUsers();
+
+        // Počkáme na další tick, aby se zprávy vykreslily
+        nextTick(() => {
+          // Obnovíme pozici scrollu
+          restoreScrollPosition();
+        });
       });
-    } else {
-      // Při zavření chatu vyčistíme subscriptions
-      cleanup();
     }
   };
 
   onMounted(async () => {
     try {
+      // Načteme uživatele hned na začátku
+      await getCurrentUser();
+
       await Promise.all([
         fetchMessages(),
         fetchOnlineUsers(),
         updateUserStatus(true)
-      ])
+      ]);
 
-      setupBroadcastChannel()
-      setupSubscriptions()
+      setupBroadcastChannel();
+      setupSubscriptions();
 
       // Aktualizace stavu uživatele každých 30 sekund
       const interval = setInterval(() => {
-        updateUserStatus(true)
-      }, 30000)
+        updateUserStatus(true);
+      }, 30000);
 
       onUnmounted(() => {
-        cleanup()
-        clearInterval(interval)
-      })
+        cleanup();
+        clearInterval(interval);
+        // Uložíme pozici scrollu při unmount
+        saveScrollPosition();
+        // Vyčistíme uživatelská data
+        currentUser.value = null;
+      });
     } catch (error) {
-      console.error('Error during initialization:', error)
+      console.error('Error during initialization:', error);
     }
-  })
+  });
 
   return {
     messages,
@@ -699,6 +752,9 @@ export const useAdminChat = () => {
     toggleChat,
     isOpen,
     messagesContainer,
-    getUserSuggestions
+    getUserSuggestions,
+    hasMoreMessages,
+    isLoadingMore,
+    PAGE_SIZE
   }
 }

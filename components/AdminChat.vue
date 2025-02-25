@@ -97,25 +97,39 @@
         class="flex-1 overflow-y-auto min-h-0 bg-gradient-to-b from-gray-50/50 to-white relative scroll-smooth"
         @scroll="handleScroll"
       >
+        <!-- Loading indikátor pro načítání starších zpráv -->
+        <div v-if="isLoadingMore" class="flex justify-center py-4">
+          <div
+            class="animate-spin rounded-full h-5 w-5 border-2 border-indigo-500 border-t-transparent"
+          ></div>
+        </div>
+
         <div ref="messagesContainer" class="p-4 space-y-4 pb-16">
           <div
             v-for="(message, index) in messages"
             :key="message.id"
             class="space-y-4"
           >
-            <!-- Divider pro nepřečtené zprávy - zobrazí se před první nepřečtenou zprávou -->
+            <!-- Časový oddělovač -->
             <div
-              v-if="
-                unreadCount > 0 &&
-                lastReadTimestamp &&
-                new Date(message.created_at) > new Date(lastReadTimestamp) &&
-                !messages
-                  .slice(0, index)
-                  .some(
-                    (m) => new Date(m.created_at) > new Date(lastReadTimestamp)
-                  ) &&
-                message.sender_email !== currentUserEmail
-              "
+              v-if="shouldShowDateDivider(message, messages[index - 1])"
+              class="relative py-3"
+            >
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-gray-200"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span
+                  class="px-4 py-1.5 text-xs font-medium text-gray-500 bg-white rounded-full border border-gray-200"
+                >
+                  {{ formatDateDivider(message.created_at) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Divider pro nepřečtené zprávy -->
+            <div
+              v-if="shouldShowUnreadDivider(message, index)"
               class="relative py-3"
             >
               <div class="absolute inset-0 flex items-center">
@@ -289,16 +303,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onUnmounted } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  nextTick,
+  watch,
+  onUnmounted,
+} from "#imports";
 import { useAdminChat } from "~/composables/useAdminChat";
 import { useSupabaseClient } from "#imports";
-import type { ChatMessage, ChatUser } from "~/composables/useAdminChat";
 import "emoji-picker-element";
 
 const supabase = useSupabaseClient();
 const newMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 const currentUserEmail = ref<string | null>(null);
+const currentUserName = ref<string | null>(null);
 const showEmojiPicker = ref(false);
 const showSuggestions = ref(false);
 const userSuggestions = ref<ChatUser[]>([]);
@@ -320,74 +341,85 @@ const {
   toggleChat,
   isOpen,
   getUserSuggestions,
+  hasMoreMessages,
+  isLoadingMore,
+  PAGE_SIZE,
+  fetchMessages,
 } = useAdminChat();
 
 const onlineUsersCount = computed(() => onlineUsers.value.length);
 
 // Computed pro zobrazení indikátoru psaní
 const someoneElseIsTyping = computed(() => {
-  return typingUsers.value.some((email) => email !== currentUserEmail.value);
+  return typingUsers.value.some(
+    (email: string) => email !== currentUserEmail.value
+  );
 });
 
 // Jméno uživatele, který píše
 const typingUserName = computed(() => {
   const typingUser = onlineUsers.value.find(
-    (user) =>
+    (user: ChatUser) =>
       typingUsers.value.includes(user.email) &&
       user.email !== currentUserEmail.value
   );
   return typingUser?.name || "Někdo";
 });
 
-// Přidáme efekt pro scrollování při otevření chatu
-watch(isOpen, (newValue) => {
-  if (newValue) {
-    // Počkáme 1 sekundu a pak scrollujeme
-    setTimeout(() => {
-      const container = messagesContainer.value?.parentElement;
-      if (!container) return;
-
-      // Pokud máme nepřečtené zprávy, scrollujeme k první nepřečtené
-      if (unreadCount.value > 0) {
-        const unreadDivider = container.querySelector(".border-indigo-300");
-        if (unreadDivider) {
-          unreadDivider.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      } else {
-        container.scrollTop = container.scrollHeight;
-      }
-    }, 1000);
-  }
-});
-
 // Sledování nových zpráv pro automatické scrollování
 watch(
   messages,
-  () => {
+  (newMessages: ChatMessage[], oldMessages: ChatMessage[]) => {
     if (!isOpen.value) return;
-    nextTick(() => {
-      // Pokud máme nepřečtené zprávy, scrollujeme k divideru
-      if (unreadCount.value > 0) {
+
+    // Pokud je nových zpráv více než starých, znamená to že byly načteny starší zprávy
+    // V takovém případě nechceme scrollovat
+    if (newMessages.length > oldMessages.length && oldMessages.length > 0)
+      return;
+
+    // Scrollujeme pouze pokud přišla nová zpráva
+    if (newMessages.length === oldMessages.length + 1) {
+      nextTick(() => {
         const container = messagesContainer.value?.parentElement;
         if (!container) return;
 
-        const unreadDivider = container.querySelector(".border-indigo-300");
-        if (unreadDivider) {
-          setTimeout(() => {
-            unreadDivider.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }, 100);
+        const isScrolledNearBottom =
+          container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight <
+          100;
+
+        // Scrollujeme pouze pokud jsme byli u konce chatu
+        if (isScrolledNearBottom) {
+          scrollToBottom(true);
         }
-      } else {
-        // Jinak scrollujeme na konec
-        scrollToBottom(true);
-      }
-    });
+      });
+    }
   },
   { deep: true }
 );
+
+// Přidáme watch pro isOpen, který obnoví pozici scrollu
+watch(isOpen, async (newValue) => {
+  if (newValue) {
+    // Počkáme na načtení zpráv
+    await fetchMessages();
+
+    // Obnovíme pozici scrollu po načtení zpráv
+    nextTick(() => {
+      const container = messagesContainer.value?.parentElement;
+      if (!container) return;
+
+      const savedPosition = sessionStorage.getItem("chat-scroll-position");
+      if (savedPosition) {
+        container.scrollTop = parseInt(savedPosition);
+      } else {
+        // Pokud nemáme uloženou pozici, scrollujeme na konec
+        container.scrollTop = container.scrollHeight;
+      }
+    });
+  }
+});
 
 // Get current user
 onMounted(async () => {
@@ -397,26 +429,31 @@ onMounted(async () => {
 
   if (user) {
     currentUserEmail.value = user.email;
-
-    // Kontrola a aktualizace jména uživatele pokud chybí
-    if (!user.user_metadata?.name) {
-      const { data: userRole } = await supabase
-        .from("user_roles")
-        .select("name")
-        .eq("email", user.email)
-        .single();
-
-      if (userRole?.name) {
-        await supabase.auth.updateUser({
-          data: { name: userRole.name },
-        });
-      }
-    }
+    currentUserName.value = user.user_metadata?.name;
   }
 });
 
-// Funkce pro kontrolu viditelnosti zprávy
-const isMessageVisible = (element: Element) => {
+// Přidáme typy pro zprávy a uživatele
+interface ChatMessage {
+  id: string;
+  sender_email: string;
+  sender_name: string;
+  message: string;
+  created_at: string;
+  mentions?: string[];
+}
+
+interface ChatUser {
+  email: string;
+  name: string;
+  avatar_url?: string;
+  last_seen: string;
+  is_online: boolean;
+  is_typing?: boolean;
+}
+
+// Upravíme funkci pro kontrolu viditelnosti zprávy
+const isMessageVisible = (element: Element): boolean => {
   const container = messagesContainer.value?.parentElement;
   if (!container) return false;
 
@@ -438,23 +475,30 @@ const scrollToBottom = (force = false) => {
     container.scrollHeight - container.scrollTop - container.clientHeight < 100;
 
   if (force || isScrolledNearBottom) {
-    container.style.scrollBehavior = "auto";
-    container.scrollTop = container.scrollHeight;
-    // Pokud scrollujeme na konec, označíme všechny zprávy jako přečtené
-    markAllAsRead();
+    nextTick(() => {
+      container.scrollTop = container.scrollHeight;
+      // Pokud scrollujeme na konec, označíme všechny zprávy jako přečtené
+      markAllAsRead();
+    });
   }
 };
 
-const handleScroll = () => {
+// Upravená funkce pro scroll
+const handleScroll = async () => {
   const container = messagesContainer.value?.parentElement;
-  if (!container || !unreadCount.value) return;
+  if (!container) return;
 
-  // Najdeme všechny zprávy v containeru
+  // Uložíme aktuální pozici scrollu
+  sessionStorage.setItem(
+    "chat-scroll-position",
+    container.scrollTop.toString()
+  );
+
+  // Kontrola viditelnosti zpráv pro označení jako přečtené
   const messageElements = container.querySelectorAll(".message-content");
   let lastVisibleMessageTime = null;
 
-  // Projdeme všechny zprávy a zkontrolujeme jejich viditelnost
-  messageElements.forEach((element) => {
+  messageElements.forEach((element: Element) => {
     if (isMessageVisible(element)) {
       const timestamp = element.getAttribute("data-timestamp");
       if (timestamp) {
@@ -463,7 +507,6 @@ const handleScroll = () => {
     }
   });
 
-  // Pokud jsme našli viditelnou zprávu, označíme ji jako přečtenou
   if (lastVisibleMessageTime) {
     markMessageAsRead(lastVisibleMessageTime);
   }
@@ -474,10 +517,8 @@ const handleTyping = () => {
     clearTimeout(typingTimeout);
   }
 
-  // Signalizujeme ostatním, že píšeme
   signalTyping(true);
 
-  // Zrušíme signál po 2 sekundách nečinnosti
   typingTimeout = setTimeout(() => {
     signalTyping(false);
   }, 2000);
@@ -645,90 +686,51 @@ onUnmounted(() => {
   document.removeEventListener("click", closeEmojiPicker);
 });
 
-// Nastavení real-time subscriptions
-const setupSubscriptions = () => {
-  if (subscription) {
-    subscription.unsubscribe();
-  }
+// Funkce pro kontrolu, zda zobrazit časový oddělovač
+const shouldShowDateDivider = (
+  currentMessage: ChatMessage,
+  previousMessage?: ChatMessage
+): boolean => {
+  if (!previousMessage) return true;
 
-  subscription = supabase
-    .channel("admin-chat")
-    .on("broadcast", { event: "new_message" }, async (payload) => {
-      // Načteme aktuální stav přečtení
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user?.email) return;
+  const currentDate = new Date(currentMessage.created_at);
+  const previousDate = new Date(previousMessage.created_at);
 
-      const { data: lastRead } = await supabase
-        .from("admin_chat_last_read")
-        .select("last_read_at")
-        .eq("user_email", user.email)
-        .single();
-
-      // Pokud máme data zprávy v payloadu, použijeme je přímo
-      if (payload.payload?.message) {
-        const newMessage = payload.payload.message;
-        // Přidáme zprávu do seznamu, pokud tam ještě není
-        if (!messages.value.some((m) => m.id === newMessage.id)) {
-          messages.value = [...messages.value, newMessage];
-
-          // Pokud máme poslední čas přečtení a nová zpráva je novější,
-          // zvýšíme počet nepřečtených zpráv
-          if (lastRead?.last_read_at) {
-            if (
-              new Date(newMessage.created_at) > new Date(lastRead.last_read_at)
-            ) {
-              unreadCount.value++;
-            }
-          } else {
-            // Pokud nemáme záznam o posledním přečtení, vytvoříme ho s časem před novou zprávou
-            const timestamp = new Date(newMessage.created_at);
-            timestamp.setSeconds(timestamp.getSeconds() - 1);
-
-            await supabase.from("admin_chat_last_read").upsert({
-              user_email: user.email,
-              last_read_at: timestamp.toISOString(),
-            });
-
-            lastReadTimestamp.value = timestamp.toISOString();
-            unreadCount.value = 1;
-          }
-        }
-      }
-    })
-    .on("broadcast", { event: "chat_archived" }, () => {
-      // Vyčistíme všechny zprávy a resetujeme stav
-      messages.value = [];
-      unreadCount.value = 0;
-      lastReadTimestamp.value = null;
-      // Zobrazíme informaci uživateli
-      toast.info("Chat byl archivován administrátorem");
-    })
-    .on("presence", { event: "sync" }, () => {
-      const presenceState = subscription.presenceState();
-      const typing = Object.values(presenceState)
-        .flat()
-        .map((user: any) => user.email)
-        .filter(Boolean);
-
-      typingUsers.value = typing;
-    })
-    .subscribe();
+  return (
+    currentDate.getDate() !== previousDate.getDate() ||
+    currentDate.getMonth() !== previousDate.getMonth() ||
+    currentDate.getFullYear() !== previousDate.getFullYear()
+  );
 };
 
-// Sledování změn v users array
-watch(
-  () => onlineUsers.value,
-  (newUsers) => {},
-  { deep: true }
-);
+// Funkce pro formátování data pro oddělovač
+const formatDateDivider = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return "Dnes";
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return "Včera";
+  } else {
+    return date.toLocaleDateString("cs-CZ", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+};
 
 // Funkce pro zvýraznění mentions ve zprávě
-const formatMessageWithMentions = (message: string, isCurrentUser: boolean) => {
-  return message.replace(/@([^\s]+)/g, (match, username) => {
+const formatMessageWithMentions = (
+  message: string,
+  isCurrentUser: boolean
+): string => {
+  return message.replace(/@([^\s]+)/g, (match: string, username: string) => {
     const mentionedUser = onlineUsers.value.find(
-      (user) => user.name.toLowerCase() === username.toLowerCase()
+      (user: ChatUser) => user.name.toLowerCase() === username.toLowerCase()
     );
 
     if (mentionedUser) {
@@ -744,6 +746,25 @@ const formatMessageWithMentions = (message: string, isCurrentUser: boolean) => {
     }
     return match;
   });
+};
+
+// Upravíme podmínku pro kontrolu lastReadTimestamp
+const shouldShowUnreadDivider = (
+  message: ChatMessage,
+  index: number
+): boolean => {
+  if (!lastReadTimestamp.value || !unreadCount.value) return false;
+
+  const messageDate = new Date(message.created_at);
+  const lastReadDate = new Date(lastReadTimestamp.value);
+
+  return (
+    messageDate > lastReadDate &&
+    !messages.value
+      .slice(0, index)
+      .some((m: ChatMessage) => new Date(m.created_at) > lastReadDate) &&
+    message.sender_email !== currentUserEmail.value
+  );
 };
 </script>
 
