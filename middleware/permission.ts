@@ -54,7 +54,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/opravneni': { section: 'users', action: 'edit' },
     '/admin/zpravy': { section: 'form_messages', action: 'view' },
     '/admin/emaily': { section: 'emails', action: 'view' },
-    '/admin/emaily/nahled': { section: 'emails', action: 'view' }
+    '/admin/emaily/nahled': { section: 'emails', action: 'view' },
+    '/admin/media': { section: 'media', action: 'view' }
   }
 
   // Kontrola oprávnění pro aktuální cestu

@@ -874,6 +874,17 @@ const sidebarSections = computed(() =>
           to: "/admin/kontakty",
           icon: "contacts",
         },
+        {
+          name: "Média",
+          to: "/admin/media",
+          icon: "perm_media",
+        },
+        {
+          name: "Oprávnění",
+          to: "/admin/opravneni",
+          icon: "admin_panel_settings",
+          adminOnly: true,
+        },
       ].filter(Boolean),
     },
     {

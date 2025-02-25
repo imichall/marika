@@ -22,11 +22,17 @@
             class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(1))"
           >
-            <img
-              :src="getImageByPosition(1).image_url"
-              :alt="getImageByPosition(1).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(1).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(1).image_url"
+                :alt="getImageByPosition(1).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Široký obrázek nahoře uprostřed (2x1) -->
@@ -35,11 +41,17 @@
             class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(2))"
           >
-            <img
-              :src="getImageByPosition(2).image_url"
-              :alt="getImageByPosition(2).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(2).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(2).image_url"
+                :alt="getImageByPosition(2).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Velký obrázek vpravo nahoře (2x2) -->
@@ -48,11 +60,17 @@
             class="col-span-2 row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(3))"
           >
-            <img
-              :src="getImageByPosition(3).image_url"
-              :alt="getImageByPosition(3).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(3).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(3).image_url"
+                :alt="getImageByPosition(3).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Úzký vysoký obrázek vpravo (1x2) -->
@@ -61,11 +79,17 @@
             class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(4))"
           >
-            <img
-              :src="getImageByPosition(4).image_url"
-              :alt="getImageByPosition(4).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(4).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(4).image_url"
+                :alt="getImageByPosition(4).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Malý čtvercový obrázek (1x1) -->
@@ -74,11 +98,17 @@
             class="relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(5))"
           >
-            <img
-              :src="getImageByPosition(5).image_url"
-              :alt="getImageByPosition(5).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(5).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(5).image_url"
+                :alt="getImageByPosition(5).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Úzký vysoký obrázek (1x2) -->
@@ -87,11 +117,17 @@
             class="row-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(6))"
           >
-            <img
-              :src="getImageByPosition(6).image_url"
-              :alt="getImageByPosition(6).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(6).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(6).image_url"
+                :alt="getImageByPosition(6).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Široký obrázek dole (3x1) -->
@@ -100,11 +136,17 @@
             class="col-span-3 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(7))"
           >
-            <img
-              :src="getImageByPosition(7).image_url"
-              :alt="getImageByPosition(7).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(7).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(7).image_url"
+                :alt="getImageByPosition(7).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Široký obrázek dole (2x1) -->
@@ -113,11 +155,17 @@
             class="col-span-2 relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(8))"
           >
-            <img
-              :src="getImageByPosition(8).image_url"
-              :alt="getImageByPosition(8).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(8).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(8).image_url"
+                :alt="getImageByPosition(8).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
 
           <!-- Malý čtvercový obrázek dole (1x1) -->
@@ -126,11 +174,17 @@
             class="relative overflow-hidden rounded-xl cursor-pointer"
             @click="openLightbox(getImageByPosition(9))"
           >
-            <img
-              :src="getImageByPosition(9).image_url"
-              :alt="getImageByPosition(9).title"
-              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            />
+            <picture>
+              <source
+                :srcset="getWebPUrl(getImageByPosition(9).image_url)"
+                type="image/webp"
+              />
+              <img
+                :src="getImageByPosition(9).image_url"
+                :alt="getImageByPosition(9).title"
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </picture>
           </div>
         </div>
       </FadeUpOnScroll>
@@ -229,11 +283,17 @@
                   </svg>
                 </button>
 
-                <img
-                  :src="currentImage?.image_url"
-                  :alt="currentImage?.title"
-                  class="w-full h-auto max-h-[80vh] object-contain mx-auto"
-                />
+                <picture>
+                  <source
+                    :srcset="getWebPUrl(currentImage?.image_url)"
+                    type="image/webp"
+                  />
+                  <img
+                    :src="currentImage?.image_url"
+                    :alt="currentImage?.title"
+                    class="w-full h-auto max-h-[80vh] object-contain mx-auto"
+                  />
+                </picture>
               </DialogPanel>
             </TransitionChild>
           </div>
@@ -292,6 +352,12 @@ const getImageByPosition = (position) => {
   // Najdeme odpovídající obrázek podle ID
   const image = allImages.value.find((img) => img.id === layoutItem.image_id);
   return image || null;
+};
+
+// Funkce pro získání WebP URL
+const getWebPUrl = (originalUrl) => {
+  if (!originalUrl) return "";
+  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
 };
 
 // Lightbox funkce

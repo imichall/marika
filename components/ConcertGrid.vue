@@ -14,13 +14,15 @@
             class="concert-card group flex flex-col bg-white rounded-3xl shadow-md ring-1 ring-black/5 hover:ring-2 hover:ring-red-800/20 hover:shadow-xl hover:shadow-red-800/10 transition-all duration-500 h-full"
           >
             <div class="relative w-full h-[300px] flex-shrink-0">
-              <img
-                v-if="concert.image"
-                :src="concert.image"
-                :alt="concert.title"
-                class="w-full h-full rounded-t-3xl object-contain transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
-                loading="lazy"
-              />
+              <picture v-if="concert.image">
+                <source :srcset="getWebPUrl(concert.image)" type="image/webp" />
+                <img
+                  :src="concert.image"
+                  :alt="concert.title"
+                  class="w-full h-full rounded-t-3xl object-contain transition-all duration-700 group-hover:brightness-105 group-hover:contrast-[1.02]"
+                  loading="lazy"
+                />
+              </picture>
               <div
                 v-else
                 class="w-full h-full rounded-t-3xl bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center"
@@ -346,6 +348,11 @@ const displayedConcerts = computed(() => {
 const selectedConcert = ref({});
 const isTicketModalOpen = ref(false);
 const isTicketInfoModalOpen = ref(false);
+
+const getWebPUrl = (originalUrl) => {
+  if (!originalUrl) return "";
+  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+};
 
 const openTicketModal = async (concert) => {
   const freshConcertData = await getConcert(concert.id);
