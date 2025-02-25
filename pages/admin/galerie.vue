@@ -58,12 +58,15 @@
         @dragstart="onDragStart(index + 1, image.id, $event)"
       >
         <div class="relative overflow-hidden rounded-lg h-full cursor-move">
-          <img
-            :src="image.image_url"
-            :alt="image.title"
-            class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-            @click="openLightbox(index)"
-          />
+          <picture>
+            <source :srcset="getWebPUrl(image.image_url)" type="image/webp" />
+            <img
+              :src="image.image_url"
+              :alt="image.title"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              @click="openLightbox(index)"
+            />
+          </picture>
           <div
             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"
           >
@@ -131,11 +134,19 @@
             draggable="true"
             @dragstart="onDragStart(1, layoutImages[0].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[0].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 1"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[0].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[0].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 1"
+              />
+            </picture>
             <button
               @click="removeImage(1)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -176,11 +187,19 @@
             draggable="true"
             @dragstart="onDragStart(2, layoutImages[1].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[1].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 2"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[1].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[1].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 2"
+              />
+            </picture>
             <button
               @click="removeImage(2)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -221,11 +240,19 @@
             draggable="true"
             @dragstart="onDragStart(3, layoutImages[2].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[2].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 3"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[2].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[2].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 3"
+              />
+            </picture>
             <button
               @click="removeImage(3)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -266,11 +293,19 @@
             draggable="true"
             @dragstart="onDragStart(4, layoutImages[3].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[3].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 4"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[3].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[3].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 4"
+              />
+            </picture>
             <button
               @click="removeImage(4)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -311,11 +346,19 @@
             draggable="true"
             @dragstart="onDragStart(5, layoutImages[4].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[4].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 5"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[4].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[4].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 5"
+              />
+            </picture>
             <button
               @click="removeImage(5)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -356,11 +399,19 @@
             draggable="true"
             @dragstart="onDragStart(6, layoutImages[5].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[5].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 6"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[5].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[5].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 6"
+              />
+            </picture>
             <button
               @click="removeImage(6)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -401,11 +452,19 @@
             draggable="true"
             @dragstart="onDragStart(7, layoutImages[6].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[6].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 7"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[6].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[6].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 7"
+              />
+            </picture>
             <button
               @click="removeImage(7)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -446,11 +505,19 @@
             draggable="true"
             @dragstart="onDragStart(8, layoutImages[7].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[7].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 8"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[7].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[7].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 8"
+              />
+            </picture>
             <button
               @click="removeImage(8)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -491,11 +558,19 @@
             draggable="true"
             @dragstart="onDragStart(9, layoutImages[8].id, $event)"
           >
-            <img
-              :src="getImageById(layoutImages[8].id)?.image_url"
-              class="w-full h-full object-cover rounded-lg"
-              alt="Pozice 9"
-            />
+            <picture>
+              <source
+                :srcset="
+                  getWebPUrl(getImageById(layoutImages[8].id)?.image_url)
+                "
+                type="image/webp"
+              />
+              <img
+                :src="getImageById(layoutImages[8].id)?.image_url"
+                class="w-full h-full object-cover rounded-lg"
+                alt="Pozice 9"
+              />
+            </picture>
             <button
               @click="removeImage(9)"
               class="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600"
@@ -787,11 +862,17 @@
                   >
                 </button>
 
-                <img
-                  :src="images[currentImageIndex]?.image_url"
-                  :alt="`Gallery image ${currentImageIndex + 1}`"
-                  class="w-full h-auto max-h-[80vh] object-contain mx-auto"
-                />
+                <picture>
+                  <source
+                    :srcset="getWebPUrl(images[currentImageIndex]?.image_url)"
+                    type="image/webp"
+                  />
+                  <img
+                    :src="images[currentImageIndex]?.image_url"
+                    :alt="`Gallery image ${currentImageIndex + 1}`"
+                    class="w-full h-auto max-h-[80vh] object-contain mx-auto"
+                  />
+                </picture>
               </DialogPanel>
             </TransitionChild>
           </div>
@@ -1243,6 +1324,12 @@ const handlePageChange = async (page: number) => {
   if (page === currentPage.value) return;
   currentPage.value = page;
   await fetchImages();
+};
+
+// Přidáme funkci pro získání WebP URL
+const getWebPUrl = (originalUrl: string | null) => {
+  if (!originalUrl) return "";
+  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
 };
 </script>
 

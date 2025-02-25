@@ -1,5 +1,10 @@
 <template>
   <div class="p-6">
+    <!-- Breadcrumbs -->
+    <div class="mb-6">
+      <AdminBreadcrumbs />
+    </div>
+
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Správa médií</h1>
       <p class="mt-1 text-sm text-gray-600">
@@ -25,6 +30,7 @@ definePageMeta({
 import { ref, onMounted } from "#imports";
 import { useSupabaseClient } from "#imports";
 import ImageOptimizer from "~/components/ImageOptimizer.vue";
+import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 
 const supabase = useSupabaseClient();
 

@@ -569,11 +569,17 @@
                       <div
                         class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border-2 border-gray-200"
                       >
-                        <img
-                          :src="imagePreview"
-                          alt="Náhled obrázku"
-                          class="w-full h-full object-cover"
-                        />
+                        <picture>
+                          <source
+                            :srcset="getWebPUrl(imagePreview)"
+                            type="image/webp"
+                          />
+                          <img
+                            :src="imagePreview"
+                            alt="Náhled obrázku"
+                            class="w-full h-full object-cover"
+                          />
+                        </picture>
                       </div>
                     </div>
                     <button
@@ -2138,12 +2144,17 @@
                   <!-- Základní informace -->
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <img
-                        v-if="selectedConcert?.image"
-                        :src="selectedConcert.image"
-                        :alt="selectedConcert.title"
-                        class="w-full h-64 object-cover rounded-lg"
-                      />
+                      <picture v-if="selectedConcert?.image">
+                        <source
+                          :srcset="getWebPUrl(selectedConcert.image)"
+                          type="image/webp"
+                        />
+                        <img
+                          :src="selectedConcert.image"
+                          :alt="selectedConcert.title"
+                          class="w-full h-64 object-cover rounded-lg"
+                        />
+                      </picture>
                     </div>
                     <div class="space-y-4">
                       <div>
@@ -3410,6 +3421,12 @@ watch(
   },
   { immediate: true, deep: true }
 );
+
+// Přidáme funkci pro získání WebP URL
+const getWebPUrl = (originalUrl) => {
+  if (!originalUrl) return "";
+  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+};
 </script>
 
 <style scoped>
