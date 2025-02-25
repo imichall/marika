@@ -460,18 +460,28 @@
       <div class="relative">
         <!-- Poster/obrázek koncertu jako header -->
         <div class="relative h-64 bg-gray-200">
-          <img
-            v-if="selectedConcert.image"
-            :src="selectedConcert.image"
-            :alt="selectedConcert.title"
-            class="w-full h-full object-contain"
-          />
-          <img
-            v-else-if="selectedConcert.poster?.image_url"
-            :src="selectedConcert.poster.image_url"
-            :alt="selectedConcert.title"
-            class="w-full h-full object-contain"
-          />
+          <picture v-if="selectedConcert.image">
+            <source
+              :srcset="getWebPUrl(selectedConcert.image)"
+              type="image/webp"
+            />
+            <img
+              :src="selectedConcert.image"
+              :alt="selectedConcert.title"
+              class="w-full h-full object-contain"
+            />
+          </picture>
+          <picture v-else-if="selectedConcert.poster?.image_url">
+            <source
+              :srcset="getWebPUrl(selectedConcert.poster.image_url)"
+              type="image/webp"
+            />
+            <img
+              :src="selectedConcert.poster.image_url"
+              :alt="selectedConcert.title"
+              class="w-full h-full object-contain"
+            />
+          </picture>
           <div
             v-else
             class="w-full h-full flex items-center justify-center bg-indigo-50"
@@ -705,6 +715,9 @@ const permissions = ref({
     view: false,
     manage: false,
   },
+  media: {
+    view: false,
+  },
 });
 
 // Načtení oprávnění
@@ -874,16 +887,10 @@ const sidebarSections = computed(() =>
           to: "/admin/kontakty",
           icon: "contacts",
         },
-        {
+        permissions.value.media?.view && {
           name: "Média",
           to: "/admin/media",
           icon: "perm_media",
-        },
-        {
-          name: "Oprávnění",
-          to: "/admin/opravneni",
-          icon: "admin_panel_settings",
-          adminOnly: true,
         },
       ].filter(Boolean),
     },
@@ -1169,6 +1176,12 @@ const editConcert = (concert) => {
 
 // V script části přidáme:
 const isSidebarOpen = ref(false);
+
+// V script části přidáme:
+const getWebPUrl = (originalUrl) => {
+  if (!originalUrl) return "";
+  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+};
 </script>
 
 <style>
