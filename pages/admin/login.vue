@@ -1,10 +1,10 @@
 <template>
   <div
-    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white overflow-hidden relative"
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-white overflow-hidden relative px-4 sm:px-6 py-12"
     :class="{ 'fade-out': isLoggingOut }"
   >
-    <!-- Animated background elements -->
-    <div class="absolute inset-0 overflow-hidden">
+    <!-- Animated background elements - hide on small screens -->
+    <div class="absolute inset-0 overflow-hidden hidden sm:block">
       <div
         v-for="n in 20"
         :key="n"
@@ -20,10 +20,12 @@
       </div>
     </div>
 
-    <div class="max-w-md w-full space-y-8 relative">
+    <div
+      class="w-full max-w-md mx-auto space-y-8 relative bg-white/80 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-xl"
+    >
       <div class="text-center relative">
-        <!-- Animated lock icon -->
-        <div class="mb-8 relative mx-auto w-32 h-32">
+        <!-- Animated lock icon - smaller on mobile -->
+        <div class="mb-6 sm:mb-8 relative mx-auto w-24 sm:w-32 h-24 sm:h-32">
           <svg
             class="w-full h-full animate-bounce-slow"
             viewBox="0 0 24 24"
@@ -48,56 +50,63 @@
         <div
           class="transform hover:scale-105 transition-transform duration-300"
         >
-          <h2 class="text-4xl font-extrabold text-red-800 mb-4 animate-pulse">
+          <h2
+            class="text-2xl sm:text-4xl font-extrabold text-red-800 mb-2 sm:mb-4 animate-pulse"
+          >
             Přihlášení do administrace
           </h2>
-          <p class="text-gray-600 mb-8">Vstupte do světa administrátora! 🎵</p>
+          <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
+            Vstupte do světa administrátora! 🎵
+          </p>
         </div>
       </div>
 
-      <form class="mt-8 space-y-6 relative" @submit.prevent="handleLogin">
+      <form
+        class="mt-6 sm:mt-8 space-y-4 sm:space-y-6 relative"
+        @submit.prevent="handleLogin"
+      >
         <div class="rounded-md shadow-sm -space-y-px">
-    <div>
-      <label for="email" class="sr-only">Email</label>
-      <input
-        id="email"
-        v-model="email"
-        type="email"
-        name="username"  
-        autocomplete="username"
-        inputmode="email"
-        required
-        class="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
-        placeholder="Email"
-      />
-    </div>
-    <div>
-      <label for="password" class="sr-only">Heslo</label>
-      <input
-        id="password"
-        v-model="password"
-        type="password"
-        name="current-password"
-        autocomplete="current-password"
-        required
-        class="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm transform hover:scale-101 transition-transform duration-200"
-        placeholder="Heslo"
-      />
-    </div>
-  </div>
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              type="email"
+              name="username"
+              autocomplete="username"
+              inputmode="email"
+              required
+              class="appearance-none rounded-t-md relative block w-full px-3 py-2 sm:py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-base sm:text-sm transform hover:scale-101 transition-transform duration-200"
+              placeholder="Email"
+            />
+          </div>
+          <div>
+            <label for="password" class="sr-only">Heslo</label>
+            <input
+              id="password"
+              v-model="password"
+              type="password"
+              name="current-password"
+              autocomplete="current-password"
+              required
+              class="appearance-none rounded-b-md relative block w-full px-3 py-2 sm:py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 text-base sm:text-sm transform hover:scale-101 transition-transform duration-200"
+              placeholder="Heslo"
+            />
+          </div>
+        </div>
 
         <div
           v-if="error"
-          class="text-red-500 text-sm text-center animate-bounce"
+          class="text-red-500 text-sm text-center animate-bounce mt-4"
         >
           {{ error }}
         </div>
 
-        <div>
+        <div class="mt-4 sm:mt-6">
           <button
             type="submit"
             :disabled="loading"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-red-800 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform hover:scale-105 transition-all duration-300"
+            class="group relative w-full flex justify-center py-3 sm:py-2 px-4 border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-red-800 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
               <svg

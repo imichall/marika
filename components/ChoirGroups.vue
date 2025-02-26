@@ -20,17 +20,19 @@
         <FadeUpOnScroll v-for="group in groups" :key="group.id" class="group">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div
-              class="relative aspect-[4/3] overflow-hidden bg-white p-4 rounded-3xl ring-1 ring-black/10 shadow-md"
+              class="relative aspect-[4/3] overflow-hidden bg-white rounded-3xl ring-1 ring-black/10 shadow-md"
             >
-              <div class="relative w-full h-full overflow-hidden rounded-2xl">
-                <img
-                  :src="group.image"
-                  :alt="group.name"
-                  class="w-full h-full object-cover transition-all duration-700 group-hover:brightness-[1.02]"
-                />
-                <div
-                  class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                ></div>
+              <div class="absolute inset-4">
+                <div class="relative w-full h-full overflow-hidden rounded-2xl">
+                  <img
+                    :src="group.image"
+                    :alt="group.name"
+                    class="w-full h-full object-cover transition-all duration-700 group-hover:brightness-[1.02]"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  ></div>
+                </div>
               </div>
             </div>
 
