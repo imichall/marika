@@ -1,63 +1,207 @@
 <template>
-  <footer id="contact" class="bg-gray-100">
-    <div class="container mx-auto px-4">
-      <div class="relative flex py-10 items-center">
-        <div class="flex-grow border-t border-gray-400"></div>
-        <span class="flex-shrink mx-4 text-2xl text-black uppercase"
-          >Kontakt</span
+  <footer
+    id="contact"
+    class="relative bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden"
+  >
+    <!-- Decorative elements -->
+    <div
+      class="absolute inset-0 opacity-[0.03]"
+      style="
+        background-image: url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+      "
+    ></div>
+
+    <div class="container mx-auto px-4 relative">
+      <div class="text-center py-16">
+        <div class="relative flex items-center">
+          <div class="flex-grow border-t border-gray-400"></div>
+          <span class="flex-shrink mx-4 text-2xl text-black uppercase"
+            >Kontakt</span
+          >
+          <div class="flex-grow border-t border-gray-400"></div>
+        </div>
+      </div>
+
+      <div v-if="loading || settingsLoading" class="text-center py-16">
+        <div
+          class="animate-spin rounded-full h-16 w-16 border-4 border-red-800 border-t-transparent mx-auto"
+        ></div>
+        <p class="mt-4 text-gray-600">Načítání kontaktů...</p>
+      </div>
+
+      <div v-else-if="error" class="text-center py-8">
+        <div
+          class="bg-red-50 p-6 rounded-xl max-w-lg mx-auto border border-red-200"
         >
-        <div class="flex-grow border-t border-gray-400"></div>
+          <svg
+            class="w-12 h-12 text-red-800 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p class="text-red-800 font-medium">{{ error }}</p>
+        </div>
       </div>
-      <div v-if="loading || settingsLoading" class="text-center py-8">
-        <p>Načítání...</p>
-      </div>
-      <div v-else-if="error" class="text-center py-8 text-red-600">
-        <p>{{ error }}</p>
-      </div>
-      <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-16">
         <FadeUpOnScroll v-for="contact in contacts" :key="contact.id">
           <div
             :class="{
-              'bg-pink-50': contact.group_name === 'Marika Singers, z.s.',
-              'bg-white': contact.group_name === 'VOICES',
-              'bg-gray-50': contact.group_name === 'FIVE',
+              'bg-gradient-to-br from-white to-red-50 border-red-200 hover:border-red-300':
+                contact.group_name === 'Marika Singers, z.s.',
+              'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-gray-300':
+                contact.group_name === 'VOICES',
+              'bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-gray-300':
+                contact.group_name === 'FIVE',
             }"
-            class="p-6 h-full flex flex-col"
+            class="group p-8 h-full flex flex-col rounded-2xl shadow-sm transition-all duration-500 hover:shadow-lg border backdrop-blur-sm relative overflow-hidden"
           >
-            <h3 class="font-bold mb-2">{{ contact.group_name }}</h3>
-            <div v-if="contact.address" class="whitespace-pre-line flex-grow">
-              {{ contact.address }}
+            <!-- Decorative corner -->
+            <div
+              class="absolute top-0 right-0 w-16 h-16 transform translate-x-8 -translate-y-8"
+            >
+              <div
+                :class="{
+                  'bg-red-100': contact.group_name === 'Marika Singers, z.s.',
+                  'bg-gray-100': contact.group_name !== 'Marika Singers, z.s.',
+                }"
+                class="w-full h-full rotate-45 transform origin-bottom-left"
+              ></div>
             </div>
-            <div class="mt-auto space-y-4">
-              <div v-if="contact.ico || contact.dic">
-                <template v-if="contact.ico && contact.dic">
-                  IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
-                </template>
-                <template v-else-if="contact.ico">
-                  IČO: {{ contact.ico }}
-                </template>
+
+            <h3 class="text-2xl font-bold mb-6 text-gray-900 relative">
+              {{ contact.group_name }}
+              <div
+                class="h-1 w-12 bg-red-800 rounded-full mt-3 transition-all duration-300 group-hover:w-24"
+              ></div>
+            </h3>
+
+            <div
+              v-if="contact.address"
+              class="whitespace-pre-line flex-grow text-gray-600 mb-6 group-hover:text-gray-900 transition-colors duration-300"
+            >
+              <div class="flex items-start">
+                <svg
+                  class="w-5 h-5 text-red-800 mr-3 mt-1 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <span>{{ contact.address }}</span>
               </div>
+            </div>
+
+            <div class="mt-auto space-y-5">
+              <div v-if="contact.ico || contact.dic" class="text-gray-600">
+                <div
+                  class="flex items-center group-hover:text-gray-900 transition-colors duration-300"
+                >
+                  <svg
+                    class="w-5 h-5 text-red-800 mr-3 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                  <span>
+                    <template v-if="contact.ico && contact.dic">
+                      IČO: {{ contact.ico }} / DIČ: {{ contact.dic }}
+                    </template>
+                    <template v-else-if="contact.ico">
+                      IČO: {{ contact.ico }}
+                    </template>
+                  </span>
+                </div>
+              </div>
+
               <div v-if="contact.email">
                 <a
                   :href="`mailto:${contact.email}`"
-                  class="text-gray-600 hover:text-gray-900"
+                  class="flex items-center text-gray-600 hover:text-red-800 transition-colors duration-300 group"
                 >
+                  <svg
+                    class="w-5 h-5 text-red-800 mr-3 flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
                   {{ contact.email }}
                 </a>
               </div>
-              <div v-if="getBankAccount(contact.group_name)">
-                <span class="text-gray-600">
-                  Bankovní účet:
-                  {{ formatBankAccount(getBankAccount(contact.group_name)) }}
-                </span>
+
+              <div
+                v-if="getBankAccount(contact.group_name)"
+                class="text-gray-600 group-hover:text-gray-900 transition-colors duration-300"
+              >
+                <div class="flex items-center">
+                  <svg
+                    class="w-5 h-5 text-red-800 mr-3 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                  <span>
+                    Bankovní účet:
+                    {{ formatBankAccount(getBankAccount(contact.group_name)) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </FadeUpOnScroll>
       </div>
     </div>
-    <div class="text-center mt-8 py-4 text-sm bg-black text-white">
-      © {{ new Date().getFullYear() }} Marika Singers, z.s.
+
+    <div class="relative">
+      <div class="absolute inset-0 bg-black"></div>
+      <div class="container mx-auto px-4 py-8 relative">
+        <div class="text-center text-gray-300">
+          <p class="text-sm">
+            © {{ new Date().getFullYear() }} Marika Singers, z.s. | Všechna
+            práva vyhrazena
+          </p>
+        </div>
+      </div>
     </div>
   </footer>
 </template>
