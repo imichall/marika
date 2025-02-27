@@ -9,7 +9,7 @@
     <Navigation />
     <NuxtLayout>
       <NuxtPage />
-      <Footer v-if="!isAdminRoute" />
+      <Footer v-if="!isAdminRoute && !isConcertRoute" />
     </NuxtLayout>
   </div>
 </template>
@@ -26,5 +26,9 @@ const route = useRoute();
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
+});
+
+const isConcertRoute = computed(() => {
+  return route.path.startsWith("/koncerty");
 });
 </script>

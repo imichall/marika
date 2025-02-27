@@ -203,21 +203,21 @@
                     <button
                       v-if="concert.ticket_id"
                       @click="openTicketInfoModal(concert)"
-                      class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
+                      class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
                     >
                       Koupit vstupenky
                     </button>
                     <button
                       v-else
                       @click="openTicketModal(concert)"
-                      class="flex-1 bg-red-800 hover:bg-red-900 border border-red-800 text-white px-4 py-3 transition-colors duration-200"
+                      class="flex-1 bg-red-800 hover:bg-white hover:text-red-800 border-2 border-red-800 text-white px-5 py-3 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow-lg"
                     >
                       Koupit vstupenky
                     </button>
                     <button
                       v-if="concert.poster"
                       @click="showPosterModal = true"
-                      class="flex-1 bg-transparent border border-black text-black px-4 py-3 hover:bg-black hover:text-white transition-colors duration-200"
+                      class="flex-1 bg-transparent text-black border-2 border-black/90 px-5 py-3 text-center hover:bg-black hover:text-white transition-all duration-300 rounded-xl font-medium shadow-sm hover:shadow-lg"
                     >
                       Stáhnout plakát akce
                     </button>
@@ -570,20 +570,31 @@
 
                 <div class="p-6 overflow-y-auto">
                   <div class="relative flex justify-center">
-                    <img
+                    <!-- Obrázek (non-PDF) -->
+                    <div
                       v-if="
                         concert.poster?.image_url &&
-                        !concert.poster.image_url.endsWith('.pdf')
+                        !isPDF(concert.poster.image_url)
                       "
-                      :src="concert.poster.image_url"
-                      :alt="concert.title"
-                      class="max-w-full h-auto rounded-lg shadow-lg"
-                    />
+                      class="relative"
+                    >
+                      <picture>
+                        <source
+                          :srcset="getWebPUrl(concert.poster.image_url)"
+                          type="image/webp"
+                        />
+                        <img
+                          :src="concert.poster.image_url"
+                          :alt="concert.title"
+                          class="max-w-full h-auto rounded-lg shadow-lg"
+                          loading="lazy"
+                        />
+                      </picture>
+                    </div>
+
+                    <!-- PDF -->
                     <object
-                      v-else-if="
-                        concert.poster?.image_url &&
-                        concert.poster.image_url.endsWith('.pdf')
-                      "
+                      v-else-if="isPDF(concert.poster.image_url)"
                       :data="concert.poster.image_url"
                       type="application/pdf"
                       class="w-full h-[70vh] rounded-lg shadow-lg"
@@ -860,10 +871,17 @@ onMounted(() => {
   });
 });
 
-// Přidáme funkci pro získání WebP URL do script setup
-const getWebPUrl = (originalUrl) => {
-  if (!originalUrl) return "";
-  return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+// Přidáme helper funkci pro detekci PDF
+const isPDF = (url) => {
+  if (!url) return false;
+  return url.toLowerCase().endsWith(".pdf");
+};
+
+// Vylepšíme funkci pro získání WebP URL
+const getWebPUrl = (url) => {
+  if (!url) return "";
+  if (url.endsWith(".webp")) return url;
+  return url.replace(/\.(jpe?g|png|gif)$/i, ".webp");
 };
 </script>
 

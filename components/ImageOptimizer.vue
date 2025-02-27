@@ -75,7 +75,7 @@ const currentFile = ref("");
 const currentBucket = ref("");
 const results = ref<Array<{ success: boolean; message: string }>>([]);
 
-const buckets = ["gallery", "concerts"];
+const buckets = ["gallery", "concerts", "posters"];
 
 const startOptimization = async () => {
   processing.value = true;
