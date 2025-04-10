@@ -257,6 +257,30 @@
               </div>
             </div>
 
+            <!-- Přidat tlačítko tisku vedle existujících filtrů -->
+            <div class="flex justify-end mb-4">
+              <button
+                @click="openPrintModal"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                  />
+                </svg>
+                Tisk
+              </button>
+            </div>
+
             <!-- Seznam objednávek -->
             <div
               class="bg-white rounded-lg border border-gray-200 overflow-hidden h-[60vh]"
@@ -696,6 +720,82 @@
                 </div>
               </DialogPanel>
             </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Modal pro nastavení tisku -->
+    <TransitionRoot appear :show="isPrintModalOpen" as="template">
+      <Dialog as="div" @close="closePrintModal" class="relative z-50">
+        <div class="fixed inset-0 bg-black bg-opacity-25" />
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <DialogPanel
+              class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+            >
+              <DialogTitle
+                as="h3"
+                class="text-lg font-medium leading-6 text-gray-900"
+              >
+                Nastavení tisku
+              </DialogTitle>
+
+              <div class="mt-4">
+                <div class="space-y-4">
+                  <div>
+                    <label class="text-sm font-medium text-gray-700"
+                      >Vyberte status objednávek</label
+                    >
+                    <div class="mt-2 space-y-2">
+                      <label class="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          v-model="printSettings.pending"
+                          class="rounded border-gray-300"
+                        />
+                        <span class="ml-2">Čekající</span>
+                      </label>
+                      <br />
+                      <label class="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          v-model="printSettings.completed"
+                          class="rounded border-gray-300"
+                        />
+                        <span class="ml-2">Zaplacené</span>
+                      </label>
+                      <br />
+                      <label class="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          v-model="printSettings.cancelled"
+                          class="rounded border-gray-300"
+                        />
+                        <span class="ml-2">Zrušené</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  class="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  @click="closePrintModal"
+                >
+                  Zrušit
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  @click="printOrders"
+                >
+                  Tisknout
+                </button>
+              </div>
+            </DialogPanel>
           </div>
         </div>
       </Dialog>
@@ -1396,5 +1496,90 @@ const loadBankAccount = async () => {
     console.error("Error loading bank account:", err);
     toast.error("Nepodařilo se načíst bankovní údaje");
   }
+};
+
+// Nové proměnné pro tisk
+const isPrintModalOpen = ref(false);
+const printSettings = ref({
+  pending: true,
+  completed: false,
+  cancelled: false,
+});
+
+const openPrintModal = () => {
+  isPrintModalOpen.value = true;
+};
+
+const closePrintModal = () => {
+  isPrintModalOpen.value = false;
+};
+
+const printOrders = () => {
+  // Filtrovat objednávky podle vybraných statusů
+  const ordersToPrint = filteredOrders.value.filter((order) => {
+    return (
+      (printSettings.value.pending && order.payment_status === "pending") ||
+      (printSettings.value.completed && order.payment_status === "completed") ||
+      (printSettings.value.cancelled && order.payment_status === "cancelled")
+    );
+  });
+
+  // Vytvořit dočasný element pro tisk
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Tisk objednávek</title>
+        <style>
+          body { font-family: Arial, sans-serif; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f5f5f5; }
+          @media print {
+            @page { size: A4; margin: 2cm; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Seznam objednávek</h1>
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Zákazník</th>
+              <th>Koncert</th>
+              <th>Vstupenky</th>
+              <th>Celkem</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordersToPrint
+              .map(
+                (order) => `
+              <tr>
+                <td>${formatDate(order.created_at)}<br>${formatTime(
+                  order.created_at
+                )}</td>
+                <td>${order.customer_name}<br>${order.customer_email}</td>
+                <td>${getConcertTitle(order.concert_id)}<br>VS: ${
+                  order.variable_symbol
+                }</td>
+                <td>${order.ticket_count} ks</td>
+                <td>${order.total_price} Kč</td>
+                <td>${getStatusLabel(order.payment_status)}</td>
+              </tr>
+            `
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.print();
+  closePrintModal();
 };
 </script>
