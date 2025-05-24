@@ -170,43 +170,59 @@
                   "
                   class="space-y-4"
                 >
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      Jméno a příjmení
-                    </label>
-                    <input
-                      v-model="contactInfo.name"
-                      type="text"
-                      name="name"
-                      autocomplete="name"
-                      inputmode="text"
-                      required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      :class="{ 'border-red-500': errors.name }"
-                    />
-                    <p v-if="errors.name" class="text-red-500 text-sm mt-1">
-                      {{ errors.name }}
-                    </p>
-                  </div>
+                  <form
+                    @submit.prevent="handleSubmit"
+                    autocomplete="on"
+                    class="space-y-4"
+                  >
+                    <div>
+                      <label
+                        for="name"
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                      >
+                        Jméno a příjmení
+                      </label>
+                      <input
+                        v-model="contactInfo.name"
+                        type="text"
+                        name="name"
+                        id="name"
+                        autocomplete="name"
+                        inputmode="text"
+                        required
+                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        :class="{ 'border-red-500': errors.name }"
+                        placeholder="Vaše jméno"
+                      />
+                      <p v-if="errors.name" class="text-red-500 text-sm mt-1">
+                        {{ errors.name }}
+                      </p>
+                    </div>
 
-                  <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                      E-mail
-                    </label>
-                    <input
-                      v-model="contactInfo.email"
-                      type="email"
-                      name="email"
-                      autocomplete="email"
-                      inputmode="email"
-                      required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-                      :class="{ 'border-red-500': errors.email }"
-                    />
-                    <p v-if="errors.email" class="text-red-500 text-sm mt-1">
-                      {{ errors.email }}
-                    </p>
-                  </div>
+                    <div>
+                      <label
+                        for="email"
+                        class="block text-gray-700 text-sm font-bold mb-2"
+                      >
+                        E-mail
+                      </label>
+                      <input
+                        v-model="contactInfo.email"
+                        type="email"
+                        name="email"
+                        id="email"
+                        autocomplete="email"
+                        inputmode="email"
+                        required
+                        class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                        :class="{ 'border-red-500': errors.email }"
+                        placeholder="vas@email.cz"
+                      />
+                      <p v-if="errors.email" class="text-red-500 text-sm mt-1">
+                        {{ errors.email }}
+                      </p>
+                    </div>
+                  </form>
                 </div>
 
                 <!-- Step 3: Platební údaje - pouze pro placené koncerty bez předprodeje -->
@@ -374,8 +390,10 @@
                       koncertě!
                     </template>
                     <template v-else>
-                      Děkujeme za vaši objednávku. Po zaplacení se těšíme na
-                      viděnou na koncertě!
+                      Děkujeme za vaši objednávku. Po zaplacení vstupenky mailem
+                      neposíláme, budou vás na vaše jméno čekat u vstupu na
+                      koncert.<br />
+                      Těšíme se na viděnou!
                     </template>
                   </p>
 
