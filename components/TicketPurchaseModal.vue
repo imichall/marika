@@ -280,10 +280,6 @@
                   </div>
 
                   <div class="text-center text-sm text-gray-500">
-                    <p>
-                      Po zaplacení vám bude zaslán e-mail s potvrzením na adresu
-                      {{ contactInfo.email }}
-                    </p>
                     <p class="mt-2">
                       Pro urychlení platby můžete použít QR kód výše
                     </p>
