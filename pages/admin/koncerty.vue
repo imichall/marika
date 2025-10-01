@@ -2825,6 +2825,9 @@ const handleSubmit = async () => {
       image: form.value.image, // Add image path to concert data
     };
 
+    // Vždy přidáme ticket_id (buď ID vstupenky, nebo null)
+    concertData.ticket_id = form.value.ticket_id || null;
+
     // Pokud není vybraná vstupenka, vygenerujeme QR session data
     if (!form.value.ticket_id) {
       const qrSessionData = {
@@ -2837,11 +2840,11 @@ const handleSubmit = async () => {
         timestamp: Date.now(),
       };
 
-      // Přidáme QR session data a ticket ID do dat koncertu
-      Object.assign(concertData, {
-        qr_session: qrSessionData,
-        ticket_id: form.value.ticket_id || null,
-      });
+      // Přidáme QR session data
+      concertData.qr_session = qrSessionData;
+    } else {
+      // Pokud je vybraná vstupenka, vymažeme QR session data
+      concertData.qr_session = null;
     }
 
     // Upload image if provided
