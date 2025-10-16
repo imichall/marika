@@ -258,7 +258,42 @@
             </div>
 
             <!-- Přidat tlačítko tisku vedle existujících filtrů -->
-            <div class="flex justify-end mb-4">
+            <div class="flex justify-between items-center mb-4">
+              <div class="flex items-center space-x-4">
+                <div class="space-y-1">
+                  <label class="text-sm font-medium text-gray-700">
+                    Filtr podle koncertu/VS
+                  </label>
+                  <div class="flex items-center space-x-2">
+                    <input
+                      v-model="concertFilter"
+                      type="text"
+                      placeholder="Název koncertu nebo VS..."
+                      class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 text-sm"
+                    />
+                    <button
+                      @click="clearConcertFilter"
+                      class="text-gray-400 hover:text-gray-600"
+                      title="Vymazat filtr"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
               <button
                 @click="openPrintModal"
                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -1042,6 +1077,7 @@ watch(
 const searchQuery = ref("");
 const statusFilter = ref<"" | "pending" | "completed" | "cancelled">("");
 const sortBy = ref("date-desc");
+const concertFilter = ref("");
 
 // Pomocné funkce
 const formatDate = (dateString: string): string => {
@@ -1115,6 +1151,20 @@ const filteredOrders = computed(() => {
     });
   }
 
+  // Filtr podle koncertu nebo variabilního symbolu
+  if (concertFilter.value) {
+    const filterQuery = concertFilter.value.toLowerCase();
+    result = result.filter((order: Order) => {
+      const concertTitle = getConcertTitle(order.concert_id).toLowerCase();
+      const variableSymbol = (order.variable_symbol || "").toLowerCase();
+
+      return (
+        concertTitle.includes(filterQuery) ||
+        variableSymbol.includes(filterQuery)
+      );
+    });
+  }
+
   // Filtr podle stavu
   if (statusFilter.value) {
     result = result.filter(
@@ -1150,6 +1200,7 @@ const resetFilters = (): void => {
   searchQuery.value = "";
   statusFilter.value = "";
   sortBy.value = "date-desc";
+  concertFilter.value = "";
 };
 
 // Výpočet statistik
@@ -1430,6 +1481,12 @@ const handleStatusUpdate = async (
   }
 };
 
+// Funkce pro úpravu objednávky
+const editOrder = (order: Order) => {
+  // Prozatím otevřeme detail objednávky - později lze rozšířit o editaci
+  openOrderDetail(order);
+};
+
 // Přidáme nové proměnné pro mazání
 const isDeleteModalOpen = ref(false);
 const orderToDelete = ref<Order | null>(null);
@@ -1514,18 +1571,60 @@ const closePrintModal = () => {
   isPrintModalOpen.value = false;
 };
 
+const clearConcertFilter = () => {
+  concertFilter.value = "";
+};
+
 const printOrders = () => {
-  // Filtrovat objednávky podle vybraných statusů
-  const ordersToPrint = filteredOrders.value.filter((order) => {
-    return (
+  // Použijeme už filtrované objednávky (které zahrnují filtr podle koncertu)
+  let ordersToPrint = filteredOrders.value;
+  console.log("Celkem objednávek po hlavních filtrech:", ordersToPrint.length);
+
+  // Filtrovat objednávky podle vybraných statusů pro tisk
+  console.log("Nastavení statusů pro tisk:", printSettings.value);
+  ordersToPrint = ordersToPrint.filter((order) => {
+    const matches = (
       (printSettings.value.pending && order.payment_status === "pending") ||
       (printSettings.value.completed && order.payment_status === "completed") ||
       (printSettings.value.cancelled && order.payment_status === "cancelled")
     );
+    return matches;
   });
+  console.log("Objednávky po filtru statusu pro tisk:", ordersToPrint.length);
 
   // Vytvořit dočasný element pro tisk
   const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    toast.error("Nepodařilo se otevřít okno pro tisk");
+    return;
+  }
+
+  // Vytvořit informace o filtrech
+  const filterInfo = [];
+  const statusFilters = [];
+  if (printSettings.value.pending) statusFilters.push("Čekající");
+  if (printSettings.value.completed) statusFilters.push("Zaplacené");
+  if (printSettings.value.cancelled) statusFilters.push("Zrušené");
+
+  if (statusFilters.length > 0) {
+    filterInfo.push(`Status: ${statusFilters.join(", ")}`);
+  }
+
+  if (concertFilter.value) {
+    filterInfo.push(`Koncert/VS: "${concertFilter.value}"`);
+  }
+
+  const filterInfoHtml = filterInfo.length > 0 ?
+    `<div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 4px;">
+      <strong>Použité filtry:</strong> ${filterInfo.join(" | ")}<br>
+      <strong>Celkem objednávek v databázi:</strong> ${orders.value?.length || 0}<br>
+      <strong>Objednávky k tisku:</strong> ${ordersToPrint.length}
+    </div>` :
+    `<div style="margin-bottom: 20px; padding: 10px; background-color: #f9f9f9; border-radius: 4px;">
+      <strong>Celkem objednávek v databázi:</strong> ${orders.value?.length || 0}<br>
+      <strong>Objednávky k tisku:</strong> ${ordersToPrint.length}
+    </div>`;
+
   printWindow.document.write(`
     <html>
       <head>
@@ -1542,6 +1641,10 @@ const printOrders = () => {
       </head>
       <body>
         <h1>Seznam objednávek</h1>
+        ${filterInfoHtml}
+        <p style="color: #666; margin-bottom: 20px;">
+          Vytištěno: ${new Date().toLocaleString('cs-CZ')}
+        </p>
         <table>
           <thead>
             <tr>
