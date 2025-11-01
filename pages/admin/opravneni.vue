@@ -296,6 +296,7 @@ const getSectionName = (section) => {
     form_messages: "Zprávy z formuláře",
     emails: "Emaily",
     gallery_layout: "Rozložení galerie",
+    forum: "Fórum",
   };
   return sections[section] || section;
 };
