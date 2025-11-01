@@ -824,9 +824,6 @@ const clearError = () => {
   router.replace({ query: {} });
 };
 
-// V script části přidáme:
-const archivedChats = ref(0);
-const chatUsers = ref(0);
 
 // Sidebar sections with permissions check
 const sidebarSections = computed(() =>
@@ -911,11 +908,6 @@ const sidebarSections = computed(() =>
           name: "Nastavení",
           to: "/admin/system",
           icon: "settings",
-        },
-        permissions.value.chat.manage && {
-          name: "Chat",
-          to: "/admin/chat",
-          icon: "chat",
         },
       ].filter(Boolean),
     },

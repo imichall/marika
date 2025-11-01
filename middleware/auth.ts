@@ -55,7 +55,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
         '/admin/emaily',
         '/admin/emaily/list',
         '/admin/emaily/preview',
-        '/admin/chat',
         '/admin/media',
       ]
 
