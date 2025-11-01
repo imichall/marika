@@ -55,15 +55,19 @@ export default defineNuxtRouteMiddleware(async (to) => {
         '/admin/emaily',
         '/admin/emaily/list',
         '/admin/emaily/preview',
-        '/admin/chat',
         '/admin/media',
+        '/admin/forum',
+        '/admin/forum/agenda',
       ]
 
       // Normalizace cesty - odstranění trailing slash
       const normalizedPath = to.path.replace(/\/$/, '')
 
-      // Pokud cesta není v seznamu povolených, přesměruj na 404
-      if (!validAdminRoutes.includes(normalizedPath)) {
+      // Kontrola dynamických cest (např. /admin/forum/[id])
+      const isDynamicForumRoute = normalizedPath.startsWith('/admin/forum/') && normalizedPath !== '/admin/forum'
+
+      // Pokud cesta není v seznamu povolených a není dynamická cesta fóra, přesměruj na 404
+      if (!validAdminRoutes.includes(normalizedPath) && !isDynamicForumRoute) {
         return navigateTo('/404')
       }
 
