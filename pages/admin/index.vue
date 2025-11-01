@@ -175,6 +175,15 @@
                 <p class="text-sm text-gray-500 line-clamp-2 mb-2">
                   {{ topic.content.substring(0, 100) }}{{ topic.content.length > 100 ? "..." : "" }}
                 </p>
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                  <span
+                    v-if="getTagStyle(topic.tag)"
+                    class="px-2 py-0.5 rounded-full text-xs font-medium border"
+                    :style="getTagStyle(topic.tag)"
+                  >
+                    {{ getTagName(topic.tag || 'general') }}
+                  </span>
+                </div>
                 <div class="flex items-center gap-4 text-xs text-gray-400">
                   <span class="flex items-center gap-1">
                     <span class="material-icons-outlined text-sm">person</span>
@@ -187,17 +196,6 @@
                   <span class="flex items-center gap-1">
                     <span class="material-icons-outlined text-sm">comment</span>
                     {{ topic.reply_count }}
-                  </span>
-                  <span
-                    class="px-2 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-gray-100 text-gray-700': topic.tag === 'general',
-                      'bg-red-100 text-red-700': topic.tag === 'bug',
-                      'bg-orange-100 text-orange-700': topic.tag === 'issue',
-                      'bg-blue-100 text-blue-700': topic.tag === 'uprava',
-                    }"
-                  >
-                    {{ getTagName(topic.tag || 'general') }}
                   </span>
                 </div>
               </div>
@@ -745,7 +743,7 @@ const {
 const { messages, fetchAllMessages } = useFormMessages();
 
 // Přidám ref pro fórum
-const { topics: forumTopics, fetchTopics: fetchForumTopics } = useForum();
+const { topics: forumTopics, categories, tags, fetchTopics: fetchForumTopics, fetchCategories, fetchTags } = useForum();
 
 // Stav oprávnění
 const permissions = ref({
@@ -879,6 +877,8 @@ onMounted(async () => {
   // Načtení posledních témat z fóra (pokud má uživatel oprávnění), ale bez archivovaných
   if (permissions.value.forum?.view) {
     await fetchForumTopics({ status: "!archived" });
+    await fetchCategories();
+    await fetchTags();
   }
 });
 
@@ -1305,14 +1305,27 @@ const formatDate = (dateString) => {
 };
 
 // Překlad tagů
-const getTagName = (tag) => {
-  const tags = {
-    general: "Obecné",
-    bug: "Bug",
-    issue: "Issue",
-    uprava: "Úprava",
+const getTagName = (tagSlug) => {
+  const tag = tags.value.find((t) => t.slug === tagSlug);
+  return tag ? tag.name : tagSlug;
+};
+
+const getTagStyle = (tagSlug) => {
+  const tag = tags.value.find((t) => t.slug === tagSlug);
+  if (!tag) return null;
+
+  const hexToRgba = (hex, opacity) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
-  return tags[tag] || tag;
+
+  return {
+    backgroundColor: hexToRgba(tag.color, 0.1),
+    color: tag.color,
+    borderColor: tag.color,
+  };
 };
 </script>
 

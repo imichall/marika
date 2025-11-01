@@ -134,7 +134,7 @@
         <div class="p-6">
           <div class="flex justify-between items-start gap-6">
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-3 mb-3 flex-wrap">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
               <NuxtLink
                 :to="`/admin/forum/${topic.slug || topic.id}`"
                 class="text-xl font-bold text-gray-900 hover:text-indigo-600 transition-colors duration-200 group-hover:text-indigo-600"
@@ -163,6 +163,18 @@
               </span>
             </div>
 
+            <!-- Kategorie -->
+            <div class="flex items-center gap-2 mb-3 flex-wrap">
+              <span class="font-semibold text-gray-700">Kategorie:</span>
+              <span
+                v-if="getCategoryStyle(topic.category)"
+                class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"
+                :style="getCategoryStyle(topic.category)"
+              >
+                {{ getCategoryName(topic.category) }}
+              </span>
+            </div>
+
             <p class="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
               {{ topic.content }}
             </p>
@@ -188,14 +200,9 @@
                 </span>
               </div>
 
+              <!-- Tagy -->
               <div class="flex items-center gap-2 flex-wrap">
-                <span
-                  v-if="getCategoryStyle(topic.category)"
-                  class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"
-                  :style="getCategoryStyle(topic.category)"
-                >
-                  {{ getCategoryName(topic.category) }}
-                </span>
+                <span class="font-normal text-sm text-gray-700">Štítky:</span>
                 <span
                   v-if="getTagStyle(topic.tag)"
                   class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"

@@ -42,9 +42,21 @@
             </div>
 
             <!-- Název tématu -->
-            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 leading-tight">
               {{ topic.title }}
             </h1>
+
+            <!-- Kategorie -->
+            <div class="flex flex-wrap items-center gap-2 mb-6">
+              <span class="font-semibold text-gray-700">Kategorie:</span>
+              <span
+                v-if="getCategoryStyle(topic.category)"
+                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
+                :style="getCategoryStyle(topic.category)"
+              >
+                {{ getCategoryName(topic.category) }}
+              </span>
+            </div>
 
             <!-- Metadata -->
             <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-100">
@@ -71,26 +83,13 @@
               </button>
             </div>
 
-            <!-- Kategorie a tagy -->
+            <!-- Tagy -->
             <div class="flex flex-wrap items-center gap-2 mb-6">
+              <span class="font-semibold text-gray-700">Štítky:</span>
               <span
-                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full"
-                :class="{
-                  'bg-blue-100 text-blue-700 border border-blue-200': topic.category === 'general',
-                  'bg-yellow-100 text-yellow-700 border border-yellow-200': topic.category === 'announcement',
-                  'bg-green-100 text-green-700 border border-green-200': topic.category === 'help',
-                }"
-              >
-                {{ getCategoryName(topic.category) }}
-              </span>
-              <span
-                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full"
-                :class="{
-                  'bg-gray-100 text-gray-700 border border-gray-200': topic.tag === 'general',
-                  'bg-red-100 text-red-700 border border-red-200': topic.tag === 'bug',
-                  'bg-orange-100 text-orange-700 border border-orange-200': topic.tag === 'issue',
-                  'bg-indigo-100 text-indigo-700 border border-indigo-200': topic.tag === 'uprava',
-                }"
+                v-if="getTagStyle(topic.tag)"
+                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
+                :style="getTagStyle(topic.tag)"
               >
                 {{ getTagName(topic.tag || 'general') }}
               </span>
@@ -768,6 +767,8 @@ const {
   replyUserDislikes,
   loading,
   topicLoading,
+  categories,
+  tags,
   fetchTopic,
   updateTopic,
   deleteTopic: removeTopic,
@@ -788,6 +789,8 @@ const {
   incrementViewCount,
   fetchEditHistory,
   fetchViews,
+  fetchCategories,
+  fetchTags,
 } = useForum();
 
 const showReplyForm = ref(false);
@@ -823,23 +826,50 @@ const isAdmin = ref(false);
 const topicLikeCount = ref(0);
 const topicDislikeCount = ref(0);
 
-const getCategoryName = (category: string) => {
-  const names: Record<string, string> = {
-    general: "Obecné",
-    announcement: "Oznámení",
-    help: "Pomoc",
-  };
-  return names[category] || category;
+const getCategoryName = (categorySlug: string) => {
+  const category = categories.value.find((c) => c.slug === categorySlug);
+  return category ? category.name : categorySlug;
 };
 
-const getTagName = (tag: string) => {
-  const names: Record<string, string> = {
-    general: "Obecné",
-    bug: "Bug",
-    issue: "Issue",
-    uprava: "Úprava",
+const getCategoryStyle = (categorySlug: string) => {
+  const category = categories.value.find((c) => c.slug === categorySlug);
+  if (!category) return null;
+
+  const hexToRgba = (hex: string, opacity: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
   };
-  return names[tag] || tag;
+
+  return {
+    backgroundColor: hexToRgba(category.color, 0.1),
+    color: category.color,
+    borderColor: category.color,
+  };
+};
+
+const getTagName = (tagSlug: string) => {
+  const tag = tags.value.find((t) => t.slug === tagSlug);
+  return tag ? tag.name : tagSlug;
+};
+
+const getTagStyle = (tagSlug: string) => {
+  const tag = tags.value.find((t) => t.slug === tagSlug);
+  if (!tag) return null;
+
+  const hexToRgba = (hex: string, opacity: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+
+  return {
+    backgroundColor: hexToRgba(tag.color, 0.1),
+    color: tag.color,
+    borderColor: tag.color,
+  };
 };
 
 const formatDate = (date: string) => {
@@ -1188,6 +1218,8 @@ const toggleLikeReply = async (replyId: string) => {
 
 onMounted(async () => {
   const slug = route.params.slug as string;
+  await fetchCategories();
+  await fetchTags();
   await loadTopicData(slug);
   await loadPermissions();
 });
