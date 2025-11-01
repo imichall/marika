@@ -149,7 +149,7 @@
             <NuxtLink
               v-for="topic in recentForumTopics"
               :key="topic.id"
-              :to="`/admin/forum/${topic.id}`"
+              :to="`/admin/forum/${topic.slug || topic.id}`"
               class="flex items-start p-3 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200 group"
             >
               <div class="flex-1 min-w-0">

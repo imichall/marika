@@ -35,7 +35,8 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import { useForum } from "~/composables/useForum";
 
 interface Breadcrumb {
   name: string;
@@ -43,6 +44,10 @@ interface Breadcrumb {
 }
 
 const route = useRoute();
+const router = useRouter();
+
+// Pro forum stránky potřebujeme dynamicky získat název tématu
+const { topic } = useForum();
 
 const breadcrumbs = computed<Breadcrumb[]>(() => {
   const path = route.path;
@@ -50,7 +55,7 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
   const crumbs: Breadcrumb[] = [];
   let currentPath = "";
 
-  parts.forEach((part) => {
+  parts.forEach((part, index) => {
     currentPath += `/${part}`;
 
     if (part === "admin") return;
@@ -58,6 +63,7 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
     let name = part.charAt(0).toUpperCase() + part.slice(1);
 
     const nameMap: Record<string, string> = {
+      forum: "Forum",
       koncerty: "Koncerty",
       skupiny: "Tělesa",
       galerie: "Galerie",
@@ -71,6 +77,19 @@ const breadcrumbs = computed<Breadcrumb[]>(() => {
 
     if (nameMap[part]) {
       name = nameMap[part];
+    }
+
+    // Pokud je to slug na stránce forum, zobrazíme název tématu místo slug
+    if (part === "forum" && index < parts.length - 1) {
+      const nextPart = parts[index + 1];
+      // Pokud je další část slug/id a máme načtené téma, použijeme název
+      if (topic.value && (topic.value.slug === nextPart || topic.value.id === nextPart)) {
+        name = topic.value.title;
+      } else {
+        // Pokud nemáme načtené téma, zkusíme načíst (jen pro zobrazení)
+        // Ale toto by mělo být řešeno jinak - breadcrumbs by měly být reactive
+        // Pro teď ponecháme slug, pokud nemáme téma
+      }
     }
 
     crumbs.push({

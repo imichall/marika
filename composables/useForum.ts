@@ -1,9 +1,11 @@
 import { ref, onMounted } from "vue";
 import { useSupabaseClient } from "#imports";
+import { slugify } from "~/utils/string.js";
 
 export interface ForumTopic {
   id: string;
   title: string;
+  slug: string | null;
   content: string;
   category: "general" | "announcement" | "help";
   tag: "general" | "bug" | "issue" | "uprava";
@@ -96,6 +98,7 @@ export const useForum = () => {
   const editHistory = ref<ForumTopicEditHistory[]>([]);
   const views = ref<ForumTopicView[]>([]);
   const loading = ref(false);
+  const topicLoading = ref(false);
   const error = ref<string | null>(null);
 
   // Načtení všech témat
@@ -139,23 +142,64 @@ export const useForum = () => {
     }
   };
 
-  // Načtení jednoho tématu
-  const fetchTopic = async (id: string) => {
-    loading.value = true;
+  // Načtení jednoho tématu podle slug nebo id
+  const fetchTopic = async (slugOrId: string) => {
+    topicLoading.value = true;
     error.value = null;
     try {
-      const { data, error: err } = await supabase
+      // Zkusíme najít podle slug, pokud ne, tak podle id
+      let query = supabase
         .from("forum_topics")
         .select("*")
-        .eq("id", id)
-        .single();
+        .eq("slug", slugOrId);
+
+      let { data, error: err } = await query.single();
+
+      // Pokud nenajdeme podle slug, zkusíme podle id (pro zpětnou kompatibilitu)
+      if (err) {
+        const idQuery = supabase
+          .from("forum_topics")
+          .select("*")
+          .eq("id", slugOrId);
+
+        const result = await idQuery.single();
+        data = result.data;
+        err = result.error;
+      }
 
       if (err) throw err;
+
+      // Pokud téma nemá slug, vygenerujeme ho
+      if (data && !data.slug) {
+        const slug = slugify(data.title);
+        // Zkontrolujeme, zda slug už neexistuje
+        const { data: existing } = await supabase
+          .from("forum_topics")
+          .select("id")
+          .eq("slug", slug)
+          .neq("id", data.id)
+          .single();
+
+        let finalSlug = slug;
+        if (existing) {
+          // Pokud slug existuje, přidáme id na konec
+          finalSlug = `${slug}-${data.id.substring(0, 8)}`;
+        }
+
+        // Aktualizujeme slug v databázi
+        await supabase
+          .from("forum_topics")
+          .update({ slug: finalSlug })
+          .eq("id", data.id);
+
+        data.slug = finalSlug;
+      }
+
       topic.value = data;
 
       // Načtení odpovědí k tématu
       if (data) {
-        await fetchReplies(id);
+        await fetchReplies(data.id);
       }
 
       return data;
@@ -164,7 +208,7 @@ export const useForum = () => {
       console.error("Error fetching topic:", err);
       throw err;
     } finally {
-      loading.value = false;
+      topicLoading.value = false;
     }
   };
 
@@ -200,11 +244,27 @@ export const useForum = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.email) throw new Error("User not authenticated");
 
+      // Vygenerujeme slug z názvu
+      let slug = slugify(topicData.title);
+
+      // Zkontrolujeme, zda slug už neexistuje
+      const { data: existing } = await supabase
+        .from("forum_topics")
+        .select("id")
+        .eq("slug", slug)
+        .single();
+
+      if (existing) {
+        // Pokud slug existuje, přidáme timestamp
+        slug = `${slug}-${Date.now().toString().slice(-8)}`;
+      }
+
       const { data, error: err } = await supabase
         .from("forum_topics")
         .insert([
           {
             ...topicData,
+            slug,
             author_email: user.user.email,
           },
         ])
@@ -234,6 +294,26 @@ export const useForum = () => {
 
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.email) throw new Error("User not authenticated");
+
+      // Pokud se změnil název, aktualizujeme slug
+      if (topicData.title) {
+        let slug = slugify(topicData.title);
+
+        // Zkontrolujeme, zda slug už neexistuje (kromě aktuálního tématu)
+        const { data: existing } = await supabase
+          .from("forum_topics")
+          .select("id")
+          .eq("slug", slug)
+          .neq("id", id)
+          .single();
+
+        if (existing) {
+          // Pokud slug existuje, přidáme část id
+          slug = `${slug}-${id.substring(0, 8)}`;
+        }
+
+        topicData.slug = slug;
+      }
 
       const { data, error: err } = await supabase
         .from("forum_topics")
@@ -611,6 +691,7 @@ export const useForum = () => {
     editHistory,
     views,
     loading,
+    topicLoading,
     error,
     fetchTopics,
     fetchTopic,
