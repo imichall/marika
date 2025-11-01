@@ -203,13 +203,18 @@
               <!-- Tagy -->
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-normal text-sm text-gray-700">Štítky:</span>
-                <span
-                  v-if="getTagStyle(topic.tag)"
-                  class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"
-                  :style="getTagStyle(topic.tag)"
+                <template
+                  v-for="tagSlug in (topic.tags || (topic.tag ? [topic.tag] : []))"
+                  :key="tagSlug"
                 >
-                  {{ getTagName(topic.tag || 'general') }}
-                </span>
+                  <span
+                    v-if="getTagStyle(tagSlug)"
+                    class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"
+                    :style="getTagStyle(tagSlug)"
+                  >
+                    {{ getTagName(tagSlug) }}
+                  </span>
+                </template>
               </div>
             </div>
           </div>
@@ -335,15 +340,17 @@
 
                     <div>
                       <label class="block text-gray-700 text-sm font-semibold mb-2">
-                        Tag
+                        Tagy
                       </label>
-                      <SearchableSelect
-                        v-model="form.tag"
+                      <MultiTagSelect
+                        v-model="form.tags"
                         :options="tags.map(t => ({ value: t.slug, label: t.name }))"
-                        placeholder="Vyberte nebo vytvořte tag"
-                        :required="true"
+                        placeholder="Vyberte nebo vytvořte tagy"
+                        :required="false"
                         :can-create="isAdmin"
                         :on-create="handleCreateTag"
+                        :get-tag-name="getTagName"
+                        :get-tag-style="getTagStyle"
                         input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
                       />
                     </div>
@@ -599,6 +606,7 @@ import { useForum } from "~/composables/useForum";
 import { useSupabaseClient } from "#imports";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
 import SearchableSelect from "~/components/SearchableSelect.vue";
+import MultiTagSelect from "~/components/MultiTagSelect.vue";
 
 definePageMeta({
   layout: "admin",
@@ -644,7 +652,7 @@ const form = ref({
   title: "",
   content: "",
   category: "general" as "general" | "announcement" | "help",
-  tag: "general" as "general" | "bug" | "issue" | "uprava",
+  tags: [] as string[],
 });
 
 // Oprávnění
@@ -745,13 +753,18 @@ const formatDate = (date: string) => {
   });
 };
 
-const editTopic = (topic: any) => {
+const editTopic = async (topic: any) => {
   editingTopic.value = topic;
+
+  // Zajistíme, že máme aktuální kategorie a tagy
+  await fetchCategories();
+  await fetchTags();
+
   form.value = {
     title: topic.title,
     content: topic.content,
     category: topic.category,
-    tag: topic.tag || 'general',
+    tags: topic.tags || (topic.tag ? [topic.tag] : []),
   };
   showAddModal.value = true;
 };
@@ -763,7 +776,7 @@ const closeModal = () => {
     title: "",
     content: "",
     category: "general",
-    tag: "general",
+    tags: [],
   };
 };
 
@@ -787,7 +800,7 @@ const handleSubmit = async () => {
         title: form.value.title,
         content: form.value.content,
         category: form.value.category,
-        tag: form.value.tag,
+        tags: form.value.tags,
       });
       toast.success("Téma bylo úspěšně upraveno");
     } else {
@@ -795,7 +808,7 @@ const handleSubmit = async () => {
         title: form.value.title,
         content: form.value.content,
         category: form.value.category,
-        tag: form.value.tag,
+        tags: form.value.tags,
         author_name: user.user.email.split("@")[0], // Fallback
         author_email: user.user.email,
       });

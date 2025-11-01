@@ -176,13 +176,18 @@
                   {{ topic.content.substring(0, 100) }}{{ topic.content.length > 100 ? "..." : "" }}
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                  <span
-                    v-if="getTagStyle(topic.tag)"
-                    class="px-2 py-0.5 rounded-full text-xs font-medium border"
-                    :style="getTagStyle(topic.tag)"
+                  <template
+                    v-for="tagSlug in (topic.tags || (topic.tag ? [topic.tag] : []))"
+                    :key="tagSlug"
                   >
-                    {{ getTagName(topic.tag || 'general') }}
-                  </span>
+                    <span
+                      v-if="getTagStyle(tagSlug)"
+                      class="px-2 py-0.5 rounded-full text-xs font-medium border"
+                      :style="getTagStyle(tagSlug)"
+                    >
+                      {{ getTagName(tagSlug) }}
+                    </span>
+                  </template>
                 </div>
                 <div class="flex items-center gap-4 text-xs text-gray-400">
                   <span class="flex items-center gap-1">

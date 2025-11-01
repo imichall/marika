@@ -86,13 +86,18 @@
             <!-- Tagy -->
             <div class="flex flex-wrap items-center gap-2 mb-6">
               <span class="font-semibold text-gray-700">Štítky:</span>
-              <span
-                v-if="getTagStyle(topic.tag)"
-                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
-                :style="getTagStyle(topic.tag)"
+              <template
+                v-for="tagSlug in (topic.tags || (topic.tag ? [topic.tag] : []))"
+                :key="tagSlug"
               >
-                {{ getTagName(topic.tag || 'general') }}
-              </span>
+                <span
+                  v-if="getTagStyle(tagSlug)"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
+                  :style="getTagStyle(tagSlug)"
+                >
+                  {{ getTagName(tagSlug) }}
+                </span>
+              </template>
             </div>
 
             <!-- Obsah -->
@@ -409,8 +414,8 @@
         </div>
       </div>
 
-      <!-- Error -->
-      <div v-else class="text-center py-16">
+      <!-- Error - zobrazíme pouze pokud načítání je dokončeno, téma neexistuje a došlo k chybě -->
+      <div v-else-if="!topicLoading && !topic && topicNotFound" class="text-center py-16">
         <div class="bg-white rounded-xl border border-red-200 p-8 max-w-md mx-auto">
           <span class="material-icons-outlined text-6xl text-red-500 mb-4 block">error_outline</span>
           <h2 class="text-2xl font-bold text-gray-900 mb-2">Téma nebylo nalezeno</h2>
@@ -560,31 +565,32 @@
                   <label class="block text-gray-700 text-sm font-semibold mb-2">
                     Kategorie
                   </label>
-                  <select
+                  <SearchableSelect
                     v-model="editForm.category"
-                    required
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
-                  >
-                    <option value="general">Obecné</option>
-                    <option value="announcement">Oznámení</option>
-                    <option value="help">Pomoc</option>
-                  </select>
+                    :options="categories.map(c => ({ value: c.slug, label: c.name }))"
+                    placeholder="Vyberte nebo vytvořte kategorii"
+                    :required="true"
+                    :can-create="isAdmin"
+                    :on-create="handleCreateCategory"
+                    input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                  />
                 </div>
 
                 <div>
                   <label class="block text-gray-700 text-sm font-semibold mb-2">
-                    Tag
+                    Tagy
                   </label>
-                  <select
-                    v-model="editForm.tag"
-                    required
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white"
-                  >
-                    <option value="general">Obecné</option>
-                    <option value="bug">Bug</option>
-                    <option value="issue">Issue</option>
-                    <option value="uprava">Úprava</option>
-                  </select>
+                  <MultiTagSelect
+                    v-model="editForm.tags"
+                    :options="tags.map(t => ({ value: t.slug, label: t.name }))"
+                    placeholder="Vyberte nebo vytvořte tagy"
+                    :required="false"
+                    :can-create="isAdmin"
+                    :on-create="handleCreateTag"
+                    :get-tag-name="getTagName"
+                    :get-tag-style="getTagStyle"
+                    input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                  />
                 </div>
               </div>
 
@@ -739,6 +745,8 @@ import { useToast } from "~/composables/useToast";
 import { useForum } from "~/composables/useForum";
 import { useSupabaseClient } from "#imports";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
+import SearchableSelect from "~/components/SearchableSelect.vue";
+import MultiTagSelect from "~/components/MultiTagSelect.vue";
 import {
   Dialog,
   DialogPanel,
@@ -791,7 +799,12 @@ const {
   fetchViews,
   fetchCategories,
   fetchTags,
+  createCategory,
+  createTag,
 } = useForum();
+
+// Ref pro sledování, zda došlo k chybě při načítání tématu
+const topicNotFound = ref(false);
 
 const showReplyForm = ref(false);
 const replyingToReply = ref<any>(null);
@@ -805,7 +818,7 @@ const editForm = ref({
   title: "",
   content: "",
   category: "general" as "general" | "announcement" | "help",
-  tag: "general" as "general" | "bug" | "issue" | "uprava",
+  tags: [] as string[],
 });
 const showDeleteTopicModal = ref(false);
 const showDeleteReplyModal = ref(false);
@@ -1014,15 +1027,44 @@ const setBestAnswer = async (replyId: string) => {
   }
 };
 
-const editTopic = () => {
+const editTopic = async () => {
   if (!topic.value) return;
+
+  // Zajistíme, že máme aktuální kategorie a tagy
+  await fetchCategories();
+  await fetchTags();
+
   editForm.value = {
     title: topic.value.title,
     content: topic.value.content,
     category: topic.value.category,
-    tag: topic.value.tag || 'general',
+    tags: topic.value.tags || (topic.value.tag ? [topic.value.tag] : []),
   };
   showEditModal.value = true;
+};
+
+const handleCreateCategory = async (name: string) => {
+  try {
+    const category = await createCategory(name);
+    toast.success("Kategorie byla úspěšně vytvořena");
+    return category;
+  } catch (err) {
+    console.error("Error creating category:", err);
+    toast.error("Nepodařilo se vytvořit kategorii");
+    throw err;
+  }
+};
+
+const handleCreateTag = async (name: string) => {
+  try {
+    const tag = await createTag(name);
+    toast.success("Tag byl úspěšně vytvořen");
+    return tag;
+  } catch (err) {
+    console.error("Error creating tag:", err);
+    toast.error("Nepodařilo se vytvořit tag");
+    throw err;
+  }
 };
 
 const closeEditModal = () => {
@@ -1031,7 +1073,7 @@ const closeEditModal = () => {
     title: "",
     content: "",
     category: "general",
-    tag: "general",
+    tags: [],
   };
 };
 
@@ -1043,7 +1085,7 @@ const saveEditTopic = async () => {
       title: editForm.value.title,
       content: editForm.value.content,
       category: editForm.value.category,
-      tag: editForm.value.tag,
+      tags: editForm.value.tags,
     });
     toast.success("Téma bylo úspěšně upraveno");
     closeEditModal();
@@ -1138,12 +1180,20 @@ const loadPermissions = async () => {
 
 const loadTopicData = async (slugOrId: string) => {
   if (slugOrId) {
-    const topicData = await fetchTopic(slugOrId);
-    if (topicData) {
-      await incrementViewCount(topicData.id);
-      await fetchEditHistory(topicData.id);
-      await fetchViews(topicData.id);
-      await loadVoteCounts(topicData.id);
+    topicNotFound.value = false; // Resetujeme chybový stav před načtením
+    try {
+      const topicData = await fetchTopic(slugOrId);
+      if (topicData) {
+        await incrementViewCount(topicData.id);
+        await fetchEditHistory(topicData.id);
+        await fetchViews(topicData.id);
+        await loadVoteCounts(topicData.id);
+        topicNotFound.value = false; // Téma bylo úspěšně načteno
+      }
+    } catch (err) {
+      // Pokud došlo k chybě při načítání (téma neexistuje), nastavíme flag
+      topicNotFound.value = true;
+      console.error("Error loading topic:", err);
     }
   }
 };
@@ -1218,6 +1268,7 @@ const toggleLikeReply = async (replyId: string) => {
 
 onMounted(async () => {
   const slug = route.params.slug as string;
+  topicNotFound.value = false; // Resetujeme chybový stav
   await fetchCategories();
   await fetchTags();
   await loadTopicData(slug);
@@ -1227,6 +1278,7 @@ onMounted(async () => {
 // Sledování změny parametru slug v route
 watch(() => route.params.slug, async (newSlug) => {
   if (newSlug) {
+    topicNotFound.value = false; // Resetujeme chybový stav při změně slug
     await loadTopicData(newSlug as string);
   }
 });

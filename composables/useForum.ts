@@ -8,7 +8,8 @@ export interface ForumTopic {
   slug: string | null;
   content: string;
   category: "general" | "announcement" | "help";
-  tag: "general" | "bug" | "issue" | "uprava";
+  tag?: string; // Deprecated: kept for backward compatibility
+  tags?: string[]; // Array of tag slugs
   author_email: string;
   author_name: string;
   status: "active" | "locked" | "archived";
@@ -162,6 +163,32 @@ export const useForum = () => {
       const { data, error: err } = await query;
 
       if (err) throw err;
+
+      // Načteme tagy pro všechna témata
+      if (data && data.length > 0) {
+        const topicIds = data.map((t: any) => t.id);
+
+        // Načteme všechny vztahy tag-topic
+        const { data: topicTags } = await supabase
+          .from("forum_topic_tags")
+          .select("topic_id, forum_tags!inner(slug)")
+          .in("topic_id", topicIds);
+
+        // Přiřadíme tagy k jednotlivým tématům
+        if (topicTags) {
+          for (const topic of data) {
+            const topicTagSlugs = topicTags
+              .filter((tt: any) => tt.topic_id === topic.id)
+              .map((tt: any) => tt.forum_tags.slug);
+            topic.tags = topicTagSlugs;
+            // Pro zpětnou kompatibilitu - použijeme první tag nebo starý tag sloupec
+            if (!topic.tag && topicTagSlugs.length > 0) {
+              topic.tag = topicTagSlugs[0];
+            }
+          }
+        }
+      }
+
       topics.value = data || [];
     } catch (err) {
       error.value = (err as Error).message;
@@ -175,6 +202,8 @@ export const useForum = () => {
   const fetchTopic = async (slugOrId: string) => {
     topicLoading.value = true;
     error.value = null;
+    // Neresetujeme topic.value hned, aby se nezobrazila chybová zpráva během načítání
+    // topic.value = null; // Odstraněno - necháme staré téma, dokud se nenačte nové
     try {
       // Zkusíme najít podle slug, pokud ne, tak podle id
       let query = supabase
@@ -224,6 +253,24 @@ export const useForum = () => {
         data.slug = finalSlug;
       }
 
+      // Načteme tagy pro téma
+      if (data) {
+        const { data: topicTags } = await supabase
+          .from("forum_topic_tags")
+          .select("forum_tags!inner(slug)")
+          .eq("topic_id", data.id);
+
+        if (topicTags) {
+          data.tags = topicTags.map((tt: any) => tt.forum_tags.slug);
+          // Pro zpětnou kompatibilitu
+          if (!data.tag && data.tags.length > 0) {
+            data.tag = data.tags[0];
+          }
+        } else {
+          data.tags = [];
+        }
+      }
+
       topic.value = data;
 
       // Načtení odpovědí k tématu
@@ -236,6 +283,8 @@ export const useForum = () => {
     } catch (err) {
       error.value = (err as Error).message;
       console.error("Error fetching topic:", err);
+      // Nastavíme topic na null pouze pokud došlo k chybě (téma neexistuje)
+      topic.value = null;
       throw err;
     } finally {
       topicLoading.value = false;
@@ -343,7 +392,8 @@ export const useForum = () => {
     title: string;
     content: string;
     category: "general" | "announcement" | "help";
-    tag?: "general" | "bug" | "issue" | "uprava";
+    tag?: string; // Deprecated, use tags instead
+    tags?: string[]; // Array of tag slugs
     author_email: string;
     author_name: string;
   }) => {
@@ -368,11 +418,15 @@ export const useForum = () => {
         slug = `${slug}-${Date.now().toString().slice(-8)}`;
       }
 
+      // Extrahujeme tagy a odstraníme je z topicData
+      const tags = topicData.tags || (topicData.tag ? [topicData.tag] : []);
+      const { tags: _, tag: __, ...topicDataWithoutTags } = topicData;
+
       const { data, error: err } = await supabase
         .from("forum_topics")
         .insert([
           {
-            ...topicData,
+            ...topicDataWithoutTags,
             slug,
             author_email: user.user.email,
           },
@@ -381,6 +435,32 @@ export const useForum = () => {
         .single();
 
       if (err) throw err;
+
+      // Vytvoříme vztahy mezi tématem a tagy
+      if (tags.length > 0 && data.id) {
+        // Získáme ID tagů podle jejich slug
+        const { data: tagRecords } = await supabase
+          .from("forum_tags")
+          .select("id, slug")
+          .in("slug", tags);
+
+        if (tagRecords && tagRecords.length > 0) {
+          const tagIds = tagRecords.map((t) => t.id);
+          const topicTagRelations = tagIds.map((tagId) => ({
+            topic_id: data.id,
+            tag_id: tagId,
+          }));
+
+          const { error: tagsErr } = await supabase
+            .from("forum_topic_tags")
+            .insert(topicTagRelations);
+
+          if (tagsErr) {
+            console.error("Error creating topic-tag relations:", tagsErr);
+            // Pokračujeme i když selže vytvoření vztahů
+          }
+        }
+      }
 
       await fetchTopics();
       return data;
@@ -424,14 +504,52 @@ export const useForum = () => {
         topicData.slug = slug;
       }
 
+      // Extrahujeme tagy a zpracujeme je zvlášť
+      const tags = topicData.tags || (topicData.tag ? [topicData.tag] : undefined);
+      const { tags: _, tag: __, ...topicDataWithoutTags } = topicData;
+
       const { data, error: err } = await supabase
         .from("forum_topics")
-        .update(topicData)
+        .update(topicDataWithoutTags)
         .eq("id", id)
         .select()
         .single();
 
       if (err) throw err;
+
+      // Aktualizujeme tagy pokud byly poskytnuty
+      if (tags !== undefined && data.id) {
+        // Smazat všechny existující vztahy
+        await supabase.from("forum_topic_tags").delete().eq("topic_id", data.id);
+
+        // Vytvořit nové vztahy
+        if (tags.length > 0) {
+          // Získáme ID tagů podle jejich slug
+          const { data: tagRecords } = await supabase
+            .from("forum_tags")
+            .select("id, slug")
+            .in("slug", tags);
+
+          if (tagRecords && tagRecords.length > 0) {
+            const tagIds = tagRecords.map((t) => t.id);
+            const topicTagRelations = tagIds.map((tagId) => ({
+              topic_id: data.id,
+              tag_id: tagId,
+            }));
+
+            const { error: tagsErr } = await supabase
+              .from("forum_topic_tags")
+              .insert(topicTagRelations);
+
+            if (tagsErr) {
+              console.error("Error updating topic-tag relations:", tagsErr);
+            }
+          }
+        }
+
+        // Aktualizujeme data o tagy
+        data.tags = tags;
+      }
 
       await fetchTopics();
       if (topic.value?.id === id) {
