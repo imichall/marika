@@ -127,6 +127,84 @@
           </div>
         </div>
 
+        <!-- Poslední příspěvky ve fóru -->
+        <div
+          v-if="permissions.forum?.view && recentForumTopics.length > 0"
+          class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 mb-8"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span class="material-icons-outlined text-gray-400">forum</span>
+              <h2 class="text-lg font-semibold">Poslední příspěvky ve fóru</h2>
+            </div>
+            <NuxtLink
+              to="/admin/forum"
+              class="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+            >
+              Zobrazit vše
+              <span class="material-icons-outlined text-sm">arrow_forward</span>
+            </NuxtLink>
+          </div>
+          <div class="space-y-3">
+            <NuxtLink
+              v-for="topic in recentForumTopics"
+              :key="topic.id"
+              :to="`/admin/forum/${topic.id}`"
+              class="flex items-start p-3 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200 group"
+            >
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="font-medium text-gray-900 group-hover:text-indigo-600 truncate">
+                    {{ topic.title }}
+                  </h3>
+                  <span
+                    v-if="topic.is_pinned"
+                    class="material-icons-outlined text-yellow-600 text-sm"
+                    title="Připnuto"
+                  >
+                    push_pin
+                  </span>
+                  <span
+                    v-if="topic.is_locked"
+                    class="material-icons-outlined text-orange-600 text-sm"
+                    title="Zamčeno"
+                  >
+                    lock
+                  </span>
+                </div>
+                <p class="text-sm text-gray-500 line-clamp-2 mb-2">
+                  {{ topic.content.substring(0, 100) }}{{ topic.content.length > 100 ? "..." : "" }}
+                </p>
+                <div class="flex items-center gap-4 text-xs text-gray-400">
+                  <span class="flex items-center gap-1">
+                    <span class="material-icons-outlined text-sm">person</span>
+                    {{ topic.created_by_name }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-icons-outlined text-sm">schedule</span>
+                    {{ formatDate(topic.created_at) }}
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="material-icons-outlined text-sm">comment</span>
+                    {{ topic.reply_count }}
+                  </span>
+                  <span
+                    class="px-2 py-0.5 rounded-full text-xs font-medium"
+                    :class="{
+                      'bg-gray-100 text-gray-700': topic.tag === 'general',
+                      'bg-red-100 text-red-700': topic.tag === 'bug',
+                      'bg-orange-100 text-orange-700': topic.tag === 'issue',
+                      'bg-blue-100 text-blue-700': topic.tag === 'uprava',
+                    }"
+                  >
+                    {{ getTagName(topic.tag || 'general') }}
+                  </span>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 mb-8">
           <div class="flex items-center gap-2 mb-4">
@@ -639,6 +717,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, onMounted, computed } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useFormMessages } from "~/composables/useFormMessages";
+import { useForum } from "~/composables/useForum";
 
 const route = useRoute();
 const router = useRouter();
@@ -664,6 +743,9 @@ const {
 
 // Přidám ref pro zprávy
 const { messages, fetchAllMessages } = useFormMessages();
+
+// Přidám ref pro fórum
+const { topics: forumTopics, fetchTopics: fetchForumTopics } = useForum();
 
 // Stav oprávnění
 const permissions = ref({
@@ -788,9 +870,16 @@ onMounted(async () => {
   await Promise.all([
     getAllOrders(),
     fetchGitHubInfo(),
-    loadPermissions(),
     fetchAllMessages(),
   ]);
+
+  // Načtení oprávnění
+  await loadPermissions();
+
+  // Načtení posledních témat z fóra (pokud má uživatel oprávnění)
+  if (permissions.value.forum?.view) {
+    await fetchForumTopics();
+  }
 });
 
 // Přidám computed properties pro počty objednávek
@@ -1189,6 +1278,40 @@ const isSidebarOpen = ref(false);
 const getWebPUrl = (originalUrl) => {
   if (!originalUrl) return "";
   return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
+};
+
+// Posledních 5 příspěvků ve fóru
+const recentForumTopics = computed(() => {
+  if (!forumTopics.value || forumTopics.value.length === 0) {
+    return [];
+  }
+  return [...forumTopics.value]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 5);
+});
+
+// Formátování data
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleDateString("cs-CZ", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+// Překlad tagů
+const getTagName = (tag) => {
+  const tags = {
+    general: "Obecné",
+    bug: "Bug",
+    issue: "Issue",
+    uprava: "Úprava",
+  };
+  return tags[tag] || tag;
 };
 </script>
 
