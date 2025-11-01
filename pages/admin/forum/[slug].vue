@@ -101,6 +101,32 @@
               {{ topic.content }}
             </div>
 
+            <!-- Hodnocení -->
+            <div class="flex items-center gap-4 py-4 border-t border-gray-100 mb-4 justify-end">
+              <button
+                @click="toggleLikeTopic"
+                :disabled="loading"
+                class="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
+                :class="topicUserLikes.includes(topic.id)
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              >
+                <span class="material-icons-outlined text-[20px]">thumb_up</span>
+                <span class="font-semibold">{{ topicLikeCount }}</span>
+              </button>
+              <button
+                @click="toggleDislikeTopic"
+                :disabled="loading"
+                class="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
+                :class="topicUserDislikes.includes(topic.id)
+                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+              >
+                <span class="material-icons-outlined text-[20px]">thumb_down</span>
+                <span class="font-semibold">{{ topicDislikeCount }}</span>
+              </button>
+            </div>
+
             <!-- Akční tlačítka -->
             <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
               <button
@@ -150,7 +176,7 @@
                 <span class="text-lg font-normal text-gray-500">({{ replies.length }})</span>
               </h2>
               <button
-                v-if="!topic.is_locked && permissions.create"
+                v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
                 @click="showReplyForm = !showReplyForm"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -159,9 +185,9 @@
               </button>
             </div>
 
-            <!-- Formulář pro odpověď -->
+            <!-- Formulář pro top-level odpověď -->
             <Transition name="fade">
-              <div v-if="showReplyForm && !topic.is_locked" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div v-if="showReplyForm && !replyingToReply && !topic.is_locked && topic.status !== 'archived'" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <textarea
                   v-model="replyForm.content"
                   rows="5"
@@ -170,7 +196,7 @@
                 ></textarea>
                 <div class="flex justify-end gap-3 mt-3">
                   <button
-                    @click="showReplyForm = false"
+                    @click="showReplyForm = false; replyingToReply = null"
                     class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
                   >
                     Zrušit
@@ -187,16 +213,22 @@
             </Transition>
 
             <!-- Seznam odpovědí -->
-            <div v-if="replies.length > 0" class="space-y-4">
+            <div v-if="flattenedReplies.length > 0" class="space-y-4">
               <div
-                v-for="reply in replies"
+                v-for="reply in flattenedReplies"
                 :key="reply.id"
                 class="rounded-lg p-5 transition-all duration-200"
                 :class="{
                   'bg-gradient-to-br from-green-50 to-green-50/50 border-2 border-green-200 shadow-sm': reply.is_best_answer,
                   'bg-gray-50 border border-gray-200 hover:border-gray-300': !reply.is_best_answer,
                 }"
+                :style="getReplyDepth(reply, replies) > 0 ? { marginLeft: `${getReplyDepth(reply, replies) * 2}rem`, borderLeft: '4px solid rgb(96, 165, 250)' } : {}"
               >
+                <!-- Indikace, že jde o odpověď na odpověď -->
+                <div v-if="getReplyDepth(reply, replies) > 0" class="flex items-center gap-2 mb-3 text-xs text-blue-600">
+                  <span class="material-icons-outlined text-sm">subdirectory_arrow_right</span>
+                  <span class="font-medium">Odpověď na odpověď (úroveň {{ getReplyDepth(reply, replies) }})</span>
+                </div>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                   <div class="flex items-center gap-3 flex-wrap">
                     <div class="flex items-center gap-2">
@@ -273,6 +305,68 @@
                 <div v-else class="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
                   {{ reply.content }}
                 </div>
+                <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 justify-between">
+                  <button
+                    v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
+                    @click="replyToReply(reply)"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  >
+                    <span class="material-icons-outlined text-[16px]">reply</span>
+                    <span class="font-medium">Odpovědět</span>
+                  </button>
+                  <button
+                    @click="toggleLikeReply(reply.id)"
+                    :disabled="loading"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium"
+                    :class="replyUserLikes.includes(reply.id)
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                  >
+                    <span class="material-icons-outlined text-[16px]">thumb_up</span>
+                    <span class="font-semibold">{{ reply.like_count || 0 }}</span>
+                  </button>
+                </div>
+
+                <!-- Formulář pro odpověď na tuto reply -->
+                <Transition name="fade">
+                  <div v-if="replyingToReply?.id === reply.id && !topic.is_locked && topic.status !== 'archived'" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div v-if="replyingToReply" class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <span class="material-icons-outlined text-blue-600 text-sm">subdirectory_arrow_right</span>
+                          <span class="text-sm font-medium text-blue-700">Odpověď na: {{ replyingToReply.author_name }}</span>
+                        </div>
+                        <button
+                          @click="replyingToReply = null; showReplyForm = false"
+                          class="text-blue-600 hover:text-blue-800"
+                        >
+                          <span class="material-icons-outlined text-sm">close</span>
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      v-model="replyForm.content"
+                      rows="5"
+                      class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+                      placeholder="Napište odpověď..."
+                    ></textarea>
+                    <div class="flex justify-end gap-3 mt-3">
+                      <button
+                        @click="showReplyForm = false; replyingToReply = null"
+                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                      >
+                        Zrušit
+                      </button>
+                      <button
+                        @click="submitReply"
+                        :disabled="!replyForm.content.trim()"
+                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                      >
+                        Odeslat
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
               </div>
             </div>
 
@@ -527,17 +621,132 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Delete Topic Modal -->
+    <TransitionRoot appear :show="showDeleteTopicModal" as="template">
+      <Dialog as="div" @close="showDeleteTopicModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="bg-white p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200">
+                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900">
+                  Smazat téma
+                </DialogTitle>
+                <p class="text-gray-600 mb-6">
+                  Opravdu chcete smazat toto téma? Tato akce je nevratná a smaže také všechny odpovědi k tomuto tématu.
+                </p>
+                <div class="flex justify-end space-x-4">
+                  <button
+                    @click="showDeleteTopicModal = false"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    @click="confirmDeleteTopic"
+                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- Delete Reply Modal -->
+    <TransitionRoot appear :show="showDeleteReplyModal" as="template">
+      <Dialog as="div" @close="showDeleteReplyModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="bg-white p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200">
+                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900">
+                  Smazat odpověď
+                </DialogTitle>
+                <p class="text-gray-600 mb-6">
+                  Opravdu chcete smazat tuto odpověď? Tato akce je nevratná a smaže také všechny odpovědi k této odpovědi.
+                </p>
+                <div class="flex justify-end space-x-4">
+                  <button
+                    @click="showDeleteReplyModal = false; replyToDelete = null"
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    @click="confirmDeleteReply"
+                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                  >
+                    Smazat
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, Teleport, Transition } from "vue";
+import { ref, onMounted, watch, computed, Teleport, Transition } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "~/composables/useToast";
 import { useForum } from "~/composables/useForum";
 import { useSupabaseClient } from "#imports";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot,
+} from "@headlessui/vue";
 
 definePageMeta({
   layout: "admin",
@@ -553,6 +762,10 @@ const {
   replies,
   editHistory,
   views,
+  topicUserLikes,
+  topicUserDislikes,
+  replyUserLikes,
+  replyUserDislikes,
   loading,
   topicLoading,
   fetchTopic,
@@ -564,12 +777,21 @@ const {
   updateReply,
   deleteReply: removeReply,
   setBestAnswer: setBestAnswerFromComposable,
+  likeTopic,
+  unlikeTopic,
+  dislikeTopic,
+  undislikeTopic,
+  likeReply,
+  unlikeReply,
+  dislikeReply,
+  undislikeReply,
   incrementViewCount,
   fetchEditHistory,
   fetchViews,
 } = useForum();
 
 const showReplyForm = ref(false);
+const replyingToReply = ref<any>(null);
 const replyForm = ref({
   content: "",
 });
@@ -582,6 +804,9 @@ const editForm = ref({
   category: "general" as "general" | "announcement" | "help",
   tag: "general" as "general" | "bug" | "issue" | "uprava",
 });
+const showDeleteTopicModal = ref(false);
+const showDeleteReplyModal = ref(false);
+const replyToDelete = ref<any>(null);
 
 // Oprávnění
 const permissions = ref({
@@ -593,6 +818,10 @@ const permissions = ref({
 
 // Admin status
 const isAdmin = ref(false);
+
+// Computed properties pro počty liků a disliků
+const topicLikeCount = ref(0);
+const topicDislikeCount = ref(0);
 
 const getCategoryName = (category: string) => {
   const names: Record<string, string> = {
@@ -623,6 +852,51 @@ const formatDate = (date: string) => {
   });
 };
 
+// Function to calculate reply depth recursively
+const getReplyDepth = (reply: any, allReplies: any[]): number => {
+  if (!reply.parent_reply_id) return 0;
+  const parent = allReplies.find((r) => r.id === reply.parent_reply_id);
+  if (!parent) return 0;
+  return 1 + getReplyDepth(parent, allReplies);
+};
+
+// Function to get child replies recursively (sorted by created_at)
+const getChildReplies = (replyId: string, allReplies: any[]): any[] => {
+  const children = allReplies
+    .filter((r) => r.parent_reply_id === replyId)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  return children.map((child) => ({
+    ...child,
+    children: getChildReplies(child.id, allReplies),
+  }));
+};
+
+// Computed: build hierarchical reply tree
+const hierarchicalReplies = computed(() => {
+  const rootReplies = replies.value
+    .filter((r) => !r.parent_reply_id)
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  return rootReplies.map((root) => ({
+    ...root,
+    children: getChildReplies(root.id, replies.value),
+  }));
+});
+
+// Flatten hierarchical replies for display
+const flattenedReplies = computed(() => {
+  const flatten = (items: any[]): any[] => {
+    const result: any[] = [];
+    items.forEach((item) => {
+      result.push(item);
+      if (item.children && item.children.length > 0) {
+        result.push(...flatten(item.children));
+      }
+    });
+    return result;
+  };
+  return flatten(hierarchicalReplies.value);
+});
+
 const submitReply = async () => {
   if (!replyForm.value.content.trim() || !topic.value) return;
 
@@ -637,15 +911,22 @@ const submitReply = async () => {
       content: replyForm.value.content,
       author_name: user.user.email.split("@")[0], // Fallback
       author_email: user.user.email,
+      parent_reply_id: replyingToReply.value?.id || null,
     });
 
     toast.success("Odpověď byla úspěšně přidána");
     replyForm.value.content = "";
     showReplyForm.value = false;
+    replyingToReply.value = null;
   } catch (err) {
     console.error("Error submitting reply:", err);
     toast.error("Nepodařilo se přidat odpověď");
   }
+};
+
+const replyToReply = (reply: any) => {
+  replyingToReply.value = reply;
+  showReplyForm.value = true;
 };
 
 const editReply = (reply: any) => {
@@ -671,17 +952,23 @@ const saveEditReply = async () => {
   }
 };
 
-const deleteReply = async (reply: any) => {
-  if (!confirm("Opravdu chcete smazat tuto odpověď? Tato akce je nevratná.")) {
-    return;
-  }
+const deleteReply = (reply: any) => {
+  replyToDelete.value = reply;
+  showDeleteReplyModal.value = true;
+};
+
+const confirmDeleteReply = async () => {
+  if (!replyToDelete.value) return;
 
   try {
-    await removeReply(reply.id);
+    await removeReply(replyToDelete.value.id);
     toast.success("Odpověď byla úspěšně smazána");
   } catch (err) {
     console.error("Error deleting reply:", err);
     toast.error("Nepodařilo se smazat odpověď");
+  } finally {
+    showDeleteReplyModal.value = false;
+    replyToDelete.value = null;
   }
 };
 
@@ -771,12 +1058,12 @@ const togglePinTopic = async () => {
   }
 };
 
-const deleteTopic = async () => {
-  if (!topic.value) return;
+const deleteTopic = () => {
+  showDeleteTopicModal.value = true;
+};
 
-  if (!confirm("Opravdu chcete smazat toto téma? Tato akce je nevratná.")) {
-    return;
-  }
+const confirmDeleteTopic = async () => {
+  if (!topic.value) return;
 
   try {
     await removeTopic(topic.value.id);
@@ -785,6 +1072,8 @@ const deleteTopic = async () => {
   } catch (err) {
     console.error("Error deleting topic:", err);
     toast.error("Nepodařilo se smazat téma");
+  } finally {
+    showDeleteTopicModal.value = false;
   }
 };
 
@@ -824,7 +1113,76 @@ const loadTopicData = async (slugOrId: string) => {
       await incrementViewCount(topicData.id);
       await fetchEditHistory(topicData.id);
       await fetchViews(topicData.id);
+      await loadVoteCounts(topicData.id);
     }
+  }
+};
+
+// Načtení počtů liků a disliků
+const loadVoteCounts = async (topicId: string) => {
+  try {
+    const { count: likeCount } = await supabase
+      .from("forum_topic_likes")
+      .select("*", { count: "exact", head: true })
+      .eq("topic_id", topicId);
+
+    const { count: dislikeCount } = await supabase
+      .from("forum_topic_dislikes")
+      .select("*", { count: "exact", head: true })
+      .eq("topic_id", topicId);
+
+    topicLikeCount.value = likeCount || 0;
+    topicDislikeCount.value = dislikeCount || 0;
+  } catch (err) {
+    console.error("Error loading vote counts:", err);
+  }
+};
+
+// Toggle funkce pro like/dislike
+const toggleLikeTopic = async () => {
+  if (!topic.value) return;
+
+  try {
+    if (topicUserLikes.value.includes(topic.value.id)) {
+      await unlikeTopic(topic.value.id);
+    } else {
+      await likeTopic(topic.value.id);
+    }
+    // Znovu načteme počty
+    await loadVoteCounts(topic.value.id);
+  } catch (err) {
+    console.error("Error toggling like:", err);
+    toast.error("Nepodařilo se hodnocení změnit");
+  }
+};
+
+const toggleDislikeTopic = async () => {
+  if (!topic.value) return;
+
+  try {
+    if (topicUserDislikes.value.includes(topic.value.id)) {
+      await undislikeTopic(topic.value.id);
+    } else {
+      await dislikeTopic(topic.value.id);
+    }
+    // Znovu načteme počty
+    await loadVoteCounts(topic.value.id);
+  } catch (err) {
+    console.error("Error toggling dislike:", err);
+    toast.error("Nepodařilo se hodnocení změnit");
+  }
+};
+
+const toggleLikeReply = async (replyId: string) => {
+  try {
+    if (replyUserLikes.value.includes(replyId)) {
+      await unlikeReply(replyId);
+    } else {
+      await likeReply(replyId);
+    }
+  } catch (err) {
+    console.error("Error toggling reply like:", err);
+    toast.error("Nepodařilo se hodnocení změnit");
   }
 };
 

@@ -24,6 +24,7 @@ export interface ForumTopic {
 export interface ForumReply {
   id: string;
   topic_id: string;
+  parent_reply_id: string | null;
   author_email: string;
   author_name: string;
   content: string;
@@ -97,6 +98,10 @@ export const useForum = () => {
   const replies = ref<ForumReply[]>([]);
   const editHistory = ref<ForumTopicEditHistory[]>([]);
   const views = ref<ForumTopicView[]>([]);
+  const topicUserLikes = ref<string[]>([]);
+  const topicUserDislikes = ref<string[]>([]);
+  const replyUserLikes = ref<string[]>([]);
+  const replyUserDislikes = ref<string[]>([]);
   const loading = ref(false);
   const topicLoading = ref(false);
   const error = ref<string | null>(null);
@@ -200,6 +205,7 @@ export const useForum = () => {
       // Načtení odpovědí k tématu
       if (data) {
         await fetchReplies(data.id);
+        await fetchTopicUserVotes(data.id);
       }
 
       return data;
@@ -222,10 +228,89 @@ export const useForum = () => {
         .order("created_at", { ascending: true });
 
       if (err) throw err;
+
+      // Pro každou odpověď načteme počet liků
+      if (data && data.length > 0) {
+        for (const reply of data) {
+          const { count: likeCount } = await supabase
+            .from("forum_reply_likes")
+            .select("*", { count: "exact", head: true })
+            .eq("reply_id", reply.id);
+
+          reply.like_count = likeCount || 0;
+        }
+      }
+
       replies.value = data || [];
+
+      // Načteme uživatelské hlasy pro odpovědi
+      if (data && data.length > 0) {
+        await fetchReplyUserVotes(data.map((r: any) => r.id));
+      }
     } catch (err) {
       console.error("Error fetching replies:", err);
       throw err;
+    }
+  };
+
+  // Načtení uživatelských liků a disliků pro téma
+  const fetchTopicUserVotes = async (topicId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email) {
+        topicUserLikes.value = [];
+        topicUserDislikes.value = [];
+        return;
+      }
+
+      const { data: likes } = await supabase
+        .from("forum_topic_likes")
+        .select("topic_id")
+        .eq("topic_id", topicId)
+        .eq("user_email", user.user.email)
+        .maybeSingle();
+
+      const { data: dislikes } = await supabase
+        .from("forum_topic_dislikes")
+        .select("topic_id")
+        .eq("topic_id", topicId)
+        .eq("user_email", user.user.email)
+        .maybeSingle();
+
+      // Kontrolujeme, zda objekt má hodnotu topic_id a zda se shoduje s dotazovaným topicId
+      topicUserLikes.value = likes && likes.topic_id === topicId ? [topicId] : [];
+      topicUserDislikes.value = dislikes && dislikes.topic_id === topicId ? [topicId] : [];
+    } catch (err) {
+      console.error("Error fetching topic user votes:", err);
+    }
+  };
+
+  // Načtení uživatelských liků a disliků pro odpovědi
+  const fetchReplyUserVotes = async (replyIds: string[]) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email || replyIds.length === 0) {
+        replyUserLikes.value = [];
+        replyUserDislikes.value = [];
+        return;
+      }
+
+      const { data: likes } = await supabase
+        .from("forum_reply_likes")
+        .select("reply_id")
+        .in("reply_id", replyIds)
+        .eq("user_email", user.user.email);
+
+      const { data: dislikes } = await supabase
+        .from("forum_reply_dislikes")
+        .select("reply_id")
+        .in("reply_id", replyIds)
+        .eq("user_email", user.user.email);
+
+      replyUserLikes.value = likes?.map((l: any) => l.reply_id) || [];
+      replyUserDislikes.value = dislikes?.map((d: any) => d.reply_id) || [];
+    } catch (err) {
+      console.error("Error fetching reply user votes:", err);
     }
   };
 
@@ -385,6 +470,7 @@ export const useForum = () => {
       content: string;
       author_email: string;
       author_name: string;
+      parent_reply_id?: string | null;
     }
   ) => {
     try {
@@ -399,6 +485,7 @@ export const useForum = () => {
           {
             ...replyData,
             topic_id: topicId,
+            parent_reply_id: replyData.parent_reply_id || null,
             author_email: user.user.email,
           },
         ])
@@ -407,7 +494,20 @@ export const useForum = () => {
 
       if (err) throw err;
 
-      await fetchReplies(topicId);
+      // Přidáme novou odpověď do replies a načteme like_count
+      const { count: likeCount } = await supabase
+        .from("forum_reply_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("reply_id", data.id);
+
+      const newReply = { ...data, like_count: likeCount || 0 };
+      replies.value.push(newReply);
+
+      // Načteme uživatelské hlasy pro novou odpověď
+      if (replies.value.length > 0) {
+        await fetchReplyUserVotes([data.id]);
+      }
+
       await fetchTopic(topicId); // Aktualizace reply_count
       return data;
     } catch (err) {
@@ -506,13 +606,20 @@ export const useForum = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.email) throw new Error("User not authenticated");
 
+      // Nejdřív odstraníme dislike, pokud existuje
+      await supabase
+        .from("forum_topic_dislikes")
+        .delete()
+        .eq("topic_id", topicId)
+        .eq("user_email", user.user.email);
+
       const { error: err } = await supabase.from("forum_topic_likes").insert({
         topic_id: topicId,
         user_email: user.user.email,
       });
 
       if (err) throw err;
-      await fetchTopic(topicId);
+      await fetchTopicUserVotes(topicId);
     } catch (err) {
       console.error("Error liking topic:", err);
       throw err;
@@ -532,9 +639,55 @@ export const useForum = () => {
         .eq("user_email", user.user.email);
 
       if (err) throw err;
-      await fetchTopic(topicId);
+      await fetchTopicUserVotes(topicId);
     } catch (err) {
       console.error("Error unliking topic:", err);
+      throw err;
+    }
+  };
+
+  // Přidání dislike k tématu
+  const dislikeTopic = async (topicId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email) throw new Error("User not authenticated");
+
+      // Nejdřív odstraníme like, pokud existuje
+      await supabase
+        .from("forum_topic_likes")
+        .delete()
+        .eq("topic_id", topicId)
+        .eq("user_email", user.user.email);
+
+      const { error: err } = await supabase.from("forum_topic_dislikes").insert({
+        topic_id: topicId,
+        user_email: user.user.email,
+      });
+
+      if (err) throw err;
+      await fetchTopicUserVotes(topicId);
+    } catch (err) {
+      console.error("Error disliking topic:", err);
+      throw err;
+    }
+  };
+
+  // Odstranění dislike z tématu
+  const undislikeTopic = async (topicId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email) throw new Error("User not authenticated");
+
+      const { error: err } = await supabase
+        .from("forum_topic_dislikes")
+        .delete()
+        .eq("topic_id", topicId)
+        .eq("user_email", user.user.email);
+
+      if (err) throw err;
+      await fetchTopicUserVotes(topicId);
+    } catch (err) {
+      console.error("Error undisliking topic:", err);
       throw err;
     }
   };
@@ -545,6 +698,13 @@ export const useForum = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.email) throw new Error("User not authenticated");
 
+      // Nejdřív odstraníme dislike, pokud existuje
+      await supabase
+        .from("forum_reply_dislikes")
+        .delete()
+        .eq("reply_id", replyId)
+        .eq("user_email", user.user.email);
+
       const { error: err } = await supabase.from("forum_reply_likes").insert({
         reply_id: replyId,
         user_email: user.user.email,
@@ -552,7 +712,7 @@ export const useForum = () => {
 
       if (err) throw err;
 
-      // Načteme znovu odpovědi pro aktualizaci like_count
+      // Načteme znovu odpovědi pro aktualizaci
       const reply = replies.value.find((r) => r.id === replyId);
       if (reply) {
         await fetchReplies(reply.topic_id);
@@ -577,13 +737,69 @@ export const useForum = () => {
 
       if (err) throw err;
 
-      // Načteme znovu odpovědi pro aktualizaci like_count
+      // Načteme znovu odpovědi pro aktualizaci
       const reply = replies.value.find((r) => r.id === replyId);
       if (reply) {
         await fetchReplies(reply.topic_id);
       }
     } catch (err) {
       console.error("Error unliking reply:", err);
+      throw err;
+    }
+  };
+
+  // Přidání dislike k odpovědi
+  const dislikeReply = async (replyId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email) throw new Error("User not authenticated");
+
+      // Nejdřív odstraníme like, pokud existuje
+      await supabase
+        .from("forum_reply_likes")
+        .delete()
+        .eq("reply_id", replyId)
+        .eq("user_email", user.user.email);
+
+      const { error: err } = await supabase.from("forum_reply_dislikes").insert({
+        reply_id: replyId,
+        user_email: user.user.email,
+      });
+
+      if (err) throw err;
+
+      // Načteme znovu odpovědi pro aktualizaci
+      const reply = replies.value.find((r) => r.id === replyId);
+      if (reply) {
+        await fetchReplies(reply.topic_id);
+      }
+    } catch (err) {
+      console.error("Error disliking reply:", err);
+      throw err;
+    }
+  };
+
+  // Odstranění dislike z odpovědi
+  const undislikeReply = async (replyId: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.email) throw new Error("User not authenticated");
+
+      const { error: err } = await supabase
+        .from("forum_reply_dislikes")
+        .delete()
+        .eq("reply_id", replyId)
+        .eq("user_email", user.user.email);
+
+      if (err) throw err;
+
+      // Načteme znovu odpovědi pro aktualizaci
+      const reply = replies.value.find((r) => r.id === replyId);
+      if (reply) {
+        await fetchReplies(reply.topic_id);
+      }
+    } catch (err) {
+      console.error("Error undisliking reply:", err);
       throw err;
     }
   };
@@ -690,6 +906,10 @@ export const useForum = () => {
     replies,
     editHistory,
     views,
+    topicUserLikes,
+    topicUserDislikes,
+    replyUserLikes,
+    replyUserDislikes,
     loading,
     topicLoading,
     error,
@@ -708,8 +928,12 @@ export const useForum = () => {
     setBestAnswer,
     likeTopic,
     unlikeTopic,
+    dislikeTopic,
+    undislikeTopic,
     likeReply,
     unlikeReply,
+    dislikeReply,
+    undislikeReply,
     incrementViewCount,
     fetchEditHistory,
     fetchViews,

@@ -149,6 +149,7 @@ CREATE POLICY "Forum replies are deletable by author or admin"
 -- Policies for forum_topic_likes
 DROP POLICY IF EXISTS "Forum topic likes are viewable by authenticated users" ON forum_topic_likes;
 DROP POLICY IF EXISTS "Forum topic likes are creatable by authenticated users" ON forum_topic_likes;
+DROP POLICY IF EXISTS "Forum topic likes are deletable by user" ON forum_topic_likes;
 
 CREATE POLICY "Forum topic likes are viewable by authenticated users"
   ON forum_topic_likes FOR SELECT
@@ -161,9 +162,14 @@ CREATE POLICY "Forum topic likes are creatable by authenticated users"
     auth.jwt() ->> 'email' = user_email
   );
 
+CREATE POLICY "Forum topic likes are deletable by user"
+  ON forum_topic_likes FOR DELETE
+  USING (auth.jwt() ->> 'email' = user_email);
+
 -- Policies for forum_reply_likes
 DROP POLICY IF EXISTS "Forum reply likes are viewable by authenticated users" ON forum_reply_likes;
 DROP POLICY IF EXISTS "Forum reply likes are creatable by authenticated users" ON forum_reply_likes;
+DROP POLICY IF EXISTS "Forum reply likes are deletable by user" ON forum_reply_likes;
 
 CREATE POLICY "Forum reply likes are viewable by authenticated users"
   ON forum_reply_likes FOR SELECT
@@ -175,6 +181,10 @@ CREATE POLICY "Forum reply likes are creatable by authenticated users"
     auth.role() = 'authenticated' AND
     auth.jwt() ->> 'email' = user_email
   );
+
+CREATE POLICY "Forum reply likes are deletable by user"
+  ON forum_reply_likes FOR DELETE
+  USING (auth.jwt() ->> 'email' = user_email);
 
 -- Create function to update reply_count and last_activity_at when reply is added
 CREATE OR REPLACE FUNCTION update_topic_on_reply()

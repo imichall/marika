@@ -429,6 +429,9 @@ const filteredTopics = computed(() => {
 
   if (selectedStatus.value) {
     result = result.filter((t) => t.status === selectedStatus.value);
+  } else {
+    // Pokud není vybrán žádný status, zobrazíme aktivní a zamčené (ne archivované)
+    result = result.filter((t) => t.status !== 'archived');
   }
 
   if (showPinnedOnly.value) {
