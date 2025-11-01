@@ -227,12 +227,20 @@
               </span>
             </button>
             <button
-              v-if="permissions.edit"
+              v-if="permissions.edit && topic.status !== 'archived'"
               @click="archiveTopic(topic)"
               class="p-2.5 text-gray-500 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Archivovat"
             >
               <span class="material-icons-outlined text-[20px]">archive</span>
+            </button>
+            <button
+              v-if="permissions.edit && topic.status === 'archived'"
+              @click="unarchiveTopic(topic)"
+              class="p-2.5 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
+              title="Odarchivovat"
+            >
+              <span class="material-icons-outlined text-[20px]">unarchive</span>
             </button>
             <button
               v-if="isAdmin"
@@ -387,6 +395,7 @@ const {
   updateTopic,
   deleteTopic: removeTopic,
   archiveTopic: archiveTopicFn,
+  unarchiveTopic: unarchiveTopicFn,
   toggleLockTopic: toggleLockTopicFn,
   togglePinTopic: togglePinTopicFn,
 } = useForum();
@@ -573,6 +582,17 @@ const archiveTopic = async (topic: any) => {
   } catch (err) {
     console.error("Error archiving topic:", err);
     toast.error("Nepodařilo se archivovat téma");
+  }
+};
+
+const unarchiveTopic = async (topic: any) => {
+  try {
+    await unarchiveTopicFn(topic.id);
+    toast.success("Téma bylo úspěšně odarchivováno");
+    await fetchTopics();
+  } catch (err) {
+    console.error("Error unarchiving topic:", err);
+    toast.error("Nepodařilo se odarchivovat téma");
   }
 };
 

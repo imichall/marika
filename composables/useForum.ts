@@ -126,7 +126,13 @@ export const useForum = () => {
         query = query.eq("category", filters.category);
       }
       if (filters?.status) {
-        query = query.eq("status", filters.status);
+        if (filters.status.startsWith("!")) {
+          // Negace filtru (např. "!archived")
+          const statusValue = filters.status.substring(1);
+          query = query.neq("status", statusValue);
+        } else {
+          query = query.eq("status", filters.status);
+        }
       }
       if (filters?.is_pinned !== undefined) {
         query = query.eq("is_pinned", filters.is_pinned);
@@ -451,6 +457,11 @@ export const useForum = () => {
   // Archivace tématu
   const archiveTopic = async (id: string) => {
     return updateTopic(id, { status: "archived" });
+  };
+
+  // Odarchivace tématu
+  const unarchiveTopic = async (id: string) => {
+    return updateTopic(id, { status: "active" });
   };
 
   // Zablokování/odemčení tématu
@@ -927,6 +938,7 @@ export const useForum = () => {
     updateTopic,
     deleteTopic,
     archiveTopic,
+    unarchiveTopic,
     toggleLockTopic,
     togglePinTopic,
     createReply,

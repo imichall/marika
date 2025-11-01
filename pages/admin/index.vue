@@ -876,9 +876,9 @@ onMounted(async () => {
   // Načtení oprávnění
   await loadPermissions();
 
-  // Načtení posledních témat z fóra (pokud má uživatel oprávnění)
+  // Načtení posledních témat z fóra (pokud má uživatel oprávnění), ale bez archivovaných
   if (permissions.value.forum?.view) {
-    await fetchForumTopics();
+    await fetchForumTopics({ status: "!archived" });
   }
 });
 
@@ -1280,12 +1280,13 @@ const getWebPUrl = (originalUrl) => {
   return originalUrl.replace(/\.(jpg|jpeg|png|gif)$/i, ".webp");
 };
 
-// Posledních 5 příspěvků ve fóru
+// Posledních 5 příspěvků ve fóru (bez archivovaných)
 const recentForumTopics = computed(() => {
   if (!forumTopics.value || forumTopics.value.length === 0) {
     return [];
   }
   return [...forumTopics.value]
+    .filter((t) => t.status !== "archived")
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     .slice(0, 5);
 });
