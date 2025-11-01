@@ -60,6 +60,28 @@ CREATE POLICY "Categories are creatable by admins"
     )
   );
 
+DROP POLICY IF EXISTS "Categories are updatable by admins" ON forum_categories;
+CREATE POLICY "Categories are updatable by admins"
+  ON forum_categories FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM user_roles
+      WHERE email = auth.jwt() ->> 'email'
+      AND role = 'admin'
+    )
+  );
+
+DROP POLICY IF EXISTS "Categories are deletable by admins" ON forum_categories;
+CREATE POLICY "Categories are deletable by admins"
+  ON forum_categories FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM user_roles
+      WHERE email = auth.jwt() ->> 'email'
+      AND role = 'admin'
+    )
+  );
+
 -- Policies for forum_tags
 DROP POLICY IF EXISTS "Tags are viewable by everyone" ON forum_tags;
 CREATE POLICY "Tags are viewable by everyone"
@@ -70,6 +92,28 @@ DROP POLICY IF EXISTS "Tags are creatable by admins" ON forum_tags;
 CREATE POLICY "Tags are creatable by admins"
   ON forum_tags FOR INSERT
   WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM user_roles
+      WHERE email = auth.jwt() ->> 'email'
+      AND role = 'admin'
+    )
+  );
+
+DROP POLICY IF EXISTS "Tags are updatable by admins" ON forum_tags;
+CREATE POLICY "Tags are updatable by admins"
+  ON forum_tags FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM user_roles
+      WHERE email = auth.jwt() ->> 'email'
+      AND role = 'admin'
+    )
+  );
+
+DROP POLICY IF EXISTS "Tags are deletable by admins" ON forum_tags;
+CREATE POLICY "Tags are deletable by admins"
+  ON forum_tags FOR DELETE
+  USING (
     EXISTS (
       SELECT 1 FROM user_roles
       WHERE email = auth.jwt() ->> 'email'

@@ -1012,6 +1012,112 @@ export const useForum = () => {
     }
   };
 
+  // Aktualizace kategorie
+  const updateCategory = async (id: string, updates: { name?: string; color?: string }) => {
+    try {
+      const updateData: any = {};
+      if (updates.name !== undefined) {
+        updateData.name = updates.name;
+        updateData.slug = slugify(updates.name);
+      }
+      if (updates.color !== undefined) {
+        updateData.color = updates.color;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return null;
+      }
+
+      const { data, error: err } = await supabase
+        .from("forum_categories")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (err) throw err;
+
+      // Refresh categories
+      await fetchCategories();
+
+      return data;
+    } catch (err) {
+      console.error("Error updating category:", err);
+      throw err;
+    }
+  };
+
+  // Aktualizace tagu
+  const updateTag = async (id: string, updates: { name?: string; color?: string }) => {
+    try {
+      const updateData: any = {};
+      if (updates.name !== undefined) {
+        updateData.name = updates.name;
+        updateData.slug = slugify(updates.name);
+      }
+      if (updates.color !== undefined) {
+        updateData.color = updates.color;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return null;
+      }
+
+      const { data, error: err } = await supabase
+        .from("forum_tags")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (err) throw err;
+
+      // Refresh tags
+      await fetchTags();
+
+      return data;
+    } catch (err) {
+      console.error("Error updating tag:", err);
+      throw err;
+    }
+  };
+
+  // Smazání kategorie
+  const deleteCategory = async (id: string) => {
+    try {
+      const { error: err } = await supabase
+        .from("forum_categories")
+        .delete()
+        .eq("id", id);
+
+      if (err) throw err;
+
+      // Refresh categories
+      await fetchCategories();
+    } catch (err) {
+      console.error("Error deleting category:", err);
+      throw err;
+    }
+  };
+
+  // Smazání tagu
+  const deleteTag = async (id: string) => {
+    try {
+      const { error: err } = await supabase
+        .from("forum_tags")
+        .delete()
+        .eq("id", id);
+
+      if (err) throw err;
+
+      // Refresh tags
+      await fetchTags();
+    } catch (err) {
+      console.error("Error deleting tag:", err);
+      throw err;
+    }
+  };
+
   return {
     topics,
     topic,
@@ -1056,6 +1162,10 @@ export const useForum = () => {
     fetchTags,
     createCategory,
     createTag,
+    updateCategory,
+    updateTag,
+    deleteCategory,
+    deleteTag,
   };
 };
 
