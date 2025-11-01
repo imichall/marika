@@ -55,7 +55,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/zpravy': { section: 'form_messages', action: 'view' },
     '/admin/emaily': { section: 'emails', action: 'view' },
     '/admin/emaily/nahled': { section: 'emails', action: 'view' },
-    '/admin/media': { section: 'media', action: 'view' }
+    '/admin/media': { section: 'media', action: 'view' },
+    '/admin/forum': { section: 'forum', action: 'view' },
+    '/admin/forum/agenda': { section: 'forum', action: 'view' }
   }
 
   // Kontrola oprávnění pro aktuální cestu
@@ -71,11 +73,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     if (permError || !hasPermission) {
       console.error('Uživatel nemá potřebná oprávnění:', user.email, requiredPermission)
-      return navigateTo('/admin', {
-        query: {
-          error: 'Nemáte potřebná oprávnění pro přístup do této sekce'
-        }
-      })
+      return navigateTo('/admin?error=nemate-opravneni')
     }
   } else {
     // Kontrola, zda cesta začíná na /admin/emaily/
@@ -89,20 +87,28 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
       if (permError || !hasPermission) {
         console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'emails', action: 'view' })
-        return navigateTo('/admin', {
-          query: {
-            error: 'Nemáte potřebná oprávnění pro přístup do této sekce'
-          }
+        return navigateTo('/admin?error=nemate-opravneni')
+      }
+      return
+    }
+
+    // Kontrola, zda cesta začíná na /admin/forum/ (dynamické cesty jako /admin/forum/[id])
+    if (to.path.startsWith('/admin/forum/') && to.path !== '/admin/forum' && to.path !== '/admin/forum/agenda') {
+      const { data: hasPermission, error: permError } = await supabase
+        .rpc('check_permission', {
+          p_email: user.email,
+          p_section: 'forum',
+          p_action: 'view'
         })
+
+      if (permError || !hasPermission) {
+        console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'forum', action: 'view' })
+        return navigateTo('/admin?error=nemate-opravneni')
       }
       return
     }
 
     // Pokud cesta není v seznamu povolených, přesměrujeme na hlavní admin stránku
-    return navigateTo('/admin', {
-      query: {
-        error: 'Tato sekce není pro vás dostupná'
-      }
-    })
+    return navigateTo('/admin?error=sekce-neni-dostupna')
   }
 })
