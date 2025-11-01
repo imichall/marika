@@ -718,6 +718,12 @@ const permissions = ref({
   media: {
     view: false,
   },
+  forum: {
+    view: false,
+    create: false,
+    edit: false,
+    delete: false,
+  },
 });
 
 // Načtení oprávnění
@@ -908,6 +914,16 @@ const sidebarSections = computed(() =>
           name: "Nastavení",
           to: "/admin/system",
           icon: "settings",
+        },
+        permissions.value.forum?.view && {
+          name: "Fórum",
+          to: "/admin/forum",
+          icon: "forum",
+        },
+        permissions.value.forum?.view && {
+          name: "Agenda tagů",
+          to: "/admin/forum/agenda",
+          icon: "info",
         },
       ].filter(Boolean),
     },
