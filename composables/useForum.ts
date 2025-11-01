@@ -508,7 +508,11 @@ export const useForum = () => {
         await fetchReplyUserVotes([data.id]);
       }
 
-      await fetchTopic(topicId); // Aktualizace reply_count
+      // Aktualizujeme reply_count v topic ref, pokud existuje
+      if (topic.value && topic.value.id === topicId) {
+        topic.value.reply_count = replies.value.length;
+      }
+
       return data;
     } catch (err) {
       error.value = (err as Error).message;
@@ -568,9 +572,12 @@ export const useForum = () => {
 
       if (err) throw err;
 
-      if (reply?.topic_id) {
-        await fetchReplies(reply.topic_id);
-        await fetchTopic(reply.topic_id); // Aktualizace reply_count
+      // Odstraníme odpověď z replies array
+      replies.value = replies.value.filter((r) => r.id !== id);
+
+      // Aktualizujeme reply_count v topic ref, pokud existuje
+      if (reply?.topic_id && topic.value && topic.value.id === reply.topic_id) {
+        topic.value.reply_count = replies.value.length;
       }
     } catch (err) {
       error.value = (err as Error).message;

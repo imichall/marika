@@ -199,12 +199,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create function to update reply_count when reply is deleted
+CREATE OR REPLACE FUNCTION update_topic_on_reply_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE forum_topics
+  SET
+    reply_count = reply_count - 1
+  WHERE id = OLD.topic_id;
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create trigger for replies
 DROP TRIGGER IF EXISTS trigger_update_topic_on_reply ON forum_replies;
 CREATE TRIGGER trigger_update_topic_on_reply
   AFTER INSERT ON forum_replies
   FOR EACH ROW
   EXECUTE FUNCTION update_topic_on_reply();
+
+-- Create trigger for reply deletion
+DROP TRIGGER IF EXISTS trigger_update_topic_on_reply_delete ON forum_replies;
+CREATE TRIGGER trigger_update_topic_on_reply_delete
+  AFTER DELETE ON forum_replies
+  FOR EACH ROW
+  EXECUTE FUNCTION update_topic_on_reply_delete();
 
 -- Create function to increment topic views
 CREATE OR REPLACE FUNCTION increment_topic_views(topic_id UUID)
