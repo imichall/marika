@@ -91,6 +91,22 @@ const getSessionId = (): string => {
   return sessionId;
 };
 
+export interface ForumCategory {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  created_at: string;
+}
+
+export interface ForumTag {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  created_at: string;
+}
+
 export const useForum = () => {
   const supabase = useSupabaseClient();
   const topics = ref<ForumTopic[]>([]);
@@ -98,6 +114,8 @@ export const useForum = () => {
   const replies = ref<ForumReply[]>([]);
   const editHistory = ref<ForumTopicEditHistory[]>([]);
   const views = ref<ForumTopicView[]>([]);
+  const categories = ref<ForumCategory[]>([]);
+  const tags = ref<ForumTag[]>([]);
   const topicUserLikes = ref<string[]>([]);
   const topicUserDislikes = ref<string[]>([]);
   const replyUserLikes = ref<string[]>([]);
@@ -918,6 +936,82 @@ export const useForum = () => {
     }
   };
 
+  // Načtení všech kategorií
+  const fetchCategories = async () => {
+    try {
+      const { data, error: err } = await supabase
+        .from("forum_categories")
+        .select("*")
+        .order("name");
+
+      if (err) throw err;
+      categories.value = data || [];
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+      throw err;
+    }
+  };
+
+  // Načtení všech tagů
+  const fetchTags = async () => {
+    try {
+      const { data, error: err } = await supabase
+        .from("forum_tags")
+        .select("*")
+        .order("name");
+
+      if (err) throw err;
+      tags.value = data || [];
+    } catch (err) {
+      console.error("Error fetching tags:", err);
+      throw err;
+    }
+  };
+
+  // Vytvoření nové kategorie
+  const createCategory = async (name: string, color?: string) => {
+    try {
+      const slug = slugify(name);
+      const { data, error: err } = await supabase
+        .from("forum_categories")
+        .insert([{ name, slug, color: color || "#6366f1" }])
+        .select()
+        .single();
+
+      if (err) throw err;
+
+      // Refresh categories
+      await fetchCategories();
+
+      return data;
+    } catch (err) {
+      console.error("Error creating category:", err);
+      throw err;
+    }
+  };
+
+  // Vytvoření nového tagu
+  const createTag = async (name: string, color?: string) => {
+    try {
+      const slug = slugify(name);
+      const { data, error: err } = await supabase
+        .from("forum_tags")
+        .insert([{ name, slug, color: color || "#6366f1" }])
+        .select()
+        .single();
+
+      if (err) throw err;
+
+      // Refresh tags
+      await fetchTags();
+
+      return data;
+    } catch (err) {
+      console.error("Error creating tag:", err);
+      throw err;
+    }
+  };
+
   return {
     topics,
     topic,
@@ -931,6 +1025,8 @@ export const useForum = () => {
     loading,
     topicLoading,
     error,
+    categories,
+    tags,
     fetchTopics,
     fetchTopic,
     fetchReplies,
@@ -956,6 +1052,10 @@ export const useForum = () => {
     incrementViewCount,
     fetchEditHistory,
     fetchViews,
+    fetchCategories,
+    fetchTags,
+    createCategory,
+    createTag,
   };
 };
 

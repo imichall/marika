@@ -34,9 +34,9 @@
                 class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <option value="">Všechny kategorie</option>
-                <option value="general">Obecné</option>
-                <option value="announcement">Oznámení</option>
-                <option value="help">Pomoc</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
+                  {{ cat.name }}
+                </option>
               </select>
             </div>
 
@@ -48,10 +48,9 @@
                 class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 hover:shadow-md"
               >
                 <option value="">Všechny tagy</option>
-                <option value="general">Obecné</option>
-                <option value="bug">Bug</option>
-                <option value="issue">Issue</option>
-                <option value="uprava">Úprava</option>
+                <option v-for="tag in tags" :key="tag.id" :value="tag.slug">
+                  {{ tag.name }}
+                </option>
               </select>
             </div>
 
@@ -305,31 +304,30 @@
                       <label class="block text-gray-700 text-sm font-semibold mb-2">
                         Kategorie
                       </label>
-                      <select
+                      <SearchableSelect
                         v-model="form.category"
-                        required
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-                      >
-                        <option value="general">Obecné</option>
-                        <option value="announcement">Oznámení</option>
-                        <option value="help">Pomoc</option>
-                      </select>
+                        :options="categories.map(c => ({ value: c.slug, label: c.name }))"
+                        placeholder="Vyberte nebo vytvořte kategorii"
+                        :required="true"
+                        :can-create="isAdmin"
+                        :on-create="handleCreateCategory"
+                        input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                      />
                     </div>
 
                     <div>
                       <label class="block text-gray-700 text-sm font-semibold mb-2">
                         Tag
                       </label>
-                      <select
+                      <SearchableSelect
                         v-model="form.tag"
-                        required
-                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
-                      >
-                        <option value="general">Obecné</option>
-                        <option value="bug">Bug</option>
-                        <option value="issue">Issue</option>
-                        <option value="uprava">Úprava</option>
-                      </select>
+                        :options="tags.map(t => ({ value: t.slug, label: t.name }))"
+                        placeholder="Vyberte nebo vytvořte tag"
+                        :required="true"
+                        :can-create="isAdmin"
+                        :on-create="handleCreateTag"
+                        input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                      />
                     </div>
                   </div>
 
@@ -378,6 +376,7 @@ import { useToast } from "~/composables/useToast";
 import { useForum } from "~/composables/useForum";
 import { useSupabaseClient } from "#imports";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
+import SearchableSelect from "~/components/SearchableSelect.vue";
 
 definePageMeta({
   layout: "admin",
@@ -398,6 +397,12 @@ const {
   unarchiveTopic: unarchiveTopicFn,
   toggleLockTopic: toggleLockTopicFn,
   togglePinTopic: togglePinTopicFn,
+  categories,
+  tags,
+  fetchCategories,
+  fetchTags,
+  createCategory,
+  createTag,
 } = useForum();
 
 const showAddModal = ref(false);
@@ -454,23 +459,14 @@ const applyFilters = () => {
   // Filters are applied via computed property
 };
 
-const getCategoryName = (category: string) => {
-  const names: Record<string, string> = {
-    general: "Obecné",
-    announcement: "Oznámení",
-    help: "Pomoc",
-  };
-  return names[category] || category;
+const getCategoryName = (categorySlug: string) => {
+  const category = categories.value.find((c) => c.slug === categorySlug);
+  return category ? category.name : categorySlug;
 };
 
-const getTagName = (tag: string) => {
-  const names: Record<string, string> = {
-    general: "Obecné",
-    bug: "Bug",
-    issue: "Issue",
-    uprava: "Úprava",
-  };
-  return names[tag] || tag;
+const getTagName = (tagSlug: string) => {
+  const tag = tags.value.find((t) => t.slug === tagSlug);
+  return tag ? tag.name : tagSlug;
 };
 
 const formatDate = (date: string) => {
@@ -622,6 +618,30 @@ const togglePinTopic = async (topic: any) => {
   }
 };
 
+const handleCreateCategory = async (name: string) => {
+  try {
+    const category = await createCategory(name);
+    toast.success("Kategorie byla úspěšně vytvořena");
+    return category;
+  } catch (err) {
+    console.error("Error creating category:", err);
+    toast.error("Nepodařilo se vytvořit kategorii");
+    throw err;
+  }
+};
+
+const handleCreateTag = async (name: string) => {
+  try {
+    const tag = await createTag(name);
+    toast.success("Tag byl úspěšně vytvořen");
+    return tag;
+  } catch (err) {
+    console.error("Error creating tag:", err);
+    toast.error("Nepodařilo se vytvořit tag");
+    throw err;
+  }
+};
+
 // Načtení oprávnění
 const loadPermissions = async () => {
   try {
@@ -654,6 +674,8 @@ const loadPermissions = async () => {
 onMounted(async () => {
   await loadPermissions();
   await fetchTopics();
+  await fetchCategories();
+  await fetchTags();
 });
 </script>
 
