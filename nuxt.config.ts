@@ -69,12 +69,19 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY
-    }
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY,
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL
+    },
+    // Server-only environment variables
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    siteUrl: process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL
   },
 
   nitro: {
-    preset: 'netlify'
+    preset: 'netlify',
+    experimental: {
+      wasm: true
+    }
   },
 
   routeRules: {

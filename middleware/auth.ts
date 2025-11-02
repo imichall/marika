@@ -7,8 +7,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
 
-  // Pokud uživatel není přihlášený a není na přihlašovací stránce, přesměruj na login
-  if (!user.value && to.path !== '/admin/login') {
+  // Veřejné trasy pro admin sekci (bez autentizace)
+  const publicAdminRoutes = ['/admin/login', '/admin/reset-password']
+
+  // Pokud uživatel není přihlášený a není na veřejné trase, přesměruj na login
+  if (!user.value && !publicAdminRoutes.includes(to.path)) {
     return navigateTo('/admin/login')
   }
 
@@ -17,8 +20,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/admin')
   }
 
-  // Pokud je uživatel přihlášený a není na přihlašovací stránce
-  if (user.value && to.path !== '/admin/login') {
+  // Pokud je uživatel na reset stránce a je přihlášený, přesměruj na admin (aby se přihlásil s novým heslem)
+  if (user.value && to.path === '/admin/reset-password') {
+    // Ale necháme to, protože možná právě resetuje heslo
+  }
+
+  // Pokud je uživatel přihlášený a není na veřejné stránce
+  if (user.value && !publicAdminRoutes.includes(to.path)) {
     try {
       // Kontrola, zda má uživatel přístup do administrace
       const { data: userRole, error: roleError } = await supabase
@@ -58,6 +66,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
         '/admin/media',
         '/admin/forum',
         '/admin/forum/agenda',
+        '/admin/reset-password',
       ]
 
       // Normalizace cesty - odstranění trailing slash

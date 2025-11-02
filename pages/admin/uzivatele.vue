@@ -5,6 +5,14 @@
 
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold">Správa uživatelů</h1>
+      <button
+        v-if="permissions.create"
+        @click="openCreateModal"
+        class="inline-flex items-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors"
+      >
+        <span class="material-icons-outlined text-[18px] mr-2">person_add</span>
+        Přidat uživatele
+      </button>
     </div>
 
     <!-- Loading state -->
@@ -115,10 +123,21 @@
                     <button
                       @click="editUser(user)"
                       class="text-blue-600 hover:text-blue-800"
+                      title="Upravit"
                     >
                       <span
                         class="material-icons-outlined text-[20px] leading-none"
                         >edit</span
+                      >
+                    </button>
+                    <button
+                      @click="resetPassword(user)"
+                      class="text-orange-600 hover:text-orange-800"
+                      title="Resetovat heslo"
+                    >
+                      <span
+                        class="material-icons-outlined text-[20px] leading-none"
+                        >lock_reset</span
                       >
                     </button>
                   </div>
@@ -162,6 +181,218 @@
         </p>
       </div>
     </div>
+
+    <!-- Modal pro vytvoření nového uživatele -->
+    <TransitionRoot appear :show="showCreateModal" as="template">
+      <Dialog as="div" @close="showCreateModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 bg-black/30 backdrop-blur-sm"
+            aria-hidden="true"
+          />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+              >
+                <div class="absolute right-6 top-6">
+                  <button
+                    @click="showCreateModal = false"
+                    class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                  >
+                    <span class="material-icons-outlined">close</span>
+                  </button>
+                </div>
+
+                <div class="mb-8">
+                  <DialogTitle as="h3" class="text-2xl font-bold">
+                    Vytvořit nového uživatele
+                  </DialogTitle>
+                  <p class="mt-2 text-gray-500">
+                    Vytvořte nový účet a pošlete uživateli potvrzovací e-mail
+                  </p>
+                </div>
+
+                <form @submit.prevent="handleCreateUser" class="space-y-6">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                    >
+                      Jméno (volitelné)
+                    </label>
+                    <div class="relative group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >person</span
+                          >
+                        </span>
+                      </div>
+                      <input
+                        v-model="newUser.name"
+                        type="text"
+                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        placeholder="Zadejte jméno uživatele"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                    >
+                      Email <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >mail</span
+                          >
+                        </span>
+                      </div>
+                      <input
+                        v-model="newUser.email"
+                        type="email"
+                        required
+                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        placeholder="email@priklad.cz"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                    >
+                      Heslo <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >lock</span
+                          >
+                        </span>
+                      </div>
+                      <input
+                        v-model="newUser.password"
+                        type="password"
+                        required
+                        minlength="6"
+                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        placeholder="Minimálně 6 znaků"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                    >
+                      Role <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >badge</span
+                          >
+                        </span>
+                      </div>
+                      <select
+                        v-model="newUser.role"
+                        required
+                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 appearance-none cursor-pointer"
+                      >
+                        <option value="viewer" class="py-2">Prohlížeč</option>
+                        <option value="editor" class="py-2">Editor</option>
+                        <option value="admin" class="py-2">Administrátor</option>
+                      </select>
+                      <div
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
+                      >
+                        <span
+                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                        >
+                          <span class="material-icons-outlined text-[20px]"
+                            >expand_more</span
+                          >
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-if="createError" class="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+                    {{ createError }}
+                  </div>
+
+                  <div class="flex justify-end gap-3 pt-6">
+                    <button
+                      type="button"
+                      @click="closeCreateModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="submit"
+                      class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-transparent rounded-xl hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200 min-w-[100px]"
+                      :disabled="creatingUser"
+                    >
+                      <span
+                        v-if="creatingUser"
+                        class="inline-block animate-spin mr-2"
+                      >
+                        <span class="material-icons-outlined text-[20px]"
+                          >refresh</span
+                        >
+                      </span>
+                      <span v-else>Vytvořit</span>
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
 
     <!-- Modal pro úpravu uživatele -->
     <TransitionRoot appear :show="showEditModal" as="template">
@@ -373,12 +604,21 @@ const toast = useToast();
 const { users, loading, error, updateUser } = useUsers();
 
 const showEditModal = ref(false);
+const showCreateModal = ref(false);
+const creatingUser = ref(false);
+const createError = ref<string | null>(null);
 const editingUser = ref<{
   id: string;
   email: string;
   role: string;
   name?: string;
 } | null>(null);
+const newUser = ref({
+  email: '',
+  password: '',
+  role: 'viewer' as 'admin' | 'editor' | 'viewer',
+  name: ''
+});
 
 // Stav oprávnění
 const permissions = ref({
@@ -409,7 +649,7 @@ const loadPermissions = async () => {
     const results = await Promise.all(permissionPromises);
 
     actions.forEach((action, index) => {
-      permissions.value[action] = results[index].data;
+      (permissions.value as any)[action] = results[index].data;
     });
   } catch (err) {
     console.error("Error loading permissions:", err);
@@ -490,6 +730,88 @@ const handleSubmit = async () => {
   } catch (err) {
     console.error("Error updating user:", err);
     toast.error("Nepodařilo se upravit uživatele");
+  }
+};
+
+// Funkce pro otevření modalu pro vytvoření uživatele
+const openCreateModal = () => {
+  newUser.value = {
+    email: '',
+    password: '',
+    role: 'viewer',
+    name: ''
+  };
+  createError.value = null;
+  showCreateModal.value = true;
+};
+
+// Funkce pro zavření modalu pro vytvoření uživatele
+const closeCreateModal = () => {
+  showCreateModal.value = false;
+  newUser.value = {
+    email: '',
+    password: '',
+    role: 'viewer',
+    name: ''
+  };
+  createError.value = null;
+};
+
+// Funkce pro vytvoření nového uživatele
+const handleCreateUser = async () => {
+  if (!newUser.value.email || !newUser.value.password) {
+    createError.value = 'Email a heslo jsou povinné';
+    return;
+  }
+
+  if (newUser.value.password.length < 6) {
+    createError.value = 'Heslo musí mít alespoň 6 znaků';
+    return;
+  }
+
+  creatingUser.value = true;
+  createError.value = null;
+
+  try {
+    const response = await $fetch('/api/users/create', {
+      method: 'POST',
+      body: {
+        email: newUser.value.email,
+        password: newUser.value.password,
+        role: newUser.value.role,
+        name: newUser.value.name || undefined
+      }
+    });
+
+    toast.success(response.message || 'Uživatel byl úspěšně vytvořen a potvrzovací e-mail byl odeslán');
+
+    // Načteme aktualizovaný seznam uživatelů
+    await fetchUsers();
+
+    // Zavřeme modal
+    closeCreateModal();
+  } catch (err: any) {
+    console.error('Error creating user:', err);
+    const errorMessage = err.data?.message || 'Nepodařilo se vytvořit uživatele';
+    createError.value = errorMessage;
+    toast.error(errorMessage);
+  } finally {
+    creatingUser.value = false;
+  }
+};
+
+// Funkce pro reset hesla
+const resetPassword = async (user: { email: string }) => {
+  try {
+    await $fetch('/api/users/reset-password', {
+      method: 'POST',
+      body: { userEmail: user.email }
+    });
+
+    toast.success(`Email pro reset hesla byl odeslán na ${user.email}`);
+  } catch (err: any) {
+    console.error("Error resetting password:", err);
+    toast.error(err.data?.message || "Nepodařilo se odeslat email pro reset hesla");
   }
 };
 
