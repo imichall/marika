@@ -1,27 +1,27 @@
 <template>
   <div class="space-y-4">
-    <h3 class="font-bold text-lg">Platební údaje pro QR kód</h3>
+    <h3 class="font-bold text-lg text-gray-900 dark:text-white">Platební údaje pro QR kód</h3>
     <div class="grid grid-cols-1 gap-4">
       <div class="grid grid-cols-4 gap-2">
         <!-- Předčíslí -->
         <div class="relative">
-          <label class="block text-gray-700 text-sm font-bold mb-2">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
             Předčíslí
           </label>
           <input
             v-model="accountPrefix"
             type="text"
             @input="accountPrefix = accountPrefix.replace(/\D/g, '')"
-            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             :class="{
-              'border-red-500': !isAccountLocked && accountPrefixError,
+              'border-red-500 dark:border-red-400': !isAccountLocked && accountPrefixError,
             }"
             placeholder="000000"
             :disabled="isAccountLocked"
           />
           <p
             v-if="!isAccountLocked && accountPrefixError"
-            class="text-red-500 text-sm mt-1 absolute"
+            class="text-red-500 dark:text-red-400 text-sm mt-1 absolute"
           >
             {{ accountPrefixError }}
           </p>
@@ -29,23 +29,23 @@
 
         <!-- Číslo účtu -->
         <div class="relative col-span-2">
-          <label class="block text-gray-700 text-sm font-bold mb-2">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
             Číslo účtu
           </label>
           <input
             v-model="accountNumber"
             type="text"
             @input="handleAccountNumberInput($event.target.value)"
-            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             :class="{
-              'border-red-500': !isAccountLocked && accountNumberError,
+              'border-red-500 dark:border-red-400': !isAccountLocked && accountNumberError,
             }"
             placeholder="0000000000"
             :disabled="isAccountLocked"
           />
           <p
             v-if="!isAccountLocked && accountNumberError"
-            class="text-red-500 text-sm mt-1 absolute"
+            class="text-red-500 dark:text-red-400 text-sm mt-1 absolute"
           >
             {{ accountNumberError }}
           </p>
@@ -53,12 +53,12 @@
 
         <!-- Kód banky -->
         <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2">
+          <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
             Kód banky
           </label>
           <select
             v-model="bankCode"
-            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+            class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
             :disabled="isAccountLocked"
           >
             <option value="0100">0100 - KB</option>
@@ -78,47 +78,47 @@
       <div v-if="!isAccountLocked" class="flex justify-end">
         <button
           @click="saveBankDetails"
-          class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors duration-200"
+          class="bg-red-600 dark:bg-red-700 text-white px-4 py-2 rounded hover:bg-red-700 dark:hover:bg-red-800 transition-colors duration-200"
         >
           Uložit do nastavení
         </button>
       </div>
 
       <div>
-        <label class="block text-gray-700 text-sm font-bold mb-2">
+        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Částka (Kč)
         </label>
         <input
           v-model="amount"
           type="number"
           disabled
-          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50 cursor-not-allowed"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-gray-50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white cursor-not-allowed"
         />
       </div>
 
       <div>
-        <label class="block text-gray-700 text-sm font-bold mb-2">
+        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Variabilní symbol
         </label>
         <input
           v-model="variableSymbol"
           type="text"
-          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           @input="validateVariableSymbol"
         />
-        <p v-if="variableSymbolError" class="text-red-500 text-sm mt-1">
+        <p v-if="variableSymbolError" class="text-red-500 dark:text-red-400 text-sm mt-1">
           {{ variableSymbolError }}
         </p>
       </div>
 
       <div>
-        <label class="block text-gray-700 text-sm font-bold mb-2">
+        <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
           Zpráva pro příjemce
         </label>
         <input
           v-model="message"
           type="text"
-          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+          class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
         />
       </div>
     </div>

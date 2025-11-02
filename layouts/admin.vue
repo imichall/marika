@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <AdminNavigation v-if="isAuthenticated" />
     <main v-if="isAuthenticated" class="pt-16">
       <div class="container mx-auto px-4">

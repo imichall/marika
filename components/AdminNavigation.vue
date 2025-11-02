@@ -1,5 +1,5 @@
 <template>
-  <nav class="fixed top-0 w-full bg-white z-50 shadow-lg border-b">
+  <nav class="fixed top-0 w-full bg-white dark:bg-gray-900 z-50 shadow-lg border-b dark:border-gray-800">
     <div class="container mx-auto px-4">
       <div class="flex justify-between items-center h-16">
         <!-- Logo a název -->
@@ -10,7 +10,7 @@
               alt="Logo"
               class="h-8"
             />
-            <span class="text-xl font-semibold text-gray-900 hidden sm:inline"
+            <span class="text-xl font-semibold text-gray-900 dark:text-white hidden sm:inline"
               >Administrace</span
             >
           </NuxtLink>
@@ -51,7 +51,7 @@
           <!-- Původní položky menu pro desktop -->
           <NuxtLink
             to="/"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -154,8 +154,18 @@
             />
           </div>
 
+          <!-- Dark mode přepínač -->
+          <button
+            @click="toggleDarkMode"
+            class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+            :aria-label="isDark ? 'Zapnout světlý režim' : 'Zapnout tmavý režim'"
+          >
+            <span v-if="isDark" class="material-icons-outlined">light_mode</span>
+            <span v-else class="material-icons-outlined">dark_mode</span>
+          </button>
+
           <!-- Oddělovač -->
-          <div class="h-6 w-px bg-gray-200"></div>
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
 
           <!-- Informace o uživateli -->
           <div class="flex items-center space-x-2">
@@ -163,22 +173,22 @@
               >account_circle</span
             >
             <div class="flex flex-col">
-              <span class="text-sm font-medium text-gray-900">{{
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{
                 user?.email
               }}</span>
-              <span class="text-xs text-gray-500">{{
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{
                 getRoleName(currentUserRole)
               }}</span>
             </div>
           </div>
 
           <!-- Oddělovač -->
-          <div class="h-6 w-px bg-gray-200"></div>
+          <div class="h-6 w-px bg-gray-200 dark:bg-gray-700"></div>
 
           <!-- Logout tlačítko -->
           <button
             @click="handleLogout"
-            class="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors duration-200"
+            class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -210,13 +220,13 @@
       >
         <div
           v-if="isMenuOpen"
-          class="lg:hidden absolute top-16 left-0 right-0 bg-white border-b border-gray-200 shadow-lg py-2"
+          class="lg:hidden absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-lg py-2"
         >
           <div class="px-4 py-2 space-y-1">
             <!-- Mobilní položky menu -->
             <NuxtLink
               to="/"
-              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
               @click="isMenuOpen = false"
             >
               <svg
@@ -238,7 +248,7 @@
 
             <NuxtLink
               to="/admin/system"
-              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
               @click="isMenuOpen = false"
             >
               <svg
@@ -267,7 +277,7 @@
             <NuxtLink
               v-if="permissions.emails?.view"
               to="/admin/emaily"
-              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
               @click="isMenuOpen = false"
             >
               <svg
@@ -290,7 +300,7 @@
             <NuxtLink
               v-if="currentUserRole === 'admin'"
               to="/admin/opravneni"
-              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              class="flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
               @click="isMenuOpen = false"
             >
               <svg
@@ -313,7 +323,7 @@
             <!-- Notifikace pro mobil -->
             <button
               @click="showNotifications = !showNotifications"
-              class="w-full flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+              class="w-full flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
             >
               <div class="relative">
                 <svg
@@ -341,22 +351,32 @@
             </button>
 
             <!-- Informace o uživateli pro mobil -->
-            <div class="flex items-center space-x-2 p-3 text-gray-600">
+            <div class="flex items-center space-x-2 p-3 text-gray-600 dark:text-gray-300">
               <span class="material-icons-outlined">account_circle</span>
               <div class="flex flex-col">
-                <span class="text-sm font-medium text-gray-900">{{
+                <span class="text-sm font-medium text-gray-900 dark:text-white">{{
                   user?.email
                 }}</span>
-                <span class="text-xs text-gray-500">{{
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{
                   getRoleName(currentUserRole)
                 }}</span>
               </div>
             </div>
 
+            <!-- Dark mode přepínač pro mobil -->
+            <button
+              @click="toggleDarkMode"
+              class="w-full flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+            >
+              <span v-if="isDark" class="material-icons-outlined">light_mode</span>
+              <span v-else class="material-icons-outlined">dark_mode</span>
+              <span>{{ isDark ? 'Světlý režim' : 'Tmavý režim' }}</span>
+            </button>
+
             <!-- Odhlášení pro mobil -->
             <button
               @click="handleLogout"
-              class="w-full flex items-center space-x-2 p-3 rounded-lg text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
+              class="w-full flex items-center space-x-2 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -388,6 +408,7 @@ import { useRouter } from "vue-router";
 import { useTicketOrders } from "~/composables/useTicketOrders";
 import NotificationPanel from "~/components/NotificationPanel.vue";
 import { useSupabaseClient } from "#imports";
+import { useColorMode } from "#imports";
 
 const { logout, user } = useAuth();
 const router = useRouter();
@@ -401,6 +422,14 @@ const permissions = ref({
   },
 });
 const isMenuOpen = ref(false);
+
+// Dark mode
+const colorMode = useColorMode();
+const isDark = computed(() => colorMode.value === 'dark');
+
+const toggleDarkMode = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
+};
 
 // Překlad rolí do češtiny
 const getRoleName = (role) => {

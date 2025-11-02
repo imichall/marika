@@ -1,10 +1,10 @@
 <template>
-  <div class="flex bg-gray-50 min-h-screen">
+  <div class="flex bg-gray-50 dark:bg-gray-950 min-h-screen">
     <!-- Mobile menu button -->
     <div class="lg:hidden fixed top-2 left-1/2 -translate-x-1/2 z-50">
       <button
         @click="isSidebarOpen = !isSidebarOpen"
-        class="flex items-center justify-center p-2 rounded-lg bg-white shadow-lg text-gray-600 hover:text-gray-900 focus:outline-none"
+        class="flex items-center justify-center p-2 rounded-lg bg-white dark:bg-gray-900 shadow-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
       >
         <span class="material-icons-outlined">{{
           isSidebarOpen ? "close" : "menu"
@@ -22,7 +22,7 @@
     <!-- Sidebar -->
     <aside
       :class="[
-        'bg-white border-r border-gray-200 transition-all duration-300 z-40',
+        'bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-40',
         'lg:relative lg:w-64 lg:translate-x-0',
         isSidebarOpen
           ? 'fixed inset-y-0 left-0 w-64 translate-x-0'
@@ -44,7 +44,7 @@
           class="mb-4"
         >
           <div
-            class="px-3 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider"
+            class="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"
           >
             {{ section.title }}
           </div>
@@ -56,15 +56,15 @@
               :to="item.to"
               :class="[
                 route.path === item.to
-                  ? 'bg-indigo-50 text-indigo-600'
-                  : 'text-gray-600 hover:bg-gray-50',
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
                 'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
               ]"
               @click="isSidebarOpen = false"
             >
               <span
                 class="material-icons-outlined mr-3 text-xl"
-                :class="{ 'text-indigo-600': route.path === item.to }"
+                :class="{ 'text-indigo-600 dark:text-indigo-400': route.path === item.to }"
               >
                 {{ item.icon }}
               </span>
@@ -72,7 +72,7 @@
               <span
                 v-if="item.badge"
                 :class="[
-                  item.badgeColor || 'bg-indigo-100 text-indigo-600',
+                  item.badgeColor || 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400',
                   'ml-auto px-2 py-0.5 text-xs rounded-full',
                 ]"
               >
@@ -88,14 +88,14 @@
     <main :class="['flex-1', 'lg:ml-0', isSidebarOpen ? 'ml-64' : 'ml-0']">
       <!-- Top bar -->
       <div
-        class="bg-white border-b border-gray-200 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
+            class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
       >
         <div class="flex items-center space-x-4">
-          <h1 class="text-xl lg:text-2xl font-semibold text-gray-800">
+          <h1 class="text-xl lg:text-2xl font-semibold text-gray-800 dark:text-white">
             Dashboard
           </h1>
           <span
-            class="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full hidden sm:inline-block"
+            class="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full hidden sm:inline-block"
           >
             Live
           </span>
@@ -110,7 +110,7 @@
           <div
             v-for="stat in stats"
             :key="stat.name"
-            class="bg-white rounded-xl p-4 lg:p-6 border border-gray-100 hover:border-indigo-200 transition-all duration-300"
+            class="bg-white dark:bg-gray-900 rounded-xl p-4 lg:p-6 border border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-300"
           >
             <div class="flex items-center justify-between">
               <span :class="[stat.iconBg, 'p-2 lg:p-3 rounded-lg']">
@@ -122,24 +122,24 @@
                 stat.trend
               }}</span>
             </div>
-            <h3 class="text-xl lg:text-2xl font-bold mt-4">{{ stat.value }}</h3>
-            <p class="text-gray-500 text-sm mt-1">{{ stat.name }}</p>
+            <h3 class="text-xl lg:text-2xl font-bold mt-4 text-gray-900 dark:text-white">{{ stat.value }}</h3>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">{{ stat.name }}</p>
           </div>
         </div>
 
         <!-- Poslední příspěvky ve fóru -->
         <div
           v-if="permissions.forum?.view && recentForumTopics.length > 0"
-          class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 mb-8"
+          class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 mb-8"
         >
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-              <span class="material-icons-outlined text-gray-400">forum</span>
-              <h2 class="text-lg font-semibold">Poslední příspěvky ve fóru</h2>
+              <span class="material-icons-outlined text-gray-400 dark:text-gray-500">forum</span>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Poslední příspěvky ve fóru</h2>
             </div>
             <NuxtLink
               to="/admin/forum"
-              class="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+              class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1"
             >
               Zobrazit vše
               <span class="material-icons-outlined text-sm">arrow_forward</span>
@@ -150,11 +150,11 @@
               v-for="topic in recentForumTopics"
               :key="topic.id"
               :to="`/admin/forum/${topic.slug || topic.id}`"
-              class="flex items-start p-3 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200 group"
+              class="flex items-start p-3 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 transition-all duration-200 group"
             >
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
-                  <h3 class="font-medium text-gray-900 group-hover:text-indigo-600 truncate">
+                  <h3 class="font-medium text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 truncate">
                     {{ topic.title }}
                   </h3>
                   <span
@@ -172,7 +172,7 @@
                     lock
                   </span>
                 </div>
-                <p class="text-sm text-gray-500 line-clamp-2 mb-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-2">
                   {{ topic.content.substring(0, 100) }}{{ topic.content.length > 100 ? "..." : "" }}
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -189,7 +189,7 @@
                     </span>
                   </template>
                 </div>
-                <div class="flex items-center gap-4 text-xs text-gray-400">
+                <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
                   <span class="flex items-center gap-1">
                     <span class="material-icons-outlined text-sm">person</span>
                     {{ topic.created_by_name }}
@@ -209,17 +209,17 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 mb-8">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 mb-8">
           <div class="flex items-center gap-2 mb-4">
-            <span class="material-icons-outlined text-gray-400">bolt</span>
-            <h2 class="text-lg font-semibold">Rychlé akce</h2>
+            <span class="material-icons-outlined text-gray-400 dark:text-gray-500">bolt</span>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Rychlé akce</h2>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <NuxtLink
               v-for="action in quickActions"
               :key="action.name"
               :to="action.to"
-              class="flex items-center p-4 rounded-lg border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all duration-200"
+              class="flex items-center p-4 rounded-lg border border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/20 transition-all duration-200"
             >
               <span
                 :class="[
@@ -231,8 +231,8 @@
                 <span class="material-icons-outlined">{{ action.icon }}</span>
               </span>
               <div class="text-left">
-                <h3 class="font-medium text-gray-900">{{ action.name }}</h3>
-                <p class="text-sm text-gray-500">{{ action.description }}</p>
+                <h3 class="font-medium text-gray-900 dark:text-white">{{ action.name }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ action.description }}</p>
               </div>
             </NuxtLink>
           </div>
@@ -242,18 +242,18 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           <!-- Recent Activity -->
           <div
-            class="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-4 lg:p-6"
+            class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6"
           >
             <div class="flex items-center justify-between mb-6">
               <div class="flex items-center gap-2">
-                <span class="material-icons-outlined text-gray-400"
+                <span class="material-icons-outlined text-gray-400 dark:text-gray-500"
                   >history</span
                 >
-                <h2 class="text-lg font-semibold">Nedávná aktivita</h2>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Nedávná aktivita</h2>
               </div>
               <button
                 @click="openAllActivities"
-                class="text-sm text-indigo-600 hover:text-indigo-700"
+                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
               >
                 Zobrazit vše
               </button>
@@ -263,7 +263,7 @@
                 v-for="activity in recentActivity"
                 :key="activity.id"
                 @click="openActivityDetail(activity)"
-                class="flex items-start p-3 lg:p-4 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+                class="flex items-start p-3 lg:p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 cursor-pointer"
               >
                 <span :class="[activity.iconBg, 'p-2 rounded-lg mr-3 lg:mr-4']">
                   <span
@@ -274,33 +274,33 @@
                   </span>
                 </span>
                 <div>
-                  <p class="font-medium text-gray-900">{{ activity.title }}</p>
-                  <p class="text-sm text-gray-500">
+                  <p class="font-medium text-gray-900 dark:text-white">{{ activity.title }}</p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ activity.description }}
                   </p>
-                  <p class="text-xs text-gray-400 mt-1">{{ activity.time }}</p>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ activity.time }}</p>
                 </div>
               </div>
               <div
                 v-if="recentActivity.length === 0"
-                class="text-center text-gray-500 py-8"
+                class="text-center text-gray-500 dark:text-gray-400 py-8"
               >
                 Žádná nedávná aktivita
               </div>
             </div>
 
             <!-- Previous Versions -->
-            <div class="mt-6 border-t border-gray-100 pt-6">
+            <div class="mt-6 border-t border-gray-100 dark:border-gray-800 pt-6">
               <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-2">
-                  <span class="material-icons-outlined text-gray-400"
+                  <span class="material-icons-outlined text-gray-400 dark:text-gray-500"
                     >new_releases</span
                   >
-                  <h2 class="text-lg font-semibold">Verze aplikace Marika</h2>
+                  <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Verze aplikace Marika</h2>
                 </div>
                 <NuxtLink
                   to="/admin/changelog"
-                  class="text-sm text-indigo-600 hover:text-indigo-700"
+                  class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
                 >
                   Zobrazit changelog
                 </NuxtLink>
@@ -310,12 +310,12 @@
                 <!-- Main branch -->
                 <div
                   v-if="mainBranch"
-                  class="flex flex-col p-4 bg-gray-50 rounded-lg"
+                  class="flex flex-col p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                       <span
-                        class="px-2 py-0.5 bg-green-100 text-green-800 rounded-full text-xs font-medium"
+                        class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 rounded-full text-xs font-medium"
                       >
                         stable
                       </span>
@@ -323,15 +323,15 @@
                         :to="`/admin/changelog#${
                           mainBranch.tag || mainBranch.version
                         }`"
-                        class="text-sm text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                        class="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
                       >
                         {{ mainBranch.version }}
-                        <span v-if="mainBranch.tag" class="text-gray-500 ml-1">
+                        <span v-if="mainBranch.tag" class="text-gray-500 dark:text-gray-400 ml-1">
                           ({{ mainBranch.tag }})
                         </span>
                       </NuxtLink>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       <span class="flex items-center gap-1">
                         <span class="material-icons-outlined text-sm"
                           >person</span
@@ -346,7 +346,7 @@
                       </span>
                     </div>
                   </div>
-                  <p class="text-sm text-gray-600 mt-1">
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {{ mainBranch.lastCommit?.substring(0, 100)
                     }}{{ mainBranch.lastCommit?.length > 100 ? "..." : "" }}
                   </p>
@@ -355,12 +355,12 @@
                 <!-- Dev branch -->
                 <div
                   v-if="devBranch"
-                  class="flex flex-col p-4 bg-gray-50 rounded-lg"
+                  class="flex flex-col p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
                   <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                       <span
-                        class="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"
+                        class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 rounded-full text-xs font-medium"
                       >
                         dev
                       </span>
@@ -368,15 +368,15 @@
                         :to="`/admin/changelog#${
                           devBranch.tag || devBranch.version
                         }`"
-                        class="text-sm text-blue-500 hover:text-blue-600 transition-colors duration-200"
+                        class="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors duration-200"
                       >
                         {{ devBranch.version }}
-                        <span v-if="devBranch.tag" class="text-gray-500 ml-1">
+                        <span v-if="devBranch.tag" class="text-gray-500 dark:text-gray-400 ml-1">
                           ({{ devBranch.tag }})
                         </span>
                       </NuxtLink>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       <span class="flex items-center gap-1">
                         <span class="material-icons-outlined text-sm"
                           >person</span
@@ -391,7 +391,7 @@
                       </span>
                     </div>
                   </div>
-                  <p class="text-sm text-gray-600 mt-1">
+                  <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
                     {{ devBranch.lastCommit?.substring(0, 100)
                     }}{{ devBranch.lastCommit?.length > 100 ? "..." : "" }}
                   </p>
@@ -400,7 +400,7 @@
                 <!-- Loading state -->
                 <div v-if="versionLoading" class="flex justify-center py-4">
                   <div
-                    class="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 border-t-transparent"
+                    class="animate-spin rounded-full h-5 w-5 border-2 border-gray-500 dark:border-gray-400 border-t-transparent"
                   ></div>
                 </div>
 
@@ -414,33 +414,33 @@
 
           <!-- Nadcházející události -->
           <div
-            class="bg-white rounded-xl border border-gray-100 p-4 lg:p-6 flex flex-col h-full"
+            class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 flex flex-col h-full"
           >
             <div class="flex items-center gap-2 mb-6">
-              <span class="material-icons-outlined text-gray-400"
+              <span class="material-icons-outlined text-gray-400 dark:text-gray-500"
                 >event_upcoming</span
               >
-              <h2 class="text-lg font-semibold">Nadcházející události</h2>
+              <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Nadcházející události</h2>
             </div>
             <div class="space-y-4 overflow-y-auto flex-1 pr-2">
               <div
                 v-for="concert in upcomingConcerts"
                 :key="concert.id"
-                class="flex items-start p-3 lg:p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
+                class="flex items-start p-3 lg:p-4 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
                 @click="openConcertDetail(concert)"
               >
                 <div
-                  class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-indigo-50 rounded-lg flex items-center justify-center mr-3 lg:mr-4"
+                  class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center mr-3 lg:mr-4"
                 >
-                  <span class="text-base lg:text-lg font-bold text-indigo-600">
+                  <span class="text-base lg:text-lg font-bold text-indigo-600 dark:text-indigo-400">
                     {{ new Date(concert.date).getDate() }}
                   </span>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <h3 class="font-medium text-gray-900 truncate">
+                  <h3 class="font-medium text-gray-900 dark:text-white truncate">
                     {{ concert.title }}
                   </h3>
-                  <p class="text-sm text-gray-500">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{
                       new Date(concert.date).toLocaleDateString("cs-CZ", {
                         month: "long",
@@ -450,10 +450,10 @@
                   </p>
                   <div class="flex items-center mt-1">
                     <span
-                      class="material-icons-outlined text-sm text-gray-400 mr-1"
+                      class="material-icons-outlined text-sm text-gray-400 dark:text-gray-500 mr-1"
                       >location_on</span
                     >
-                    <p class="text-xs text-gray-500 truncate">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {{ concert.location }}
                     </p>
                   </div>
@@ -462,8 +462,8 @@
                   <span
                     :class="[
                       concert.is_sold_out
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-green-100 text-green-800',
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
+                        : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400',
                       'px-2 py-1 text-xs font-medium rounded-full',
                     ]"
                   >
@@ -481,17 +481,17 @@
   <!-- Modal pro všechny aktivity -->
   <div
     v-if="showAllActivities"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50"
   >
     <div
-      class="bg-white rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden"
+      class="bg-white dark:bg-gray-900 rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden"
     >
-      <div class="p-6 border-b border-gray-200">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-800">
         <div class="flex items-center justify-between">
-          <h2 class="text-xl font-semibold">Všechny aktivity</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Všechny aktivity</h2>
           <button
             @click="closeAllActivities"
-            class="text-gray-400 hover:text-gray-600"
+            class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <span class="material-icons-outlined">close</span>
           </button>
@@ -504,7 +504,7 @@
             v-for="activity in allActivities"
             :key="activity.id"
             @click="openActivityDetail(activity)"
-            class="flex items-start p-4 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer"
+            class="flex items-start p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 cursor-pointer"
           >
             <span :class="[activity.iconBg, 'p-2 rounded-lg mr-4']">
               <span class="material-icons-outlined" :class="activity.iconColor">
@@ -512,14 +512,14 @@
               </span>
             </span>
             <div>
-              <p class="font-medium text-gray-900">{{ activity.title }}</p>
-              <p class="text-sm text-gray-500">{{ activity.description }}</p>
-              <p class="text-xs text-gray-400 mt-1">{{ activity.time }}</p>
+              <p class="font-medium text-gray-900 dark:text-white">{{ activity.title }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ activity.description }}</p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ activity.time }}</p>
             </div>
           </div>
           <div
             v-if="allActivities.length === 0"
-            class="text-center text-gray-500 py-8"
+            class="text-center text-gray-500 dark:text-gray-400 py-8"
           >
             Žádné aktivity k zobrazení
           </div>
@@ -535,7 +535,7 @@
     @click="closeConcertDetail"
   >
     <div
-      class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+      class="bg-white dark:bg-gray-900 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
       @click.stop
     >
       <div class="relative">
@@ -587,20 +587,20 @@
 
         <!-- Obsah modalu -->
         <div class="p-8 -mt-8 relative">
-          <div class="bg-white rounded-t-xl shadow-lg p-6">
+          <div class="bg-white dark:bg-gray-900 rounded-t-xl shadow-lg p-6">
             <div class="flex items-start justify-between">
               <div class="flex-1">
-                <h2 class="text-2xl font-bold text-gray-900">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                   {{ selectedConcert.title }}
                 </h2>
-                <p class="text-gray-500 mt-1">{{ selectedConcert.subtitle }}</p>
+                <p class="text-gray-500 dark:text-gray-400 mt-1">{{ selectedConcert.subtitle }}</p>
               </div>
               <div class="flex-shrink-0 ml-6">
                 <div class="text-center">
-                  <div class="text-3xl font-bold text-indigo-600">
+                  <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                     {{ new Date(selectedConcert.date).getDate() }}
                   </div>
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
                     {{
                       new Date(selectedConcert.date).toLocaleDateString(
                         "cs-CZ",
@@ -608,7 +608,7 @@
                       )
                     }}
                   </div>
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
                     {{ new Date(selectedConcert.date).getFullYear() }}
                   </div>
                 </div>
@@ -617,7 +617,7 @@
 
             <div class="mt-6 space-y-4">
               <!-- Čas a místo -->
-              <div class="flex items-center text-gray-600">
+              <div class="flex items-center text-gray-600 dark:text-gray-300">
                 <span class="material-icons-outlined mr-2">schedule</span>
                 <span>{{ selectedConcert.time }}</span>
                 <span class="mx-3">•</span>
@@ -626,14 +626,14 @@
               </div>
 
               <!-- Skupina -->
-              <div class="flex items-center text-gray-600">
+              <div class="flex items-center text-gray-600 dark:text-gray-300">
                 <span class="material-icons-outlined mr-2">group</span>
                 <span>{{ selectedConcert.group_name }}</span>
               </div>
 
               <!-- Detailní popis -->
               <div
-                class="text-gray-600 mt-4 prose prose-sm max-w-none"
+                class="text-gray-600 dark:text-gray-300 mt-4 prose prose-sm max-w-none dark:prose-invert"
                 v-html="
                   formatDetailedDescription(
                     selectedConcert.detailed_description
@@ -642,29 +642,29 @@
               ></div>
 
               <!-- Vstupné -->
-              <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h3 class="font-semibold text-gray-900 mb-2">Vstupné</h3>
+              <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Vstupné</h3>
                 <div
                   v-if="selectedConcert.price > 0"
                   class="flex items-baseline"
                 >
-                  <span class="text-2xl font-bold text-indigo-600"
+                  <span class="text-2xl font-bold text-indigo-600 dark:text-indigo-400"
                     >{{ selectedConcert.price }} Kč</span
                   >
-                  <span class="text-gray-500 ml-2">/ osoba</span>
+                  <span class="text-gray-500 dark:text-gray-400 ml-2">/ osoba</span>
                 </div>
                 <div
                   v-else-if="selectedConcert.is_voluntary"
-                  class="text-gray-600"
+                  class="text-gray-600 dark:text-gray-300"
                 >
                   Dobrovolné vstupné
                 </div>
                 <div
                   v-else-if="selectedConcert.has_presale"
-                  class="text-gray-600"
+                  class="text-gray-600 dark:text-gray-300"
                 >
                   Předprodej vstupenek
-                  <p v-if="selectedConcert.presale_text" class="mt-2 text-sm">
+                  <p v-if="selectedConcert.presale_text" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {{ selectedConcert.presale_text }}
                   </p>
                 </div>

@@ -6,13 +6,13 @@
     <!-- Collapsible Add/Edit Concert Section -->
     <div
       v-if="permissions.create"
-      class="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+      class="mb-8 bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800"
     >
       <div
-        class="p-4 bg-gradient-to-r from-rose-50 to-red-100 hover:from-rose-100 hover:to-red-200 cursor-pointer flex justify-between items-center group transition-all duration-300 border-b border-red-100"
+        class="p-4 bg-gradient-to-r from-rose-50 to-red-100 dark:from-gray-800 dark:to-gray-800 hover:from-rose-100 hover:to-red-200 dark:hover:from-gray-700 dark:hover:to-gray-700 cursor-pointer flex justify-between items-center group transition-all duration-300 border-b border-red-100 dark:border-gray-700"
         @click="isFormVisible ? resetForm() : (isFormVisible = true)"
       >
-        <h2 class="text-xl font-bold text-red-800 flex items-center gap-3">
+        <h2 class="text-xl font-bold text-red-800 dark:text-red-400 flex items-center gap-3">
           <span class="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -36,13 +36,13 @@
         </h2>
         <div class="flex items-center gap-2">
           <span
-            class="text-sm text-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            class="text-sm text-red-700 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           >
             {{ isFormVisible ? "Zrušit" : "Otevřít" }}
           </span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5 text-red-700 transform transition-transform duration-300"
+            class="h-5 w-5 text-red-700 dark:text-red-400 transform transition-transform duration-300"
             :class="{ 'rotate-180': isFormVisible }"
             fill="none"
             viewBox="0 0 24 24"
@@ -63,11 +63,11 @@
           <!-- Základní informace -->
           <div class="mb-8">
             <h3
-              class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
+              class="text-lg font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-red-600"
+                class="h-5 w-5 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -84,21 +84,21 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="col-span-2">
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Název koncertu
                 </label>
                 <input
                   v-model="form.title"
                   type="text"
                   required
-                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
                   placeholder="Zadejte název koncertu"
                 />
               </div>
 
               <!-- Výběr tělesa - Radio buttons -->
               <div class="col-span-2">
-                <label class="block text-gray-700 text-sm font-medium mb-4">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                   Těleso
                 </label>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -111,18 +111,18 @@
                       required
                     />
                     <div
-                      class="w-full p-4 bg-white border rounded-lg peer-checked:border-red-500 peer-checked:ring-2 peer-checked:ring-red-500 hover:bg-gray-50 transition-all duration-200"
+                      class="w-full p-4 bg-white dark:bg-gray-800 border rounded-lg peer-checked:border-red-500 dark:peer-checked:border-red-400 peer-checked:ring-2 peer-checked:ring-red-500 dark:peer-checked:ring-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border-gray-300 dark:border-gray-600"
                     >
                       <div class="flex items-center justify-between">
                         <div>
-                          <h4 class="font-medium text-gray-800">
+                          <h4 class="font-medium text-gray-800 dark:text-white">
                             Marika Singers
                           </h4>
-                          <p class="text-sm text-gray-500">Hlavní sbor</p>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">Hlavní sbor</p>
                         </div>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6 text-red-500 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
+                          class="h-6 w-6 text-red-500 dark:text-red-400 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -147,16 +147,16 @@
                       required
                     />
                     <div
-                      class="w-full p-4 bg-white border rounded-lg peer-checked:border-red-500 peer-checked:ring-2 peer-checked:ring-red-500 hover:bg-gray-50 transition-all duration-200"
+                      class="w-full p-4 bg-white dark:bg-gray-800 border rounded-lg peer-checked:border-red-500 dark:peer-checked:border-red-400 peer-checked:ring-2 peer-checked:ring-red-500 dark:peer-checked:ring-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border-gray-300 dark:border-gray-600"
                     >
                       <div class="flex items-center justify-between">
                         <div>
-                          <h4 class="font-medium text-gray-800">Five</h4>
-                          <p class="text-sm text-gray-500">Vokální skupina</p>
+                          <h4 class="font-medium text-gray-800 dark:text-white">Five</h4>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">Vokální skupina</p>
                         </div>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6 text-red-500 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
+                          class="h-6 w-6 text-red-500 dark:text-red-400 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -181,16 +181,16 @@
                       required
                     />
                     <div
-                      class="w-full p-4 bg-white border rounded-lg peer-checked:border-red-500 peer-checked:ring-2 peer-checked:ring-red-500 hover:bg-gray-50 transition-all duration-200"
+                      class="w-full p-4 bg-white dark:bg-gray-800 border rounded-lg peer-checked:border-red-500 dark:peer-checked:border-red-400 peer-checked:ring-2 peer-checked:ring-red-500 dark:peer-checked:ring-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border-gray-300 dark:border-gray-600"
                     >
                       <div class="flex items-center justify-between">
                         <div>
-                          <h4 class="font-medium text-gray-800">Voices</h4>
-                          <p class="text-sm text-gray-500">Komorní sbor</p>
+                          <h4 class="font-medium text-gray-800 dark:text-white">Voices</h4>
+                          <p class="text-sm text-gray-500 dark:text-gray-400">Komorní sbor</p>
                         </div>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="h-6 w-6 text-red-500 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
+                          class="h-6 w-6 text-red-500 dark:text-red-400 opacity-0 peer-checked:opacity-100 transition-opacity duration-200"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -209,61 +209,61 @@
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Datum
                 </label>
                 <input
                   v-model="form.date"
                   type="date"
                   required
-                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white transition-shadow duration-200 shadow-sm hover:shadow-md"
                 />
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Čas
                 </label>
                 <input
                   v-model="form.time"
                   type="time"
                   required
-                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white transition-shadow duration-200 shadow-sm hover:shadow-md"
                 />
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Typ vstupného
                 </label>
                 <div class="flex items-center space-x-2 mt-2">
                   <input
                     type="checkbox"
                     v-model="form.is_voluntary"
-                    class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    class="w-4 h-4 text-red-600 dark:text-red-400 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800"
                   />
-                  <span class="text-gray-700">Dobrovolné vstupné</span>
+                  <span class="text-gray-700 dark:text-gray-300">Dobrovolné vstupné</span>
                 </div>
                 <div class="flex items-center space-x-2 mt-2">
                   <input
                     type="checkbox"
                     v-model="form.has_presale"
-                    class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    class="w-4 h-4 text-red-600 dark:text-red-400 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800"
                   />
-                  <span class="text-gray-700">Předprodej</span>
+                  <span class="text-gray-700 dark:text-gray-300">Předprodej</span>
                 </div>
                 <div v-if="form.has_presale" class="mt-2">
                   <input
                     v-model="form.presale_text"
                     type="text"
-                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                    class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
                     placeholder="Předprodej bude zahájen..."
                   />
                 </div>
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Cena vstupného
                 </label>
                 <div
@@ -275,24 +275,24 @@
                     type="number"
                     :required="!form.is_voluntary"
                     :disabled="form.is_voluntary"
-                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md pl-10"
+                    class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow duration-200 shadow-sm hover:shadow-md pl-10"
                     placeholder="0"
                   />
                   <span
-                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400"
                     >Kč
                   </span>
                 </div>
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Přiřadit vstupenku
                 </label>
                 <div class="relative">
                   <select
                     v-model="form.ticket_id"
-                    class="w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md appearance-none"
+                    class="w-full p-3 pl-10 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white transition-shadow duration-200 shadow-sm hover:shadow-md appearance-none"
                   >
                     <option :value="''">
                       Bez vstupenky (použít QR platbu)
@@ -310,7 +310,7 @@
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-gray-400"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -328,7 +328,7 @@
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-gray-400"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-500"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -345,9 +345,9 @@
               </div>
 
               <div class="col-span-2">
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Anotace koncertu
-                  <span class="text-gray-500 text-xs ml-1">
+                  <span class="text-gray-500 dark:text-gray-400 text-xs ml-1">
                     (Zbývá {{ 150 - (form.description?.length || 0) }} znaků)
                   </span>
                 </label>
@@ -355,19 +355,19 @@
                   v-model="form.description"
                   rows="2"
                   :maxlength="150"
-                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
                   placeholder="Krátká anotace koncertu pro přehled..."
                   required
                 ></textarea>
                 <p
                   class="mt-1 text-sm"
                   :class="{
-                    'text-gray-500':
+                    'text-gray-500 dark:text-gray-400':
                       (form.description?.length || 0) <= 150 * 0.8,
-                    'text-orange-500':
+                    'text-orange-500 dark:text-orange-400':
                       (form.description?.length || 0) > 150 * 0.8 &&
                       (form.description?.length || 0) <= 150,
-                    'text-red-500': (form.description?.length || 0) > 150,
+                    'text-red-500 dark:text-red-400': (form.description?.length || 0) > 150,
                   }"
                 >
                   {{ form.description?.length || 0 }}/150 znaků
@@ -375,14 +375,14 @@
               </div>
 
               <div class="col-span-2">
-                <label class="block text-gray-700 text-sm font-medium mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2">
                   Detailní popis koncertu
                 </label>
                 <div class="mb-2 flex gap-2">
                   <button
                     type="button"
                     @click="insertLink"
-                    class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded flex items-center gap-1 transition-colors"
+                    class="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded flex items-center gap-1 transition-colors text-gray-700 dark:text-gray-300"
                   >
                     <span class="material-icons-outlined text-base">link</span>
                     Vložit odkaz
@@ -392,7 +392,7 @@
                   ref="textareaRef"
                   v-model="form.detailed_description"
                   rows="6"
-                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white transition-shadow duration-200 shadow-sm hover:shadow-md"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-shadow duration-200 shadow-sm hover:shadow-md"
                   placeholder="Podrobný popis koncertu..."
                   required
                 ></textarea>
@@ -403,14 +403,14 @@
           <!-- QR Platba -->
           <div
             v-if="showQRSection"
-            class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200"
+            class="mb-8 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700"
           >
             <h3
-              class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
+              class="text-lg font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-red-600"
+                class="h-5 w-5 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -424,7 +424,7 @@
               </svg>
               QR Platba
             </h3>
-            <div class="bg-white p-6 rounded-lg shadow-sm">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm">
               <QRCodeGenerator
                 :concert-title="form.title"
                 v-model:price="form.price"
@@ -440,11 +440,11 @@
           <!-- Média -->
           <div class="mb-8">
             <h3
-              class="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2"
+              class="text-lg font-semibold text-gray-800 dark:text-white mb-6 flex items-center gap-2"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-red-600"
+                class="h-5 w-5 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -460,13 +460,13 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Obrázek koncertu -->
-              <div class="bg-white p-6 rounded-lg shadow-sm">
-                <label class="block text-gray-700 text-sm font-medium mb-4">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                   Obrázek koncertu
                 </label>
                 <div
-                  class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-500 transition-colors duration-200 bg-gray-50 group"
-                  :class="{ 'border-red-500 bg-red-50': isDragging }"
+                  class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 bg-gray-50 dark:bg-gray-800 group"
+                  :class="{ 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20': isDragging }"
                   @dragenter.prevent="isDragging = true"
                   @dragleave.prevent="isDragging = false"
                   @dragover.prevent
@@ -478,7 +478,7 @@
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="mx-auto h-12 w-12 text-gray-400 group-hover:text-red-500 transition-colors duration-200"
+                      class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -490,10 +490,10 @@
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <p class="mt-4 text-gray-500">
+                    <p class="mt-4 text-gray-500 dark:text-gray-400">
                       Přetáhněte sem obrázek nebo
                       <label
-                        class="text-red-500 hover:text-red-600 cursor-pointer font-medium"
+                        class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer font-medium"
                       >
                         vyberte ze zařízení
                         <input
@@ -504,13 +504,13 @@
                         />
                       </label>
                     </p>
-                    <p class="text-sm text-gray-400 mt-2">
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
                       Podporované formáty: JPG, PNG, WebP
                     </p>
                   </div>
                   <div
                     v-else-if="isUploading"
-                    class="relative h-64 flex items-center justify-center bg-gray-50 rounded-lg"
+                    class="relative h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     <div
                       class="absolute inset-0 flex items-center justify-center"
@@ -540,19 +540,19 @@
                     </div>
                     <div class="absolute inset-x-4 bottom-4 space-y-3">
                       <div
-                        class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden"
+                        class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden"
                       >
                         <div
-                          class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative"
+                          class="h-full bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 transition-all duration-300 relative"
                           :style="{ width: uploadProgress + '%' }"
                         >
                           <div
-                            class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                            class="absolute inset-0 bg-white/20 dark:bg-gray-300/20 animate-[shimmer_2s_infinite]"
                           ></div>
                         </div>
                       </div>
                       <div
-                        class="flex justify-between text-sm font-medium text-gray-600"
+                        class="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-300"
                       >
                         <span>Nahrávání...</span>
                         <span>{{ uploadProgress }}%</span>
@@ -562,12 +562,12 @@
                   <div v-else class="relative">
                     <div class="mb-4">
                       <label
-                        class="block text-gray-700 text-sm font-medium mb-2"
+                        class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2"
                       >
                         Náhled obrázku
                       </label>
                       <div
-                        class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border-2 border-gray-200"
+                        class="relative w-full aspect-[4/3] overflow-hidden rounded-lg border-2 border-gray-200 dark:border-gray-700"
                       >
                         <picture>
                           <source
@@ -604,13 +604,13 @@
               </div>
 
               <!-- Plakát koncertu -->
-              <div class="bg-white p-6 rounded-lg shadow-sm">
-                <label class="block text-gray-700 text-sm font-medium mb-4">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-4">
                   Plakát koncertu
                 </label>
                 <div
-                  class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-500 transition-colors duration-200 bg-gray-50 group"
-                  :class="{ 'border-red-500 bg-red-50': isPosterDragging }"
+                  class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 bg-gray-50 dark:bg-gray-800 group"
+                  :class="{ 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20': isPosterDragging }"
                   @dragenter.prevent="isPosterDragging = true"
                   @dragleave.prevent="isPosterDragging = false"
                   @dragover.prevent
@@ -622,7 +622,7 @@
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="mx-auto h-12 w-12 text-gray-400 group-hover:text-red-500 transition-colors duration-200"
+                      class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -634,10 +634,10 @@
                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
-                    <p class="mt-4 text-gray-500">
+                    <p class="mt-4 text-gray-500 dark:text-gray-400">
                       Přetáhněte sem plakát nebo
                       <label
-                        class="text-red-500 hover:text-red-600 cursor-pointer font-medium"
+                        class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer font-medium"
                       >
                         vyberte ze zařízení
                         <input
@@ -648,20 +648,20 @@
                         />
                       </label>
                     </p>
-                    <p class="text-sm text-gray-400 mt-2">
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
                       Podporované formáty: JPG, PNG, WebP, PDF
                     </p>
                   </div>
                   <div
                     v-else-if="isPosterUploading"
-                    class="relative h-64 flex items-center justify-center bg-gray-50 rounded-lg"
+                    class="relative h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
                     <div
                       class="absolute inset-0 flex items-center justify-center"
                     >
                       <div class="w-32 h-32">
                         <svg
-                          class="animate-spin h-full w-full text-red-500"
+                          class="animate-spin h-full w-full text-red-500 dark:text-red-400"
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
                           viewBox="0 0 24 24"
@@ -684,19 +684,19 @@
                     </div>
                     <div class="absolute inset-x-4 bottom-4 space-y-3">
                       <div
-                        class="w-full bg-gray-200 rounded-full h-3 relative overflow-hidden"
+                        class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 relative overflow-hidden"
                       >
                         <div
-                          class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative"
+                          class="h-full bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 transition-all duration-300 relative"
                           :style="{ width: posterUploadProgress + '%' }"
                         >
                           <div
-                            class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"
+                            class="absolute inset-0 bg-white/20 dark:bg-gray-300/20 animate-[shimmer_2s_infinite]"
                           ></div>
                         </div>
                       </div>
                       <div
-                        class="flex justify-between text-sm font-medium text-gray-600"
+                        class="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-300"
                       >
                         <span>Nahrávání plakátu...</span>
                         <span>{{ posterUploadProgress }}%</span>
@@ -752,7 +752,7 @@
             <button
               type="button"
               @click="resetForm"
-              class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-sm hover:shadow-md"
+              class="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 shadow-sm hover:shadow-md"
             >
               <span class="flex items-center gap-2">
                 <svg
@@ -774,7 +774,7 @@
             </button>
             <button
               type="submit"
-              class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5"
+              class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 dark:from-red-700 dark:to-red-800 text-white rounded-lg hover:from-red-700 hover:to-red-800 dark:hover:from-red-800 dark:hover:to-red-900 transition-all duration-300 shadow-sm hover:shadow-lg transform hover:-translate-y-0.5"
             >
               <span class="flex items-center gap-2">
                 <svg
@@ -801,7 +801,7 @@
 
     <div class="flex justify-between items-center mb-8">
       <h1
-        class="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent"
+        class="text-3xl font-bold bg-gradient-to-r from-red-600 to-red-800 dark:from-red-400 dark:to-red-600 bg-clip-text text-transparent"
       >
         Správa koncertů
       </h1>
@@ -809,7 +809,7 @@
         <button
           v-if="permissions.create"
           @click="isFormVisible ? resetForm() : (isFormVisible = true)"
-          class="group relative px-6 py-3 bg-gradient-to-br from-red-500 to-red-700 text-white rounded-xl hover:from-red-600 hover:to-red-800 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
+          class="group relative px-6 py-3 bg-gradient-to-br from-red-500 to-red-700 dark:from-red-600 dark:to-red-800 text-white rounded-xl hover:from-red-600 hover:to-red-800 dark:hover:from-red-700 dark:hover:to-red-900 transition-all duration-300 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 overflow-hidden"
           :disabled="loading"
         >
           <div
@@ -852,7 +852,7 @@
             type="text"
             v-model="searchQuery"
             placeholder="Vyhledat koncert..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 dark:focus:ring-red-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
@@ -860,7 +860,7 @@
         <div class="md:w-48">
           <select
             v-model="selectedGroup"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 dark:focus:ring-red-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">Všechna tělesa</option>
             <option value="Marika Singers">Marika Singers</option>
@@ -873,7 +873,7 @@
         <div class="md:w-48">
           <select
             v-model="ticketFilter"
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800 dark:focus:ring-red-400 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">Všechny koncerty</option>
             <option value="withTickets">S online vstupenkami</option>
@@ -885,13 +885,13 @@
 
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div
-        class="animate-spin rounded-full h-12 w-12 border-4 border-red-600 border-t-transparent"
+        class="animate-spin rounded-full h-12 w-12 border-4 border-red-600 dark:border-red-400 border-t-transparent"
       ></div>
     </div>
 
     <div
       v-else-if="error"
-      class="bg-red-50 text-red-600 p-4 rounded-xl shadow-sm mb-6"
+      class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl shadow-sm mb-6 border border-red-200 dark:border-red-800"
     >
       <p class="flex items-center gap-2">
         <span class="material-icons-outlined">error_outline</span>
@@ -902,14 +902,14 @@
     <!-- Tabulka koncertů -->
     <div
       v-else
-      class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+      class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800"
     >
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800">
             <tr>
               <th
-                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 @click="toggleSort('title')"
               >
                 <div class="flex items-center gap-2">
@@ -919,7 +919,7 @@
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-3 w-3 -mb-1"
                       :class="{
-                        'text-red-600': sortBy === 'title' && !sortDesc,
+                        'text-red-600 dark:text-red-400': sortBy === 'title' && !sortDesc,
                       }"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -936,7 +936,7 @@
                 </div>
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 @click="toggleSort('date')"
               >
                 <div class="flex items-center gap-2">
@@ -946,7 +946,7 @@
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-3 w-3 -mb-1"
                       :class="{
-                        'text-red-600': sortBy === 'date' && !sortDesc,
+                        'text-red-600 dark:text-red-400': sortBy === 'date' && !sortDesc,
                       }"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -963,7 +963,7 @@
                 </div>
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 @click="toggleSort('time')"
               >
                 <div class="flex items-center gap-2">
@@ -973,7 +973,7 @@
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-3 w-3 -mb-1"
                       :class="{
-                        'text-red-600': sortBy === 'time' && !sortDesc,
+                        'text-red-600 dark:text-red-400': sortBy === 'time' && !sortDesc,
                       }"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -990,7 +990,7 @@
                 </div>
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 @click="toggleSort('group_name')"
               >
                 <div class="flex items-center gap-2">
@@ -1000,7 +1000,7 @@
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-3 w-3 -mb-1"
                       :class="{
-                        'text-red-600': sortBy === 'group_name' && !sortDesc,
+                        'text-red-600 dark:text-red-400': sortBy === 'group_name' && !sortDesc,
                       }"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -1017,7 +1017,7 @@
                 </div>
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-bold text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+                class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 @click="toggleSort('price')"
               >
                 <div class="flex items-center gap-2">
@@ -1027,7 +1027,7 @@
                       xmlns="http://www.w3.org/2000/svg"
                       class="h-3 w-3 -mb-1"
                       :class="{
-                        'text-red-600': sortBy === 'price' && !sortDesc,
+                        'text-red-600 dark:text-red-400': sortBy === 'price' && !sortDesc,
                       }"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -1043,25 +1043,25 @@
                   </span>
                 </div>
               </th>
-              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+              <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                 <div class="flex items-center justify-center">Akce</div>
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
               v-for="concert in activeFilteredConcerts"
               :key="concert.id"
-              class="hover:bg-gray-50 transition-colors duration-200"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">
                       {{ concert.title }}
                       <span
                         v-if="concert.ticket_id"
-                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                        class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1080,14 +1080,14 @@
                         Vstupenky
                       </span>
                     </div>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
                       {{ formatDate(concert.date) }}
                     </div>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
+                <div class="text-sm font-medium text-gray-900 dark:text-white">
                   {{
                     new Date(concert.date).toLocaleDateString("cs-CZ", {
                       weekday: "long",
@@ -1099,18 +1099,18 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ concert.time }}</div>
+                <div class="text-sm text-gray-900 dark:text-white">{{ concert.time }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
-                  class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
+                  class="px-3 py-1 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full"
                 >
                   {{ concert.group_name }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
-                  class="px-3 py-1 text-sm font-medium bg-green-50 text-green-600 rounded-full"
+                  class="px-3 py-1 text-sm font-medium bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full"
                 >
                   {{ concert.price }} Kč
                 </span>
@@ -1121,7 +1121,7 @@
                 <button
                   v-if="permissions.edit"
                   @click="editConcert(concert)"
-                  class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors duration-200"
                   title="Upravit"
                 >
                   <svg
@@ -1142,7 +1142,7 @@
                 <button
                   v-if="permissions.edit"
                   @click="archiveConcert(concert)"
-                  class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors duration-200"
                   title="Archivovat"
                 >
                   <svg
@@ -1163,7 +1163,7 @@
                 <button
                   v-if="permissions.delete"
                   @click="handleDelete(concert.id)"
-                  class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                  class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                   title="Smazat"
                 >
                   <svg
@@ -1186,7 +1186,7 @@
             <tr v-if="concerts.length === 0">
               <td colspan="5" class="px-6 py-12 text-center">
                 <div
-                  class="flex flex-col items-center justify-center text-gray-500"
+                  class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400"
                 >
                   <span class="material-icons-outlined text-4xl mb-2"
                     >event_busy</span
@@ -1229,9 +1229,9 @@
       </div>
 
       <!-- Pagination -->
-      <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+      <div class="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-500">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
             Zobrazeno {{ paginationStart + 1 }} - {{ paginationEnd }} z
             {{ totalFilteredConcerts }} koncertů
           </div>
@@ -1239,7 +1239,7 @@
             <button
               @click="currentPage--"
               :disabled="currentPage === 1"
-              class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+              class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300"
             >
               Předchozí
             </button>
@@ -1251,8 +1251,8 @@
                 :class="[
                   'px-4 py-2 text-sm rounded-lg border transition-colors duration-200',
                   currentPage === page
-                    ? 'bg-red-800 text-white border-red-800'
-                    : 'border-gray-300 hover:bg-gray-50',
+                    ? 'bg-red-800 dark:bg-red-700 text-white border-red-800 dark:border-red-700'
+                    : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300',
                 ]"
               >
                 {{ page }}
@@ -1261,7 +1261,7 @@
             <button
               @click="currentPage++"
               :disabled="currentPage === totalPages"
-              class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+              class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300"
             >
               Další
             </button>
@@ -1273,7 +1273,7 @@
     <!-- Po existující tabulce koncertů přidáme tabulku vstupenek -->
     <div class="mt-8">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Odkazy na vstupenky</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Odkazy na vstupenky</h2>
         <button
           v-if="permissions.create"
           @click="showTicketModal = true"
@@ -1302,61 +1302,61 @@
         </button>
       </div>
       <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100"
+        class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-800"
       >
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800">
               <tr>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center">
                     Název koncertu
                   </div>
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center">Těleso</div>
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center">
                     Poskytovatel
                   </div>
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center">Odkaz</div>
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500">
+                <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center">
                     Přiřazené koncerty
                   </div>
                 </th>
                 <th
-                  class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Akce
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
               <tr
                 v-for="ticket in paginatedTickets"
                 :key="ticket.id"
-                class="hover:bg-gray-50 transition-colors duration-200"
+                class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ ticket.title }}
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
-                    class="px-3 py-1 text-sm font-medium bg-red-50 text-red-600 rounded-full"
+                    class="px-3 py-1 text-sm font-medium bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full"
                   >
                     {{ getGroupName(ticket.group_id) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span
-                    class="px-3 py-1 text-sm font-medium bg-blue-50 text-blue-600 rounded-full"
+                    class="px-3 py-1 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full"
                   >
                     {{ ticket.provider }}
                   </span>
@@ -1365,7 +1365,7 @@
                   <a
                     :href="ticket.ticket_url"
                     target="_blank"
-                    class="text-blue-600 hover:text-blue-800 text-sm underline"
+                    class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm underline"
                   >
                     Odkaz na vstupenky
                   </a>
@@ -1383,13 +1383,13 @@
                       :key="concert.id"
                       class="text-sm"
                     >
-                      <span class="font-medium">{{ concert.title }}</span>
-                      <span class="text-gray-500 ml-2"
+                      <span class="font-medium text-gray-900 dark:text-white">{{ concert.title }}</span>
+                      <span class="text-gray-500 dark:text-gray-400 ml-2"
                         >({{ formatDate(concert.date) }})</span
                       >
                     </div>
                   </div>
-                  <span v-else class="text-gray-500 text-sm"
+                  <span v-else class="text-gray-500 dark:text-gray-400 text-sm"
                     >Žádné přiřazené koncerty</span
                   >
                 </td>
@@ -1399,7 +1399,7 @@
                   <div class="flex justify-end gap-2">
                     <button
                       @click="editTicket(ticket)"
-                      class="text-blue-600 hover:text-blue-800"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1419,7 +1419,7 @@
                     <button
                       v-if="permissions.delete"
                       @click="handleDeleteTicket(ticket)"
-                      class="inline-flex items-center justify-center w-8 h-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors duration-150"
+                      class="inline-flex items-center justify-center w-8 h-8 text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors duration-150"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1442,7 +1442,7 @@
               <tr v-if="concertTickets.length === 0">
                 <td colspan="5" class="px-6 py-12 text-center">
                   <div
-                    class="flex flex-col items-center justify-center text-gray-500"
+                    class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400"
                   >
                     <div class="relative w-24 h-24 mb-4">
                       <!-- Animované noty -->
@@ -1479,10 +1479,10 @@
 
         <!-- Pagination pro vstupenky -->
         <div
-          class="bg-gray-50 px-6 py-4 mt-4 rounded-lg border border-gray-200"
+          class="bg-gray-50 dark:bg-gray-800 px-6 py-4 mt-4 rounded-lg border border-gray-200 dark:border-gray-700"
         >
           <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-500">
+            <div class="text-sm text-gray-500 dark:text-gray-400">
               Zobrazeno {{ ticketPaginationStart + 1 }} -
               {{ ticketPaginationEnd }} z {{ concertTickets.length }} vstupenek
             </div>
@@ -1490,7 +1490,7 @@
               <button
                 @click="ticketCurrentPage--"
                 :disabled="ticketCurrentPage === 1"
-                class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300"
               >
                 Předchozí
               </button>
@@ -1502,8 +1502,8 @@
                   :class="[
                     'px-4 py-2 text-sm rounded-lg border transition-colors duration-200',
                     ticketCurrentPage === page
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 hover:bg-gray-50',
+                      ? 'bg-blue-600 dark:bg-blue-700 text-white border-blue-600 dark:border-blue-700'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300',
                   ]"
                 >
                   {{ page }}
@@ -1512,7 +1512,7 @@
               <button
                 @click="ticketCurrentPage++"
                 :disabled="ticketCurrentPage === ticketTotalPages"
-                class="px-4 py-2 text-sm rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors duration-200"
+                class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 text-gray-700 dark:text-gray-300"
               >
                 Další
               </button>
@@ -1979,70 +1979,70 @@
 
     <!-- Sekce archivovaných koncertů -->
     <div class="mt-12">
-      <h2 class="text-2xl font-bold mb-6 text-gray-800">
+      <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
         Archivované koncerty
       </h2>
-      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Název
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Datum a čas
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Skupina
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Cena
                 </th>
                 <th
                   scope="col"
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
                   Akce
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
               <tr
                 v-for="concert in archivedConcerts"
                 :key="concert.id"
-                class="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200"
                 @click="showArchivePreview(concert)"
               >
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ concert.title }}
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
                     {{ formatDateWithTime(concert.date, concert.time) }}
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
                     {{ concert.group_name }}
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
                     {{ concert.price }} Kč
                   </div>
                 </td>
@@ -2053,7 +2053,7 @@
                     <button
                       v-if="permissions.edit"
                       @click.stop="restoreConcert(concert)"
-                      class="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                      class="p-2 text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors duration-200"
                       title="Obnovit"
                     >
                       <svg
@@ -2074,7 +2074,7 @@
                     <button
                       v-if="permissions.delete"
                       @click.stop="handleDelete(concert.id)"
-                      class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                       title="Smazat"
                     >
                       <svg
