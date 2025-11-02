@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50">
+  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950">
     <div class="container mx-auto px-4 py-8 pb-20 max-w-5xl">
       <!-- Breadcrumbs -->
       <AdminBreadcrumbs />
@@ -7,34 +7,34 @@
       <!-- Loading -->
       <div v-if="topicLoading" class="flex items-center justify-center py-16">
         <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"
+          class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 dark:border-indigo-400 border-t-transparent"
         ></div>
       </div>
 
       <!-- Téma -->
       <div v-else-if="topic" class="space-y-6">
         <!-- Hlavička tématu -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           <div class="p-6 lg:p-8">
             <!-- Status badges -->
             <div class="flex flex-wrap items-center gap-2 mb-4">
               <span
                 v-if="topic.is_pinned"
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-700 rounded-full border border-indigo-200"
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-indigo-100 to-indigo-50 dark:from-indigo-900/30 dark:to-indigo-800/30 text-indigo-700 dark:text-indigo-300 rounded-full border border-indigo-200 dark:border-indigo-700"
               >
                 <span class="material-icons-outlined text-[16px]">push_pin</span>
                 Připnuto
               </span>
               <span
                 v-if="topic.is_locked"
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-red-100 to-red-50 text-red-700 rounded-full border border-red-200"
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-red-100 to-red-50 dark:from-red-900/30 dark:to-red-800/30 text-red-700 dark:text-red-300 rounded-full border border-red-200 dark:border-red-700"
               >
                 <span class="material-icons-outlined text-[16px]">lock</span>
                 Zamčeno
               </span>
               <span
                 v-if="topic.status === 'archived'"
-                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-gray-100 to-gray-50 text-gray-700 rounded-full border border-gray-200"
+                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-800/50 text-gray-700 dark:text-gray-400 rounded-full border border-gray-200 dark:border-gray-700"
               >
                 <span class="material-icons-outlined text-[16px]">archive</span>
                 Archivováno
@@ -42,16 +42,16 @@
             </div>
 
             <!-- Název tématu -->
-            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-2 leading-tight">
+            <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
               {{ topic.title }}
             </h1>
 
             <!-- Kategorie -->
             <div class="flex flex-wrap items-center gap-2 mb-6">
-              <span class="font-semibold text-gray-700">Kategorie:</span>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Kategorie:</span>
               <span
                 v-if="getCategoryStyle(topic.category)"
-                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
+                class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-200 dark:border-gray-700"
                 :style="getCategoryStyle(topic.category)"
               >
                 {{ getCategoryName(topic.category) }}
@@ -59,23 +59,23 @@
             </div>
 
             <!-- Metadata -->
-            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6 pb-6 border-b border-gray-100">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
               <div class="flex items-center gap-2">
-                <span class="material-icons-outlined text-[18px] text-gray-400">person</span>
-                <span class="font-medium text-gray-700">{{ topic.author_name }}</span>
+                <span class="material-icons-outlined text-[18px] text-gray-400 dark:text-gray-500">person</span>
+                <span class="font-medium text-gray-700 dark:text-gray-300">{{ topic.author_name }}</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="material-icons-outlined text-[18px] text-gray-400">schedule</span>
+                <span class="material-icons-outlined text-[18px] text-gray-400 dark:text-gray-500">schedule</span>
                 <span>{{ formatDate(topic.created_at) }}</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="material-icons-outlined text-[18px] text-gray-400">visibility</span>
+                <span class="material-icons-outlined text-[18px] text-gray-400 dark:text-gray-500">visibility</span>
                 <span>{{ topic.view_count }} zhlédnutí</span>
               </div>
               <button
                 v-if="editHistory.length > 0"
                 @click="showHistorySidebar = true"
-                class="ml-auto flex items-center gap-1 px-3 py-1.5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-lg transition-all duration-200"
+                class="ml-auto flex items-center gap-1 px-3 py-1.5 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200"
                 title="Historie úprav"
               >
                 <span class="material-icons-outlined text-[18px]">history</span>
@@ -85,14 +85,14 @@
 
             <!-- Tagy -->
             <div class="flex flex-wrap items-center gap-2 mb-6">
-              <span class="font-semibold text-gray-700">Štítky:</span>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Štítky:</span>
               <template
                 v-for="tagSlug in (topic.tags || (topic.tag ? [topic.tag] : []))"
                 :key="tagSlug"
               >
                 <span
                   v-if="getTagStyle(tagSlug)"
-                  class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full border border-gray-200 dark:border-gray-700"
                   :style="getTagStyle(tagSlug)"
                 >
                   {{ getTagName(tagSlug) }}
@@ -101,19 +101,19 @@
             </div>
 
             <!-- Obsah -->
-            <div class="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+            <div class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700">
               {{ topic.content }}
             </div>
 
             <!-- Hodnocení -->
-            <div class="flex items-center gap-4 py-4 border-t border-gray-100 mb-4 justify-end">
+            <div class="flex items-center gap-4 py-4 border-t border-gray-100 dark:border-gray-800 mb-4 justify-end">
               <button
                 @click="toggleLikeTopic"
                 :disabled="loading"
                 class="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
                 :class="topicUserLikes.includes(topic.id)
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/40'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
               >
                 <span class="material-icons-outlined text-[20px]">thumb_up</span>
                 <span class="font-semibold">{{ topicLikeCount }}</span>
@@ -123,8 +123,8 @@
                 :disabled="loading"
                 class="inline-flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-medium"
                 :class="topicUserDislikes.includes(topic.id)
-                  ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
               >
                 <span class="material-icons-outlined text-[20px]">thumb_down</span>
                 <span class="font-semibold">{{ topicDislikeCount }}</span>
@@ -132,7 +132,7 @@
             </div>
 
             <!-- Akční tlačítka -->
-            <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <button
                 v-if="permissions.edit"
                 @click="editTopic"
@@ -172,17 +172,17 @@
         </div>
 
         <!-- Odpovědi -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           <div class="p-6 lg:p-8">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-              <h2 class="text-2xl lg:text-3xl font-bold text-gray-900">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+              <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
                 Odpovědi
-                <span class="text-lg font-normal text-gray-500">({{ replies.length }})</span>
+                <span class="text-lg font-normal text-gray-500 dark:text-gray-400">({{ replies.length }})</span>
               </h2>
               <button
                 v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
                 @click="showReplyForm = !showReplyForm"
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
                 <span class="material-icons-outlined text-[20px]">reply</span>
                 {{ showReplyForm ? "Zrušit" : "Přidat odpověď" }}
@@ -191,24 +191,24 @@
 
             <!-- Formulář pro top-level odpověď -->
             <Transition name="fade">
-              <div v-if="showReplyForm && !replyingToReply && !topic.is_locked && topic.status !== 'archived'" class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div v-if="showReplyForm && !replyingToReply && !topic.is_locked && topic.status !== 'archived'" class="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                 <textarea
                   v-model="replyForm.content"
                   rows="5"
-                  class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+                  class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all duration-200 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="Napište odpověď..."
                 ></textarea>
                 <div class="flex justify-end gap-3 mt-3">
                   <button
                     @click="showReplyForm = false; replyingToReply = null"
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                    class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-medium"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="submitReply"
                     :disabled="!replyForm.content.trim()"
-                    class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                    class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                   >
                     Odeslat
                   </button>
@@ -223,43 +223,43 @@
                 :key="reply.id"
                 class="rounded-lg p-5 transition-all duration-200"
                 :class="{
-                  'bg-gradient-to-br from-green-50 to-green-50/50 border-2 border-green-200 shadow-sm': reply.is_best_answer,
-                  'bg-gray-50 border border-gray-200 hover:border-gray-300': !reply.is_best_answer,
+                  'bg-gradient-to-br from-green-50 to-green-50/50 dark:from-green-900/20 dark:to-green-800/20 border-2 border-green-200 dark:border-green-700 shadow-sm': reply.is_best_answer,
+                  'bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600': !reply.is_best_answer,
                 }"
                 :style="getReplyDepth(reply, replies) > 0 ? { marginLeft: `${getReplyDepth(reply, replies) * 2}rem`, borderLeft: '4px solid rgb(96, 165, 250)' } : {}"
               >
                 <!-- Indikace, že jde o odpověď na odpověď -->
-                <div v-if="getReplyDepth(reply, replies) > 0" class="flex items-center gap-2 mb-3 text-xs text-blue-600">
+                <div v-if="getReplyDepth(reply, replies) > 0" class="flex items-center gap-2 mb-3 text-xs text-blue-600 dark:text-blue-400">
                   <span class="material-icons-outlined text-sm">subdirectory_arrow_right</span>
                   <span class="font-medium">Odpověď na odpověď (úroveň {{ getReplyDepth(reply, replies) }})</span>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                   <div class="flex items-center gap-3 flex-wrap">
                     <div class="flex items-center gap-2">
-                      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center text-white font-semibold text-sm">
                         {{ reply.author_name.charAt(0).toUpperCase() }}
                       </div>
-                      <span class="font-semibold text-gray-900">
+                      <span class="font-semibold text-gray-900 dark:text-white">
                         {{ reply.author_name }}
                       </span>
                     </div>
                     <span
                       v-if="reply.is_best_answer"
-                      class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-green-100 text-green-700 rounded-full border border-green-200"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full border border-green-200 dark:border-green-700"
                     >
                       <span class="material-icons-outlined text-[14px]">star</span>
                       Nejlepší odpověď
                     </span>
                   </div>
                   <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-500">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">
                       {{ formatDate(reply.created_at) }}
                     </span>
                     <div class="flex gap-1">
                       <button
                         v-if="permissions.edit"
                         @click="editReply(reply)"
-                        class="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                        class="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                         title="Upravit"
                       >
                         <span class="material-icons-outlined text-[18px]">edit</span>
@@ -267,7 +267,7 @@
                       <button
                         v-if="permissions.edit && !reply.is_best_answer"
                         @click="setBestAnswer(reply.id)"
-                        class="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-200"
+                        class="p-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
                         title="Označit jako nejlepší odpověď"
                       >
                         <span class="material-icons-outlined text-[18px]">star</span>
@@ -275,7 +275,7 @@
                       <button
                         v-if="isAdmin"
                         @click="deleteReply(reply)"
-                        class="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+                        class="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                         title="Smazat"
                       >
                         <span class="material-icons-outlined text-[18px]">delete</span>
@@ -288,32 +288,32 @@
                     <textarea
                       v-model="editingReply.content"
                       rows="5"
-                      class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+                      class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all duration-200 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     ></textarea>
                     <div class="flex justify-end gap-3 mt-3">
                       <button
                         @click="cancelEditReply"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-medium"
                       >
                         Zrušit
                       </button>
                       <button
                         @click="saveEditReply"
-                        class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                        class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 text-white rounded-lg hover:from-blue-700 dark:hover:from-blue-800 hover:to-blue-600 dark:hover:to-blue-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                       >
                         Uložit
                       </button>
                     </div>
                   </div>
                 </template>
-                <div v-else class="prose max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
+                <div v-else class="prose max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                   {{ reply.content }}
                 </div>
-                <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 justify-between">
+                <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 justify-between">
                   <button
                     v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
                     @click="replyToReply(reply)"
-                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                   >
                     <span class="material-icons-outlined text-[16px]">reply</span>
                     <span class="font-medium">Odpovědět</span>
@@ -323,8 +323,8 @@
                     :disabled="loading"
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium"
                     :class="replyUserLikes.includes(reply.id)
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/40'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
                   >
                     <span class="material-icons-outlined text-[16px]">thumb_up</span>
                     <span class="font-semibold">{{ reply.like_count || 0 }}</span>
@@ -333,16 +333,16 @@
 
                 <!-- Formulář pro odpověď na tuto reply -->
                 <Transition name="fade">
-                  <div v-if="replyingToReply?.id === reply.id && !topic.is_locked && topic.status !== 'archived'" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div v-if="replyingToReply" class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div v-if="replyingToReply?.id === reply.id && !topic.is_locked && topic.status !== 'archived'" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div v-if="replyingToReply" class="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                          <span class="material-icons-outlined text-blue-600 text-sm">subdirectory_arrow_right</span>
-                          <span class="text-sm font-medium text-blue-700">Odpověď na: {{ replyingToReply.author_name }}</span>
+                          <span class="material-icons-outlined text-blue-600 dark:text-blue-400 text-sm">subdirectory_arrow_right</span>
+                          <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Odpověď na: {{ replyingToReply.author_name }}</span>
                         </div>
                         <button
                           @click="replyingToReply = null; showReplyForm = false"
-                          class="text-blue-600 hover:text-blue-800"
+                          class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
                         >
                           <span class="material-icons-outlined text-sm">close</span>
                         </button>
@@ -351,20 +351,20 @@
                     <textarea
                       v-model="replyForm.content"
                       rows="5"
-                      class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+                      class="w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all duration-200 resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="Napište odpověď..."
                     ></textarea>
                     <div class="flex justify-end gap-3 mt-3">
                       <button
                         @click="showReplyForm = false; replyingToReply = null"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                        class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 font-medium"
                       >
                         Zrušit
                       </button>
                       <button
                         @click="submitReply"
                         :disabled="!replyForm.content.trim()"
-                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                        class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                       >
                         Odeslat
                       </button>
@@ -375,16 +375,16 @@
             </div>
 
             <div v-else class="text-center py-12">
-              <span class="material-icons-outlined text-5xl text-gray-300 mb-3 block">forum</span>
-              <p class="text-gray-500 text-lg">Zatím nejsou žádné odpovědi</p>
+              <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">forum</span>
+              <p class="text-gray-500 dark:text-gray-400 text-lg">Zatím nejsou žádné odpovědi</p>
             </div>
           </div>
         </div>
 
         <!-- Historie zhlédnutí -->
-        <div class="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
           <div class="p-6 lg:p-8">
-            <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+            <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
               Historie zhlédnutí
             </h2>
 
@@ -392,23 +392,23 @@
               <div
                 v-for="view in views"
                 :key="view.id"
-                class="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
+                class="flex justify-between items-center py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center">
                     <span class="material-icons-outlined text-white text-[16px]">visibility</span>
                   </div>
-                  <span class="font-medium text-gray-900">{{ view.viewed_by_name }}</span>
+                  <span class="font-medium text-gray-900 dark:text-white">{{ view.viewed_by_name }}</span>
                 </div>
-                <span class="text-sm text-gray-600 font-medium">
+                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">
                   {{ formatDate(view.viewed_at) }}
                 </span>
               </div>
             </div>
 
             <div v-else class="text-center py-12">
-              <span class="material-icons-outlined text-5xl text-gray-300 mb-3 block">visibility_off</span>
-              <p class="text-gray-500 text-lg">Zatím žádné zhlédnutí</p>
+              <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">visibility_off</span>
+              <p class="text-gray-500 dark:text-gray-400 text-lg">Zatím žádné zhlédnutí</p>
             </div>
           </div>
         </div>
@@ -416,10 +416,10 @@
 
       <!-- Error - zobrazíme pouze pokud načítání je dokončeno, téma neexistuje a došlo k chybě -->
       <div v-else-if="!topicLoading && !topic && topicNotFound" class="text-center py-16">
-        <div class="bg-white rounded-xl border border-red-200 p-8 max-w-md mx-auto">
-          <span class="material-icons-outlined text-6xl text-red-500 mb-4 block">error_outline</span>
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Téma nebylo nalezeno</h2>
-          <p class="text-gray-500">Požadované téma neexistuje nebo bylo smazáno.</p>
+        <div class="bg-white dark:bg-gray-900 rounded-xl border border-red-200 dark:border-red-800 p-8 max-w-md mx-auto">
+          <span class="material-icons-outlined text-6xl text-red-500 dark:text-red-400 mb-4 block">error_outline</span>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Téma nebylo nalezeno</h2>
+          <p class="text-gray-500 dark:text-gray-400">Požadované téma neexistuje nebo bylo smazáno.</p>
         </div>
       </div>
 
@@ -438,13 +438,13 @@
           <Transition name="sidebar">
             <div
               v-if="showHistorySidebar"
-              class="fixed right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto z-50"
+              class="fixed right-0 top-0 h-full w-full max-w-2xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto z-50 border-l border-gray-200 dark:border-gray-800"
             >
-              <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-                <h2 class="text-2xl font-bold text-gray-900">Historie úprav</h2>
+              <div class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center z-10">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Historie úprav</h2>
                 <button
                   @click="showHistorySidebar = false"
-                  class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                  class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                 >
                   <span class="material-icons-outlined text-[24px]">close</span>
                 </button>
@@ -455,18 +455,18 @@
                   <div
                     v-for="history in editHistory"
                     :key="history.id"
-                    class="border-l-4 border-indigo-500 pl-5 py-4 bg-gradient-to-r from-indigo-50/50 to-gray-50 rounded-r-lg shadow-sm"
+                    class="border-l-4 border-indigo-500 dark:border-indigo-400 pl-5 py-4 bg-gradient-to-r from-indigo-50/50 to-gray-50 dark:from-indigo-900/20 dark:to-gray-800 rounded-r-lg shadow-sm"
                   >
                     <div class="flex justify-between items-start mb-4">
                       <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center">
                           <span class="material-icons-outlined text-white text-[16px]">edit</span>
                         </div>
                         <div>
-                          <span class="font-semibold text-gray-900 block">
+                          <span class="font-semibold text-gray-900 dark:text-white block">
                             {{ history.edited_by_name }}
                           </span>
-                          <span class="text-sm text-gray-500">
+                          <span class="text-sm text-gray-500 dark:text-gray-400">
                             {{ formatDate(history.created_at) }}
                           </span>
                         </div>
@@ -474,39 +474,39 @@
                     </div>
 
                     <div class="space-y-3 text-sm">
-                      <div v-if="history.old_title && history.new_title" class="flex flex-wrap items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-                        <span class="font-semibold text-gray-700">Název:</span>
-                        <span class="px-2 py-1 bg-red-50 text-red-700 rounded line-through text-xs font-medium">{{ history.old_title }}</span>
-                        <span class="text-gray-400">→</span>
-                        <span class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">{{ history.new_title }}</span>
+                      <div v-if="history.old_title && history.new_title" class="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <span class="font-semibold text-gray-700 dark:text-gray-300">Název:</span>
+                        <span class="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded line-through text-xs font-medium">{{ history.old_title }}</span>
+                        <span class="text-gray-400 dark:text-gray-500">→</span>
+                        <span class="px-2 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">{{ history.new_title }}</span>
                       </div>
 
-                      <div v-if="history.old_category && history.new_category" class="flex flex-wrap items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-                        <span class="font-semibold text-gray-700">Kategorie:</span>
-                        <span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">{{ getCategoryName(history.old_category) }}</span>
-                        <span class="text-gray-400">→</span>
-                        <span class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">{{ getCategoryName(history.new_category) }}</span>
+                      <div v-if="history.old_category && history.new_category" class="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <span class="font-semibold text-gray-700 dark:text-gray-300">Kategorie:</span>
+                        <span class="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs font-medium">{{ getCategoryName(history.old_category) }}</span>
+                        <span class="text-gray-400 dark:text-gray-500">→</span>
+                        <span class="px-2 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">{{ getCategoryName(history.new_category) }}</span>
                       </div>
 
-                      <div v-if="history.old_tag && history.new_tag" class="flex flex-wrap items-center gap-2 p-3 bg-white rounded-lg border border-gray-200">
-                        <span class="font-semibold text-gray-700">Tag:</span>
-                        <span class="px-2 py-1 bg-red-50 text-red-700 rounded text-xs font-medium">{{ getTagName(history.old_tag) }}</span>
-                        <span class="text-gray-400">→</span>
-                        <span class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-medium">{{ getTagName(history.new_tag) }}</span>
+                      <div v-if="history.old_tag && history.new_tag" class="flex flex-wrap items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <span class="font-semibold text-gray-700 dark:text-gray-300">Tag:</span>
+                        <span class="px-2 py-1 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs font-medium">{{ getTagName(history.old_tag) }}</span>
+                        <span class="text-gray-400 dark:text-gray-500">→</span>
+                        <span class="px-2 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">{{ getTagName(history.new_tag) }}</span>
                       </div>
 
                       <div v-if="history.old_content && history.new_content" class="mt-3">
-                        <span class="font-semibold text-gray-700 block mb-2">Obsah:</span>
-                        <div class="bg-white p-4 rounded-lg border border-gray-200 space-y-3">
+                        <span class="font-semibold text-gray-700 dark:text-gray-300 block mb-2">Obsah:</span>
+                        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
                           <div>
-                            <span class="text-xs text-red-700 font-semibold mb-2 block">Původní:</span>
-                            <p class="text-gray-700 text-sm mt-2 whitespace-pre-wrap break-words p-3 bg-red-50/50 rounded border border-red-100">
+                            <span class="text-xs text-red-700 dark:text-red-400 font-semibold mb-2 block">Původní:</span>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm mt-2 whitespace-pre-wrap break-words p-3 bg-red-50/50 dark:bg-red-900/20 rounded border border-red-100 dark:border-red-800">
                               {{ history.old_content }}
                             </p>
                           </div>
                           <div>
-                            <span class="text-xs text-green-700 font-semibold mb-2 block">Nový:</span>
-                            <p class="text-gray-700 text-sm mt-2 whitespace-pre-wrap break-words p-3 bg-green-50/50 rounded border border-green-100">
+                            <span class="text-xs text-green-700 dark:text-green-400 font-semibold mb-2 block">Nový:</span>
+                            <p class="text-gray-700 dark:text-gray-300 text-sm mt-2 whitespace-pre-wrap break-words p-3 bg-green-50/50 dark:bg-green-900/20 rounded border border-green-100 dark:border-green-800">
                               {{ history.new_content }}
                             </p>
                           </div>
@@ -517,8 +517,8 @@
                 </div>
 
                 <div v-else class="text-center py-12">
-                  <span class="material-icons-outlined text-5xl text-gray-300 mb-3 block">history</span>
-                  <p class="text-gray-500 text-lg">Žádná historie úprav</p>
+                  <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">history</span>
+                  <p class="text-gray-500 dark:text-gray-400 text-lg">Žádná historie úprav</p>
                 </div>
               </div>
             </div>
@@ -535,12 +535,12 @@
           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           @click.self="closeEditModal"
         >
-          <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
-              <h2 class="text-2xl font-bold text-gray-900">Upravit téma</h2>
+          <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-800">
+            <div class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center z-10">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Upravit téma</h2>
               <button
                 @click="closeEditModal"
-                class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <span class="material-icons-outlined text-[24px]">close</span>
               </button>
@@ -548,7 +548,7 @@
 
             <form @submit.prevent="saveEditTopic" class="p-6 space-y-5">
               <div>
-                <label class="block text-gray-700 text-sm font-semibold mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                   Název tématu
                 </label>
                 <input
@@ -556,13 +556,13 @@
                   type="text"
                   required
                   maxlength="500"
-                  class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all duration-200 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-gray-700 text-sm font-semibold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                     Kategorie
                   </label>
                   <SearchableSelect
@@ -572,12 +572,12 @@
                     :required="true"
                     :can-create="isAdmin"
                     :on-create="handleCreateCategory"
-                    input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                    input-class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-gray-700 text-sm font-semibold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                     Tagy
                   </label>
                   <MultiTagSelect
@@ -589,34 +589,34 @@
                     :on-create="handleCreateTag"
                     :get-tag-name="getTagName"
                     :get-tag-style="getTagStyle"
-                    input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                    input-class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label class="block text-gray-700 text-sm font-semibold mb-2">
+                <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                   Obsah
                 </label>
                 <textarea
                   v-model="editForm.content"
                   required
                   rows="10"
-                  class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 resize-none"
+                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all duration-200 resize-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                 ></textarea>
               </div>
 
-              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   type="button"
                   @click="closeEditModal"
-                  class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                  class="px-5 py-2.5 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 font-medium"
                 >
                   Zrušit
                 </button>
                 <button
                   type="submit"
-                  class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-lg hover:from-indigo-700 hover:to-indigo-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
+                  class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
                 >
                   Uložit
                 </button>
@@ -653,23 +653,23 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200">
-                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
+                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                   Smazat téma
                 </DialogTitle>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
                   Opravdu chcete smazat toto téma? Tato akce je nevratná a smaže také všechny odpovědi k tomuto tématu.
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
                     @click="showDeleteTopicModal = false"
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                    class="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 font-medium"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="confirmDeleteTopic"
-                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 dark:from-red-700 dark:to-red-600 text-white rounded-lg hover:from-red-700 dark:hover:from-red-800 hover:to-red-600 dark:hover:to-red-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     Smazat
                   </button>
@@ -707,23 +707,23 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200">
-                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
+                <DialogTitle as="h2" class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
                   Smazat odpověď
                 </DialogTitle>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
                   Opravdu chcete smazat tuto odpověď? Tato akce je nevratná a smaže také všechny odpovědi k této odpovědi.
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
                     @click="showDeleteReplyModal = false; replyToDelete = null"
-                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                    class="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors duration-200 font-medium"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="confirmDeleteReply"
-                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
+                    class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 dark:from-red-700 dark:to-red-600 text-white rounded-lg hover:from-red-700 dark:hover:from-red-800 hover:to-red-600 dark:hover:to-red-700 transition-all duration-200 font-medium shadow-sm hover:shadow-md"
                   >
                     Smazat
                   </button>

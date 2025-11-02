@@ -4,7 +4,7 @@
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Správa uživatelů</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Správa uživatelů</h1>
       <button
         v-if="permissions.create"
         @click="openCreateModal"
@@ -25,61 +25,61 @@
     <!-- Error state -->
     <div
       v-else-if="error"
-      class="bg-red-50 text-red-600 p-4 rounded-lg text-center"
+      class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg text-center border border-red-200 dark:border-red-800"
     >
       {{ error }}
     </div>
 
     <!-- Users table -->
-    <div v-else class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div v-else class="bg-white dark:bg-gray-900 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-800">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Jméno
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Email
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Role
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Poslední přihlášení
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Vytvořeno
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Status
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50">
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div
-                    class="w-8 h-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center mr-3"
+                    class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center mr-3"
                   >
                     {{
                       user.name
@@ -87,21 +87,21 @@
                         : user.email.charAt(0).toUpperCase()
                     }}
                   </div>
-                  <div class="text-sm font-medium text-gray-900">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ user.name || "—" }}
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">{{ user.email }}</div>
+                <div class="text-sm text-gray-900 dark:text-white">{{ user.email }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                   <span
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                     :class="{
-                      'bg-purple-100 text-purple-800': user.is_admin,
-                      'bg-blue-100 text-blue-800': !user.is_admin,
+                      'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300': user.is_admin,
+                      'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300': !user.is_admin,
                     }"
                   >
                     {{ user.is_admin ? "Admin" : "Uživatel" }}
@@ -109,9 +109,9 @@
                   <span
                     class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                     :class="{
-                      'bg-red-100 text-red-800': user.role === 'admin',
-                      'bg-blue-100 text-blue-800': user.role === 'editor',
-                      'bg-gray-100 text-gray-800': user.role === 'viewer',
+                      'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300': user.role === 'admin',
+                      'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300': user.role === 'editor',
+                      'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300': user.role === 'viewer',
                     }"
                   >
                     {{ getRoleName(user.role) }}
@@ -122,7 +122,7 @@
                   >
                     <button
                       @click="editUser(user)"
-                      class="text-blue-600 hover:text-blue-800"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                       title="Upravit"
                     >
                       <span
@@ -132,7 +132,7 @@
                     </button>
                     <button
                       @click="resetPassword(user)"
-                      class="text-orange-600 hover:text-orange-800"
+                      class="text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300 transition-colors"
                       title="Resetovat heslo"
                     >
                       <span
@@ -143,18 +143,18 @@
                   </div>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{ formatDate(user.last_sign_in_at) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{ formatDate(user.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   :class="{
-                    'bg-green-100 text-green-800': user.confirmed_at,
-                    'bg-yellow-100 text-yellow-800': !user.confirmed_at,
+                    'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300': user.confirmed_at,
+                    'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300': !user.confirmed_at,
                   }"
                 >
                   {{ user.confirmed_at ? "Aktivní" : "Nepotvrzený" }}
@@ -168,15 +168,15 @@
       <!-- Empty state -->
       <div
         v-if="users.length === 0"
-        class="text-center py-12 px-4 bg-white rounded-lg"
+        class="text-center py-12 px-4 bg-white dark:bg-gray-900 rounded-lg"
       >
-        <span class="material-icons-outlined text-4xl text-gray-400 mb-3"
+        <span class="material-icons-outlined text-4xl text-gray-400 dark:text-gray-600 mb-3"
           >person_off</span
         >
-        <h3 class="text-lg font-medium text-gray-900 mb-2">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Žádní registrovaní uživatelé
         </h3>
-        <p class="text-gray-500">
+        <p class="text-gray-500 dark:text-gray-400">
           V systému zatím nejsou žádní registrovaní uživatelé.
         </p>
       </div>
@@ -212,22 +212,22 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <div class="absolute right-6 top-6">
                   <button
                     @click="showCreateModal = false"
-                    class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                    class="rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   >
                     <span class="material-icons-outlined">close</span>
                   </button>
                 </div>
 
                 <div class="mb-8">
-                  <DialogTitle as="h3" class="text-2xl font-bold">
+                  <DialogTitle as="h3" class="text-2xl font-bold text-gray-900 dark:text-white">
                     Vytvořit nového uživatele
                   </DialogTitle>
-                  <p class="mt-2 text-gray-500">
+                  <p class="mt-2 text-gray-500 dark:text-gray-400">
                     Vytvořte nový účet a pošlete uživateli potvrzovací e-mail
                   </p>
                 </div>
@@ -235,7 +235,7 @@
                 <form @submit.prevent="handleCreateUser" class="space-y-6">
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ml-1"
                     >
                       Jméno (volitelné)
                     </label>
@@ -244,7 +244,7 @@
                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                       >
                         <span
-                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          class="text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors duration-200"
                         >
                           <span class="material-icons-outlined text-[20px]"
                             >person</span
@@ -254,7 +254,7 @@
                       <input
                         v-model="newUser.name"
                         type="text"
-                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        class="pl-10 block w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Zadejte jméno uživatele"
                       />
                     </div>
@@ -262,16 +262,16 @@
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ml-1"
                     >
-                      Email <span class="text-red-500">*</span>
+                      Email <span class="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div class="relative group">
                       <div
                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                       >
                         <span
-                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          class="text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors duration-200"
                         >
                           <span class="material-icons-outlined text-[20px]"
                             >mail</span
@@ -282,7 +282,7 @@
                         v-model="newUser.email"
                         type="email"
                         required
-                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        class="pl-10 block w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="email@priklad.cz"
                       />
                     </div>
@@ -290,16 +290,16 @@
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ml-1"
                     >
-                      Heslo <span class="text-red-500">*</span>
+                      Heslo <span class="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div class="relative group">
                       <div
                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                       >
                         <span
-                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          class="text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors duration-200"
                         >
                           <span class="material-icons-outlined text-[20px]"
                             >lock</span
@@ -311,7 +311,7 @@
                         type="password"
                         required
                         minlength="6"
-                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300"
+                        class="pl-10 block w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder="Minimálně 6 znaků"
                       />
                     </div>
@@ -319,16 +319,16 @@
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 mb-2 ml-1"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ml-1"
                     >
-                      Role <span class="text-red-500">*</span>
+                      Role <span class="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div class="relative group">
                       <div
                         class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                       >
                         <span
-                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          class="text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors duration-200"
                         >
                           <span class="material-icons-outlined text-[20px]"
                             >badge</span
@@ -338,7 +338,7 @@
                       <select
                         v-model="newUser.role"
                         required
-                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white shadow-sm focus:border-violet-500 focus:ring focus:ring-violet-200 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 appearance-none cursor-pointer"
+                        class="pl-10 block w-full rounded-xl border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900 focus:ring-opacity-50 transition-all duration-200 hover:border-violet-300 dark:hover:border-violet-500 appearance-none cursor-pointer text-gray-900 dark:text-white"
                       >
                         <option value="viewer" class="py-2">Prohlížeč</option>
                         <option value="editor" class="py-2">Editor</option>
@@ -348,7 +348,7 @@
                         class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"
                       >
                         <span
-                          class="text-gray-400 group-hover:text-violet-500 transition-colors duration-200"
+                          class="text-gray-400 dark:text-gray-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 transition-colors duration-200"
                         >
                           <span class="material-icons-outlined text-[20px]"
                             >expand_more</span
@@ -358,7 +358,7 @@
                     </div>
                   </div>
 
-                  <div v-if="createError" class="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+                  <div v-if="createError" class="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-3 rounded-md text-sm border border-red-200 dark:border-red-800">
                     {{ createError }}
                   </div>
 
@@ -366,7 +366,7 @@
                     <button
                       type="button"
                       @click="closeCreateModal"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all duration-200"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 dark:focus:ring-violet-400 transition-all duration-200"
                     >
                       Zrušit
                     </button>
@@ -424,22 +424,22 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <div class="absolute right-6 top-6">
                   <button
                     @click="showEditModal = false"
-                    class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                    class="rounded-full p-2 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   >
                     <span class="material-icons-outlined">close</span>
                   </button>
                 </div>
 
                 <div class="mb-8">
-                  <DialogTitle as="h3" class="text-2xl font-bold">
+                  <DialogTitle as="h3" class="text-2xl font-bold text-gray-900 dark:text-white">
                     Upravit uživatele
                   </DialogTitle>
-                  <p class="mt-2 text-gray-500">
+                  <p class="mt-2 text-gray-500 dark:text-gray-400">
                     Upravte roli existujícího uživatele
                   </p>
                 </div>

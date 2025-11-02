@@ -4,11 +4,11 @@
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Správa referencí</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Správa referencí</h1>
       <button
         v-if="permissions.create"
         @click="showAddModal = true"
-        class="bg-violet-600 text-white px-4 py-2 rounded-md hover:bg-violet-700"
+        class="bg-violet-600 dark:bg-violet-700 text-white px-4 py-2 rounded-md hover:bg-violet-700 dark:hover:bg-violet-800"
       >
         <span class="material-icons-outlined mr-2">add</span>
         Přidat referenci
@@ -20,12 +20,12 @@
       <div
         v-for="testimonial in sortedTestimonials"
         :key="testimonial.id"
-        class="bg-white p-6 rounded-lg shadow-md"
+        class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md border border-gray-100 dark:border-gray-800"
       >
         <div class="flex justify-between items-start mb-4">
           <div>
-            <h3 class="font-bold text-lg">{{ testimonial.author }}</h3>
-            <p v-if="testimonial.source" class="text-sm text-gray-600">
+            <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ testimonial.author }}</h3>
+            <p v-if="testimonial.source" class="text-sm text-gray-600 dark:text-gray-400">
               {{ testimonial.source }}
             </p>
           </div>
@@ -33,66 +33,66 @@
             <button
               v-if="permissions.edit"
               @click="editTestimonial(testimonial)"
-              class="p-1 text-blue-500 hover:text-blue-600"
+              class="p-1 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
             >
               <span class="material-icons-outlined">edit</span>
             </button>
             <button
               v-if="permissions.delete"
               @click="deleteTestimonial(testimonial.id)"
-              class="p-1 text-red-500 hover:text-red-600"
+              class="p-1 text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
             >
               <span class="material-icons-outlined">delete</span>
             </button>
           </div>
         </div>
-        <p class="text-gray-700">{{ testimonial.text }}</p>
+        <p class="text-gray-700 dark:text-gray-300">{{ testimonial.text }}</p>
       </div>
     </div>
 
     <!-- Modal pro přidání/úpravu reference -->
     <div
       v-if="showAddModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      class="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50"
     >
-      <div class="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4">
+      <div class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
           {{ editingTestimonial ? "Upravit" : "Přidat" }} referenci
         </h2>
 
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Autor
             </label>
             <input
               v-model="form.author"
               type="text"
               required
-              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
 
           <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Zdroj (volitelné)
             </label>
             <input
               v-model="form.source"
               type="text"
-              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
 
           <div>
-            <label class="block text-gray-700 text-sm font-bold mb-2">
+            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
               Text reference
             </label>
             <textarea
               v-model="form.text"
               required
               rows="4"
-              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
             ></textarea>
           </div>
 
@@ -100,13 +100,13 @@
             <button
               type="button"
               @click="closeModal"
-              class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+              class="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors"
             >
               Zrušit
             </button>
             <button
               type="submit"
-              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              class="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded hover:bg-green-700 dark:hover:bg-green-800 transition-colors"
             >
               {{ editingTestimonial ? "Uložit" : "Přidat" }}
             </button>

@@ -4,7 +4,7 @@
 
     <!-- Nadpis -->
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-bold text-gray-900">Objednávky vstupenek</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Objednávky vstupenek</h1>
     </div>
 
     <!-- Taby -->
@@ -14,15 +14,15 @@
       @change="(index) => (selectedTab = index)"
       class="w-full"
     >
-      <div class="border-b border-gray-200">
+      <div class="border-b border-gray-200 dark:border-gray-700">
         <TabList class="flex -mb-px space-x-8">
           <Tab v-slot="{ selected }">
             <button
               class="py-4 px-1 border-b-2 font-medium text-sm outline-none whitespace-nowrap"
               :class="[
                 selected
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                  ? 'border-red-500 dark:border-red-400 text-red-600 dark:text-red-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
               ]"
             >
               <div class="flex items-center space-x-2">
@@ -49,8 +49,8 @@
               class="py-4 px-1 border-b-2 font-medium text-sm outline-none whitespace-nowrap"
               :class="[
                 selected
-                  ? 'border-red-500 text-red-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                  ? 'border-red-500 dark:border-red-400 text-red-600 dark:text-red-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
               ]"
             >
               <div class="flex items-center space-x-2">
@@ -81,32 +81,32 @@
           <div class="space-y-6">
             <!-- Dashboard statistiky -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold text-gray-600">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400">
                   Celkový počet objednávek
                 </h3>
-                <p class="text-3xl font-bold mt-2">{{ orders?.length || 0 }}</p>
-                <div class="mt-2 text-sm text-gray-500 space-y-1">
+                <p class="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{{ orders?.length || 0 }}</p>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 space-y-1">
                   <div>Čeká na platbu: {{ pendingOrders }}</div>
                   <div>Zaplaceno: {{ completedOrders }}</div>
                   <div>Zrušeno: {{ cancelledOrders }}</div>
                 </div>
               </div>
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold text-gray-600">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400">
                   Celkový příjem
                 </h3>
-                <p class="text-3xl font-bold mt-2">{{ totalIncome }} Kč</p>
-                <div class="mt-2 text-sm text-gray-500">
+                <p class="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{{ totalIncome }} Kč</p>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   Průměrně {{ averageOrderValue }} Kč/objednávka
                 </div>
               </div>
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h3 class="text-lg font-semibold text-gray-600">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400">
                   Prodané vstupenky
                 </h3>
-                <p class="text-3xl font-bold mt-2">{{ totalTickets }}</p>
-                <div class="mt-2 text-sm text-gray-500">
+                <p class="text-3xl font-bold mt-2 text-gray-900 dark:text-white">{{ totalTickets }}</p>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                   Průměrně {{ averageTicketsPerOrder }} ks/objednávka
                 </div>
               </div>
@@ -115,24 +115,24 @@
             <!-- Grafy statistik -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <!-- Graf příjmů -->
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4">Příjmy z prodeje</h2>
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Příjmy z prodeje</h2>
                 <div class="h-[400px]">
                   <BarChart :data="incomeChartData" :options="chartOptions" />
                 </div>
               </div>
 
               <!-- Graf prodaných vstupenek -->
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4">Prodané vstupenky</h2>
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Prodané vstupenky</h2>
                 <div class="h-[400px]">
                   <LineChart :data="ticketsChartData" :options="chartOptions" />
                 </div>
               </div>
 
               <!-- Graf stavu objednávek -->
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4">Stav objednávek</h2>
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Stav objednávek</h2>
                 <div class="h-[400px]">
                   <DoughnutChart
                     :data="statusChartData"
@@ -142,8 +142,8 @@
               </div>
 
               <!-- Graf rozložení nákupů -->
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4">
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                   Rozložení nákupů během dne
                 </h2>
                 <div class="h-[400px]">
@@ -155,8 +155,8 @@
               </div>
 
               <!-- Graf nejprodávanějších koncertů -->
-              <div class="bg-white p-6 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4">Nejprodávanější koncerty</h2>
+              <div class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-100 dark:border-gray-800">
+                <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-white">Nejprodávanější koncerty</h2>
                 <div class="h-[400px]">
                   <BarChart
                     :data="concertsChartData"
@@ -173,13 +173,13 @@
           <div class="space-y-4">
             <!-- Filtry -->
             <div
-              class="bg-white p-4 rounded-lg border border-gray-200 space-y-4"
+              class="bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-4"
             >
               <div class="flex items-center justify-between">
-                <h3 class="text-lg font-medium">Filtry</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Filtry</h3>
                 <button
                   @click="resetFilters"
-                  class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                  class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -200,7 +200,7 @@
               </div>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-gray-700"
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
                     >Vyhledat</label
                   >
                   <div class="relative">
@@ -208,11 +208,11 @@
                       v-model="searchQuery"
                       type="text"
                       placeholder="Jméno, email nebo koncert..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                      class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5 text-gray-400 absolute right-3 top-2.5"
+                      class="h-5 w-5 text-gray-400 dark:text-gray-500 absolute right-3 top-2.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -227,12 +227,12 @@
                   </div>
                 </div>
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-gray-700"
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
                     >Status platby</label
                   >
                   <select
                     v-model="statusFilter"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="">Všechny statusy</option>
                     <option value="pending">Čeká na platbu</option>
@@ -241,12 +241,12 @@
                   </select>
                 </div>
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-gray-700"
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
                     >Řadit podle</label
                   >
                   <select
                     v-model="sortBy"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   >
                     <option value="date-desc">Nejnovější</option>
                     <option value="date-asc">Nejstarší</option>
@@ -261,7 +261,7 @@
             <div class="flex justify-between items-center mb-4">
               <div class="flex items-center space-x-4">
                 <div class="space-y-1">
-                  <label class="text-sm font-medium text-gray-700">
+                  <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Filtr podle koncertu/VS
                   </label>
                   <div class="flex items-center space-x-2">
@@ -269,11 +269,11 @@
                       v-model="concertFilter"
                       type="text"
                       placeholder="Název koncertu nebo VS..."
-                      class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                     />
                     <button
                       @click="clearConcertFilter"
-                      class="text-gray-400 hover:text-gray-600"
+                      class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                       title="Vymazat filtr"
                     >
                       <svg
@@ -296,7 +296,7 @@
               </div>
               <button
                 @click="openPrintModal"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -318,89 +318,89 @@
 
             <!-- Seznam objednávek -->
             <div
-              class="bg-white rounded-lg border border-gray-200 overflow-hidden h-[60vh]"
+              class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden h-[60vh]"
             >
               <div class="overflow-x-auto h-full relative">
-                <table class="min-w-full divide-y divide-gray-200">
-                  <thead class="bg-gray-50">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Datum
                       </th>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Zákazník
                       </th>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Koncert
                       </th>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Vstupenky
                       </th>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Celkem
                       </th>
                       <th
-                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Status
                       </th>
                       <th
-                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                       >
                         Akce
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="bg-white divide-y divide-gray-200">
+                  <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                     <tr
                       v-for="order in filteredOrders"
                       :key="order.id"
                       @click="openOrderDetail(order)"
-                      class="hover:bg-gray-50 cursor-pointer"
+                      class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                     >
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400"
                       >
-                        <div class="text-sm font-medium text-gray-900">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
                           {{ formatDate(order.created_at) }}
                         </div>
-                        <div class="text-sm text-gray-500">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
                           {{ formatTime(order.created_at) }}
                         </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
                           {{ order.customer_name }}
                         </div>
-                        <div class="text-sm text-gray-500">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
                           {{ order.customer_email }}
                         </div>
                       </td>
                       <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">
+                        <div class="text-sm text-gray-900 dark:text-white">
                           {{ getConcertTitle(order.concert_id) }}
                         </div>
-                        <div class="text-sm text-gray-500">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
                           VS: {{ order.variable_symbol }}
                         </div>
                       </td>
                       <td
-                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-600"
+                        class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400"
                       >
                         {{ order.ticket_count }} ks
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
                           {{ order.total_price }} Kč
                         </div>
                       </td>
@@ -408,11 +408,11 @@
                         <span
                           :class="{
                             'px-2 py-1 text-xs font-medium rounded-md': true,
-                            'bg-yellow-50 text-yellow-700 border border-yellow-200':
+                            'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-700':
                               order.payment_status === 'pending',
-                            'bg-green-50 text-green-700 border border-green-200':
+                            'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700':
                               order.payment_status === 'completed',
-                            'bg-red-50 text-red-700 border border-red-200':
+                            'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700':
                               order.payment_status === 'cancelled',
                           }"
                         >
@@ -428,11 +428,11 @@
                           class="relative inline-block text-left"
                         >
                           <MenuButton
-                            class="p-1 rounded-full hover:bg-gray-100"
+                            class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              class="h-5 w-5 text-gray-400"
+                              class="h-5 w-5 text-gray-400 dark:text-gray-500"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -454,20 +454,20 @@
                             leave-to-class="transform opacity-0 scale-95"
                           >
                             <MenuItems
-                              class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50"
+                              class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black dark:ring-gray-700 ring-opacity-5 dark:ring-opacity-20 focus:outline-none z-50 border border-gray-200 dark:border-gray-800"
                             >
                               <div class="py-1">
                                 <MenuItem v-slot="{ active }">
                                   <button
                                     @click.stop="openOrderDetail(order)"
                                     :class="[
-                                      active ? 'bg-gray-100' : '',
-                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300',
                                     ]"
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      class="h-4 w-4 mr-2 text-gray-500"
+                                      class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -498,13 +498,13 @@
                                   <button
                                     @click.stop="editOrder(order)"
                                     :class="[
-                                      active ? 'bg-gray-100' : '',
-                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300',
                                     ]"
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      class="h-4 w-4 mr-2 text-gray-500"
+                                      class="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -531,13 +531,13 @@
                                       updateStatus(order.id, 'completed')
                                     "
                                     :class="[
-                                      active ? 'bg-gray-100' : '',
-                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300',
                                     ]"
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      class="h-4 w-4 mr-2 text-green-500"
+                                      class="h-4 w-4 mr-2 text-green-500 dark:text-green-400"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -564,13 +564,13 @@
                                       updateStatus(order.id, 'cancelled')
                                     "
                                     :class="[
-                                      active ? 'bg-gray-100' : '',
-                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300',
                                     ]"
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      class="h-4 w-4 mr-2 text-red-500"
+                                      class="h-4 w-4 mr-2 text-red-500 dark:text-red-400"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -592,13 +592,13 @@
                                   <button
                                     @click.stop="confirmDeleteOrder(order)"
                                     :class="[
-                                      active ? 'bg-gray-100' : '',
-                                      'flex w-full items-center px-4 py-2 text-sm text-red-700',
+                                      active ? 'bg-gray-100 dark:bg-gray-800' : '',
+                                      'flex w-full items-center px-4 py-2 text-sm text-red-700 dark:text-red-400',
                                     ]"
                                   >
                                     <svg
                                       xmlns="http://www.w3.org/2000/svg"
-                                      class="h-4 w-4 mr-2 text-red-500"
+                                      class="h-4 w-4 mr-2 text-red-500 dark:text-red-400"
                                       fill="none"
                                       viewBox="0 0 24 24"
                                       stroke="currentColor"
@@ -624,7 +624,7 @@
                       <td colspan="7" class="px-6 py-10 text-center">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          class="h-10 w-10 text-gray-400 mx-auto mb-3"
+                          class="h-10 w-10 text-gray-400 dark:text-gray-500 mx-auto mb-3"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -636,10 +636,10 @@
                             d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        <p class="text-gray-500 text-base">
+                        <p class="text-gray-500 dark:text-gray-400 text-base">
                           Žádné objednávky k zobrazení
                         </p>
-                        <p class="text-gray-400 text-sm mt-1">
+                        <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
                           Zkuste upravit filtry nebo počkejte na nové objednávky
                         </p>
                       </td>
@@ -696,24 +696,24 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-800"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-2xl font-bold mb-4 text-gray-900"
+                  class="text-2xl font-bold mb-4 text-gray-900 dark:text-white"
                 >
                   Smazat objednávku
                 </DialogTitle>
                 <div class="mt-2">
-                  <p class="text-gray-600">
+                  <p class="text-gray-600 dark:text-gray-400">
                     Opravdu chcete smazat tuto objednávku? Tato akce je
                     nevratná.
                   </p>
-                  <div class="mt-4 bg-yellow-50 p-4 rounded-lg">
-                    <p class="text-yellow-800 font-medium">
+                  <div class="mt-4 bg-yellow-50 dark:bg-yellow-900/30 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                    <p class="text-yellow-800 dark:text-yellow-300 font-medium">
                       Detaily objednávky:
                     </p>
-                    <ul class="mt-2 space-y-1 text-yellow-700">
+                    <ul class="mt-2 space-y-1 text-yellow-700 dark:text-yellow-300">
                       <li>Zákazník: {{ orderToDelete?.customer_name }}</li>
                       <li>Email: {{ orderToDelete?.customer_email }}</li>
                       <li>
@@ -728,7 +728,7 @@
                 <div class="mt-6 flex justify-end gap-4">
                   <button
                     @click="closeDeleteModal"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
@@ -767,11 +767,11 @@
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
             <DialogPanel
-              class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+              class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-800"
             >
               <DialogTitle
                 as="h3"
-                class="text-lg font-medium leading-6 text-gray-900"
+                class="text-lg font-medium leading-6 text-gray-900 dark:text-white"
               >
                 Nastavení tisku
               </DialogTitle>
@@ -779,7 +779,7 @@
               <div class="mt-4">
                 <div class="space-y-4">
                   <div>
-                    <label class="text-sm font-medium text-gray-700"
+                    <label class="text-sm font-medium text-gray-700 dark:text-gray-300"
                       >Vyberte status objednávek</label
                     >
                     <div class="mt-2 space-y-2">
@@ -787,27 +787,27 @@
                         <input
                           type="checkbox"
                           v-model="printSettings.pending"
-                          class="rounded border-gray-300"
+                          class="rounded border-gray-300 dark:border-gray-600"
                         />
-                        <span class="ml-2">Čekající</span>
+                        <span class="ml-2 text-gray-700 dark:text-gray-300">Čekající</span>
                       </label>
                       <br />
                       <label class="inline-flex items-center">
                         <input
                           type="checkbox"
                           v-model="printSettings.completed"
-                          class="rounded border-gray-300"
+                          class="rounded border-gray-300 dark:border-gray-600"
                         />
-                        <span class="ml-2">Zaplacené</span>
+                        <span class="ml-2 text-gray-700 dark:text-gray-300">Zaplacené</span>
                       </label>
                       <br />
                       <label class="inline-flex items-center">
                         <input
                           type="checkbox"
                           v-model="printSettings.cancelled"
-                          class="rounded border-gray-300"
+                          class="rounded border-gray-300 dark:border-gray-600"
                         />
-                        <span class="ml-2">Zrušené</span>
+                        <span class="ml-2 text-gray-700 dark:text-gray-300">Zrušené</span>
                       </label>
                     </div>
                   </div>
@@ -817,7 +817,7 @@
               <div class="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
-                  class="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  class="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
                   @click="closePrintModal"
                 >
                   Zrušit

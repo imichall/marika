@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/30">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
     <div class="container mx-auto px-4 py-8 max-w-7xl">
       <!-- Breadcrumbs -->
       <AdminBreadcrumbs />
@@ -8,10 +8,10 @@
       <div class="mb-8">
         <div class="flex justify-between items-center mb-6">
           <div>
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
               Správa fóra
             </h1>
-            <p class="text-gray-600 text-sm">Spravujte diskuse, témata a odpovědi</p>
+            <p class="text-gray-600 dark:text-gray-400 text-sm">Spravujte diskuse, témata a odpovědi</p>
           </div>
           <div class="flex gap-3">
             <button
@@ -42,14 +42,14 @@
         </div>
 
         <!-- Filtry - elegantnější design -->
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
+        <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-800 mb-6">
           <div class="flex gap-4 items-center flex-wrap">
             <div class="flex-1 min-w-[200px]">
-              <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Kategorie</label>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Kategorie</label>
               <select
                 v-model="selectedCategory"
                 @change="applyFilters"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+                class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 hover:shadow-md text-gray-900 dark:text-white"
               >
                 <option value="">Všechny kategorie</option>
                 <option v-for="cat in categories" :key="cat.id" :value="cat.slug">
@@ -59,11 +59,11 @@
             </div>
 
             <div class="flex-1 min-w-[200px]">
-              <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Tag</label>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Tag</label>
               <select
                 v-model="selectedTag"
                 @change="applyFilters"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+                class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 hover:shadow-md text-gray-900 dark:text-white"
               >
                 <option value="">Všechny tagy</option>
                 <option v-for="tag in tags" :key="tag.id" :value="tag.slug">
@@ -73,11 +73,11 @@
             </div>
 
             <div class="flex-1 min-w-[200px]">
-              <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">Stav</label>
+              <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2 uppercase tracking-wide">Stav</label>
               <select
                 v-model="selectedStatus"
                 @change="applyFilters"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 hover:shadow-md"
+                class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 hover:shadow-md text-gray-900 dark:text-white"
               >
                 <option value="">Všechny stavy</option>
                 <option value="active">Aktivní</option>
@@ -97,15 +97,15 @@
                   />
                   <div
                     class="w-12 h-6 rounded-full transition-colors duration-200"
-                    :class="showPinnedOnly ? 'bg-indigo-600' : 'bg-gray-300'"
+                    :class="showPinnedOnly ? 'bg-indigo-600 dark:bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'"
                   >
                     <div
-                      class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200"
+                      class="absolute top-1 left-1 w-4 h-4 bg-white dark:bg-gray-300 rounded-full shadow-md transform transition-transform duration-200"
                       :class="showPinnedOnly ? 'translate-x-6' : 'translate-x-0'"
                     ></div>
                   </div>
                 </div>
-                <span class="text-sm font-medium text-gray-700 group-hover:text-indigo-600 transition-colors">Pouze připnutá</span>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Pouze připnutá</span>
               </label>
             </div>
           </div>
@@ -115,7 +115,7 @@
     <!-- Loading -->
     <div v-if="loading" class="text-center py-8">
       <div
-        class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mx-auto"
+        class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 dark:border-indigo-400 border-t-transparent mx-auto"
       ></div>
     </div>
 
@@ -124,9 +124,9 @@
       <div
         v-for="(topic, index) in filteredTopics"
         :key="topic.id"
-        class="group relative bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+        class="group relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100 dark:border-gray-800"
         :class="{
-          'ring-2 ring-indigo-300 ring-offset-2': topic.is_pinned,
+          'ring-2 ring-indigo-300 dark:ring-indigo-600 ring-offset-2 dark:ring-offset-gray-900': topic.is_pinned,
           'opacity-75': topic.status === 'archived',
         }"
         :style="{ animationDelay: `${index * 50}ms` }"
@@ -137,27 +137,27 @@
             <div class="flex items-center gap-3 mb-2 flex-wrap">
               <NuxtLink
                 :to="`/admin/forum/${topic.slug || topic.id}`"
-                class="text-xl font-bold text-gray-900 hover:text-indigo-600 transition-colors duration-200 group-hover:text-indigo-600"
+                class="text-xl font-bold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
               >
                 {{ topic.title }}
               </NuxtLink>
               <span
                 v-if="topic.is_pinned"
-                class="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 rounded-full flex items-center gap-1 shadow-sm"
+                class="px-3 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 text-indigo-700 dark:text-indigo-300 rounded-full flex items-center gap-1 shadow-sm"
               >
                 <span class="material-icons-outlined text-sm">push_pin</span>
                 Připnuto
               </span>
               <span
                 v-if="topic.is_locked"
-                class="px-3 py-1 text-xs font-semibold bg-red-50 text-red-700 rounded-full flex items-center gap-1 shadow-sm"
+                class="px-3 py-1 text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full flex items-center gap-1 shadow-sm"
               >
                 <span class="material-icons-outlined text-sm">lock</span>
                 Zamčeno
               </span>
               <span
                 v-if="topic.status === 'archived'"
-                class="px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-600 rounded-full shadow-sm"
+                class="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full shadow-sm"
               >
                 Archivováno
               </span>
@@ -165,44 +165,44 @@
 
             <!-- Kategorie -->
             <div class="flex items-center gap-2 mb-3 flex-wrap">
-              <span class="font-semibold text-gray-700">Kategorie:</span>
+              <span class="font-semibold text-gray-700 dark:text-gray-300">Kategorie:</span>
               <span
                 v-if="getCategoryStyle(topic.category)"
-                class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border"
+                class="px-3 py-1.5 text-xs font-semibold rounded-full shadow-sm border border-gray-200 dark:border-gray-700"
                 :style="getCategoryStyle(topic.category)"
               >
                 {{ getCategoryName(topic.category) }}
               </span>
             </div>
 
-            <p class="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
               {{ topic.content }}
             </p>
 
             <div class="flex items-center gap-6 flex-wrap">
               <div class="flex items-center gap-4 text-sm">
-                <span class="flex items-center gap-2 text-gray-600 group-hover:text-indigo-600 transition-colors">
-                  <span class="material-icons-outlined text-lg text-gray-400">person_outline</span>
+                <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  <span class="material-icons-outlined text-lg text-gray-400 dark:text-gray-500">person_outline</span>
                   <span class="font-medium">{{ topic.author_name }}</span>
                 </span>
-                <span class="flex items-center gap-2 text-gray-600">
-                  <span class="material-icons-outlined text-lg text-gray-400">comment</span>
+                <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <span class="material-icons-outlined text-lg text-gray-400 dark:text-gray-500">comment</span>
                   <span class="font-medium">{{ topic.reply_count }}</span>
-                  <span class="text-gray-500 text-xs">odpovědí</span>
+                  <span class="text-gray-500 dark:text-gray-500 text-xs">odpovědí</span>
                 </span>
-                <span class="flex items-center gap-2 text-gray-600">
-                  <span class="material-icons-outlined text-lg text-gray-400">visibility</span>
+                <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <span class="material-icons-outlined text-lg text-gray-400 dark:text-gray-500">visibility</span>
                   <span class="font-medium">{{ topic.view_count }}</span>
                 </span>
-                <span class="flex items-center gap-2 text-gray-600">
-                  <span class="material-icons-outlined text-lg text-gray-400">schedule</span>
+                <span class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                  <span class="material-icons-outlined text-lg text-gray-400 dark:text-gray-500">schedule</span>
                   <span class="text-xs">{{ formatDate(topic.last_activity_at) }}</span>
                 </span>
               </div>
 
               <!-- Tagy -->
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-normal text-sm text-gray-700">Štítky:</span>
+                <span class="font-normal text-sm text-gray-700 dark:text-gray-300">Štítky:</span>
                 <template
                   v-for="tagSlug in (topic.tags || (topic.tag ? [topic.tag] : []))"
                   :key="tagSlug"
@@ -278,11 +278,11 @@
 
       <div
         v-if="filteredTopics.length === 0"
-        class="text-center py-16 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200"
+        class="text-center py-16 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
       >
-        <span class="material-icons-outlined text-6xl text-gray-300 mb-4 block">forum</span>
-        <p class="text-gray-500 text-lg font-medium">Žádná témata k zobrazení</p>
-        <p class="text-gray-400 text-sm mt-2">Zkuste upravit filtry nebo vytvořit nové téma</p>
+        <span class="material-icons-outlined text-6xl text-gray-300 dark:text-gray-600 mb-4 block">forum</span>
+        <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Žádná témata k zobrazení</p>
+        <p class="text-gray-400 dark:text-gray-500 text-sm mt-2">Zkuste upravit filtry nebo vytvořit nové téma</p>
       </div>
     </div>
     </div>
@@ -298,9 +298,9 @@
           <Transition name="modal">
             <div
               v-if="showAddModal"
-              class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl transform"
+              class="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl transform border border-gray-200 dark:border-gray-700"
             >
-              <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+              <div class="bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 p-6">
                 <h2 class="text-2xl font-bold text-white">
                   {{ editingTopic ? "Upravit" : "Nové" }} téma
                 </h2>
@@ -309,7 +309,7 @@
               <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
                 <form @submit.prevent="handleSubmit" class="space-y-4">
                   <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                       Název tématu
                     </label>
                     <input
@@ -317,14 +317,14 @@
                       type="text"
                       required
                       maxlength="500"
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                      class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="Zadejte název tématu"
                     />
                   </div>
 
                   <div class="grid grid-cols-2 gap-4">
                     <div>
-                      <label class="block text-gray-700 text-sm font-semibold mb-2">
+                      <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                         Kategorie
                       </label>
                       <SearchableSelect
@@ -334,12 +334,12 @@
                         :required="true"
                         :can-create="isAdmin"
                         :on-create="handleCreateCategory"
-                        input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                        input-class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       />
                     </div>
 
                     <div>
-                      <label class="block text-gray-700 text-sm font-semibold mb-2">
+                      <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                         Tagy
                       </label>
                       <MultiTagSelect
@@ -351,35 +351,35 @@
                         :on-create="handleCreateTag"
                         :get-tag-name="getTagName"
                         :get-tag-style="getTagStyle"
-                        input-class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+                        input-class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                       Obsah
                     </label>
                     <textarea
                       v-model="form.content"
                       required
                       rows="8"
-                      class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200 resize-none"
+                      class="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="Zadejte obsah tématu"
                     ></textarea>
                   </div>
 
-                  <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                  <div class="flex justify-end gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <button
                       type="button"
                       @click="closeModal"
-                      class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-all duration-200 hover:scale-105"
+                      class="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
                     >
                       Zrušit
                     </button>
                     <button
                       type="submit"
-                      class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 font-medium shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-200 hover:scale-105"
+                      class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 text-white rounded-xl hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-purple-700 dark:hover:to-purple-800 font-medium shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-200 hover:scale-105"
                     >
                       {{ editingTopic ? "Uložit" : "Vytvořit" }}
                     </button>

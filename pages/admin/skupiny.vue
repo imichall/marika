@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50">
+  <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950">
     <div class="container mx-auto px-4 py-8 pb-20">
       <!-- Breadcrumbs -->
       <AdminBreadcrumbs />
 
       <div class="flex justify-between items-center mb-8">
         <h1
-          class="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
+          class="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-200 dark:to-gray-400 bg-clip-text text-transparent"
         >
           Správa těles
         </h1>
@@ -23,13 +23,13 @@
 
       <div v-if="loading" class="flex items-center justify-center py-12">
         <div
-          class="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"
+          class="animate-spin rounded-full h-12 w-12 border-4 border-green-500 dark:border-green-400 border-t-transparent"
         ></div>
       </div>
 
       <div
         v-else-if="error"
-        class="flex items-center justify-center py-12 text-red-600"
+        class="flex items-center justify-center py-12 text-red-600 dark:text-red-400"
       >
         <div class="flex items-center gap-2">
           <span class="material-icons-outlined">error_outline</span>
@@ -42,7 +42,7 @@
         <div
           v-for="group in groups"
           :key="group.id"
-          class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 hover:border-green-100 transform hover:-translate-y-1"
+          class="group bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-green-100 dark:hover:border-green-800 transform hover:-translate-y-1"
         >
           <div class="p-6 space-y-6">
             <div class="relative aspect-video overflow-hidden rounded-xl">
@@ -54,17 +54,17 @@
               />
               <div
                 v-else
-                class="w-full h-full bg-gray-100 flex items-center justify-center"
+                class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
               >
-                <span class="material-icons-outlined text-5xl text-gray-300">
+                <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600">
                   image
                 </span>
               </div>
             </div>
 
             <div class="space-y-4">
-              <h3 class="text-2xl font-bold text-gray-800">{{ group.name }}</h3>
-              <p class="text-gray-600 line-clamp-3">{{ group.description }}</p>
+              <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ group.name }}</h3>
+              <p class="text-gray-600 dark:text-gray-400 line-clamp-3">{{ group.description }}</p>
 
               <!-- Tlačítko pro poslech -->
               <div v-if="group.button_link" class="pt-2">
@@ -82,7 +82,7 @@
                 <button
                   v-if="permissions.edit"
                   @click="editGroup(group)"
-                  class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  class="inline-flex items-center px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
                   <span class="material-icons-outlined mr-2">edit</span>
                   Upravit
@@ -90,7 +90,7 @@
                 <button
                   v-if="permissions.delete"
                   @click="handleDelete(group.id)"
-                  class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 >
                   <span class="material-icons-outlined mr-2">delete</span>
                   Smazat
@@ -103,13 +103,13 @@
         <!-- Prázdný stav -->
         <div
           v-if="groups.length === 0"
-          class="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl border border-dashed border-gray-300"
+          class="col-span-full flex flex-col items-center justify-center py-16 px-4 bg-white dark:bg-gray-900 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700"
         >
-          <span class="material-icons-outlined text-6xl text-gray-400 mb-4"
+          <span class="material-icons-outlined text-6xl text-gray-400 dark:text-gray-600 mb-4"
             >group_off</span
           >
-          <h3 class="text-xl font-medium text-gray-900 mb-2">Žádná tělesa</h3>
-          <p class="text-gray-500 text-center mb-6">
+          <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">Žádná tělesa</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-center mb-6">
             Zatím nebyly přidány žádná tělesa. Začněte přidáním prvního tělesa.
           </p>
           <button
@@ -141,57 +141,57 @@
 
         <div class="fixed inset-0 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
-            <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-2xl">
-              <DialogTitle as="h2" class="text-xl font-bold mb-4">
+            <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-2xl border border-gray-200 dark:border-gray-800">
+              <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                 {{ editingGroup ? "Upravit" : "Přidat" }} těleso
               </DialogTitle>
 
               <form @submit.prevent="handleSubmit" class="space-y-4">
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                     Název tělesa
                   </label>
                   <input
                     v-model="form.name"
                     type="text"
                     required
-                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
 
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                     Popis
                   </label>
                   <textarea
                     v-model="form.description"
                     required
                     rows="4"
-                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   ></textarea>
                 </div>
 
                 <!-- Nahrávání obrázku -->
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                     Obrázek tělesa
                   </label>
                   <div
-                    class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
-                    :class="{ 'border-red-500': isDragging }"
+                    class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200 bg-gray-50 dark:bg-gray-800"
+                    :class="{ 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20': isDragging }"
                     @dragenter.prevent="isDragging = true"
                     @dragleave.prevent="isDragging = false"
                     @dragover.prevent
                     @drop.prevent="handleDrop"
                   >
                     <div v-if="!form.image && !imagePreview" class="py-4">
-                      <span class="text-4xl text-gray-400 mb-2">
+                      <span class="text-4xl text-gray-400 dark:text-gray-500 mb-2">
                         Nahrát obrázek
                       </span>
-                      <p class="text-gray-500">
+                      <p class="text-gray-500 dark:text-gray-400">
                         Přetáhněte sem obrázek nebo
                         <label
-                          class="text-red-500 hover:text-red-600 cursor-pointer"
+                          class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer"
                         >
                           vyberte ze zařízení
                           <input
@@ -202,7 +202,7 @@
                           />
                         </label>
                       </p>
-                      <p class="text-sm text-gray-400 mt-1">
+                      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
                         Podporované formáty: JPG, PNG, WebP
                       </p>
                     </div>
@@ -229,7 +229,7 @@
 
                 <!-- Přidáme sekci pro sociální sítě do formuláře -->
                 <div class="mt-6">
-                  <h3 class="text-lg font-medium text-gray-900 mb-4">
+                  <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
                     Sociální sítě
                   </h3>
 
@@ -237,7 +237,7 @@
                   <div class="flex gap-3 mb-4">
                     <select
                       v-model="selectedSocialMediaId"
-                      class="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
                     >
                       <option value="">Vyberte sociální síť</option>
                       <option
@@ -252,7 +252,7 @@
                     <button
                       @click="addSelectedSocialMedia"
                       :disabled="!selectedSocialMediaId"
-                      class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Přidat
                     </button>
@@ -263,10 +263,10 @@
                     <div
                       v-for="sm in selectedSocialMediaDetails"
                       :key="sm.id"
-                      class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
                     >
                       <div class="flex items-center gap-3">
-                        <div class="p-2 bg-white rounded-full shadow-sm">
+                        <div class="p-2 bg-white dark:bg-gray-900 rounded-full shadow-sm border border-gray-200 dark:border-gray-700">
                           <svg
                             class="w-5 h-5"
                             :class="getIconColor(sm.platform)"
@@ -285,8 +285,8 @@
                           </svg>
                         </div>
                         <div>
-                          <span class="font-medium">{{ sm.platform }}</span>
-                          <span class="text-sm text-gray-500 block">{{
+                          <span class="font-medium text-gray-900 dark:text-white">{{ sm.platform }}</span>
+                          <span class="text-sm text-gray-500 dark:text-gray-400 block">{{
                             sm.url
                           }}</span>
                         </div>
@@ -294,7 +294,7 @@
 
                       <button
                         @click="removeSocialMedia(sm.id)"
-                        class="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors duration-200"
+                        class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors duration-200"
                         title="Odstranit"
                       >
                         <span class="material-icons-outlined">delete</span>
@@ -305,16 +305,16 @@
 
                 <!-- Přidáme pole pro button link -->
                 <div>
-                  <label class="block text-gray-700 text-sm font-bold mb-2">
+                  <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                     Odkaz na poslech
                   </label>
                   <input
                     v-model="form.button_link"
                     type="url"
                     placeholder="https://spotify.com/..."
-                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                    class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                   />
-                  <p class="mt-1 text-sm text-gray-500">
+                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Vložte odkaz na Spotify, YouTube nebo jiný hudební portál.
                     Tento odkaz se použije pro tlačítko "Poslechnout" na webu.
                   </p>
@@ -324,13 +324,13 @@
                   <button
                     type="button"
                     @click="handleClose"
-                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    class="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
                   <button
                     type="submit"
-                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+                    class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 transition-colors duration-200"
                   >
                     {{ editingGroup ? "Upravit" : "Přidat" }}
                   </button>
@@ -368,23 +368,23 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-200 dark:border-gray-800">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                   Smazat těleso
                 </DialogTitle>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
                   Opravdu chcete smazat toto těleso?
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
                     @click="showDeleteModal = false"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="confirmDelete"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-800 transition-colors duration-200"
                   >
                     Smazat
                   </button>
