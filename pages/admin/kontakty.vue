@@ -6,8 +6,8 @@
     <!-- Header sekce -->
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold">Správa kontaktů</h1>
-        <p class="text-gray-600 mt-2">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Správa kontaktů</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">
           Spravujte kontaktní údaje jednotlivých skupin
         </p>
       </div>
@@ -44,7 +44,7 @@
 
     <div
       v-else-if="error"
-      class="bg-red-50 text-red-600 p-4 rounded-xl text-center"
+      class="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-xl text-center border border-red-200 dark:border-red-800"
     >
       <p>{{ error }}</p>
     </div>
@@ -54,23 +54,23 @@
       <div
         v-for="contact in contacts"
         :key="contact.id"
-        class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100"
+        class="bg-white dark:bg-gray-900 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-800"
       >
         <div class="p-6">
           <!-- Header karty -->
           <div class="flex justify-between items-start mb-4">
             <div>
-              <h3 class="font-bold text-xl text-gray-900">
+              <h3 class="font-bold text-xl text-gray-900 dark:text-white">
                 {{ contact.group_name }}
               </h3>
               <div
                 class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                 :class="{
-                  'bg-pink-100 text-pink-800':
+                  'bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-300 border border-pink-200 dark:border-pink-700':
                     contact.group_name === 'Marika Singers, z.s.',
-                  'bg-purple-100 text-purple-800':
+                  'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-700':
                     contact.group_name === 'VOICES',
-                  'bg-blue-100 text-blue-800': contact.group_name === 'FIVE',
+                  'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-700': contact.group_name === 'FIVE',
                 }"
               >
                 {{ contact.group_name }}
@@ -82,7 +82,7 @@
               <button
                 v-if="permissions.edit"
                 @click="editContact(contact)"
-                class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200"
                 title="Upravit"
               >
                 <svg
@@ -103,7 +103,7 @@
               <button
                 v-if="permissions.delete"
                 @click="handleDelete(contact.id)"
-                class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                class="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors duration-200"
                 title="Smazat"
               >
                 <svg
@@ -129,7 +129,7 @@
             <div v-if="contact.address" class="flex items-start space-x-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-gray-400 mt-1"
+                class="h-5 w-5 text-gray-400 dark:text-gray-500 mt-1"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -147,7 +147,7 @@
                   d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                 />
               </svg>
-              <p class="text-gray-600 whitespace-pre-line">
+              <p class="text-gray-600 dark:text-gray-400 whitespace-pre-line">
                 {{ contact.address }}
               </p>
             </div>
@@ -158,7 +158,7 @@
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-gray-400"
+                class="h-5 w-5 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -170,7 +170,7 @@
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <div class="text-gray-600">
+              <div class="text-gray-600 dark:text-gray-400">
                 <span v-if="contact.ico">IČO: {{ contact.ico }}</span>
                 <span v-if="contact.ico && contact.dic"> / </span>
                 <span v-if="contact.dic">DIČ: {{ contact.dic }}</span>
@@ -180,7 +180,7 @@
             <div v-if="contact.email" class="flex items-center space-x-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-gray-400"
+                class="h-5 w-5 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -194,7 +194,7 @@
               </svg>
               <a
                 :href="`mailto:${contact.email}`"
-                class="text-red-600 hover:text-red-700 transition-colors duration-200"
+                class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors duration-200"
               >
                 {{ contact.email }}
               </a>
@@ -206,7 +206,7 @@
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5 text-gray-400"
+                class="h-5 w-5 text-gray-400 dark:text-gray-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -218,7 +218,7 @@
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                 />
               </svg>
-              <span class="text-gray-600">
+              <span class="text-gray-600 dark:text-gray-400">
                 {{ formatBankAccount(getBankAccount(contact.group_name)) }}
               </span>
             </div>
@@ -253,76 +253,76 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-200 dark:border-gray-800">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                   {{ editingContact ? "Upravit" : "Přidat" }} kontakt
                 </DialogTitle>
 
                 <form @submit.prevent="handleSubmit" class="space-y-4">
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       Název skupiny
                     </label>
                     <input
                       v-model="form.group_name"
                       type="text"
                       required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     />
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       Adresa
                     </label>
                     <textarea
                       v-model="form.address"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                       rows="3"
                     ></textarea>
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       IČO
                     </label>
                     <input
                       v-model="form.ico"
                       type="text"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     />
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       DIČ
                     </label>
                     <input
                       v-model="form.dic"
                       type="text"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     />
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       Email
                     </label>
                     <input
                       v-model="form.email"
                       type="email"
                       required
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     />
                   </div>
 
                   <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                       Bankovní účet
                     </label>
                     <select
                       v-model="form.bank_account"
-                      class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                      class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     >
                       <option value="">Vyberte bankovní účet</option>
                       <option
@@ -388,13 +388,13 @@
                     <button
                       type="button"
                       @click="closeModal"
-                      class="px-4 py-2 text-gray-600 hover:text-gray-800"
+                      class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300 transition-colors"
                     >
                       Zrušit
                     </button>
                     <button
                       type="submit"
-                      class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                       :disabled="loading"
                     >
                       {{ editingContact ? "Uložit změny" : "Přidat kontakt" }}
@@ -434,17 +434,17 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-200 dark:border-gray-800">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-white">
                   Smazat kontakt
                 </DialogTitle>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
                   Opravdu chcete smazat tento kontakt?
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
                     @click="showDeleteModal = false"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
