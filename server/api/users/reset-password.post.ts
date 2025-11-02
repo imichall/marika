@@ -70,36 +70,71 @@ export default defineEventHandler(async (event) => {
     })
 
     // Odeslání emailu pro reset hesla
-    // Získáme base URL z konfigurace nebo z requestu
+    // Získáme base URL z konfigurace (produkce) nebo z requestu (dev)
     const runtimeConfig = useRuntimeConfig()
     let baseUrl = runtimeConfig.siteUrl || runtimeConfig.public.siteUrl
 
+    // Pokud není nastaveno v env, zkontrolujeme host z requestu
     if (!baseUrl) {
-      // Fallback na host z requestu (pouze pro dev)
       const host = getHeader(event, 'host') || 'localhost:3000'
-      const protocol = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https'
-      baseUrl = `${protocol}://${host}`
+
+      // Pokud je to localhost nebo 127.0.0.1, použijeme fallback na produkční URL
+      // Nebo můžeme použít hardcoded produkční URL jako fallback
+      if (host.includes('localhost') || host.includes('127.0.0.1')) {
+        // Pro produkci použijeme fixní URL, pro dev použijeme localhost
+        // V produkci by mělo být NUXT_PUBLIC_SITE_URL nastaveno!
+        baseUrl = 'https://marikasingers.cz'
+        console.warn('Using hardcoded production URL because request is from localhost. Set NUXT_PUBLIC_SITE_URL in environment variables!')
+      } else {
+        // Pokud není localhost, použijeme host z requestu
+        const protocol = 'https'
+        baseUrl = `${protocol}://${host}`
+      }
     }
 
-    console.log('Generating reset link for:', userEmail, 'redirectTo:', `${baseUrl}/admin/reset-password`)
+    console.log('Using baseUrl for password reset:', baseUrl)
 
-    const { data, error: resetError } = await adminClient.auth.admin.generateLink({
-      type: 'recovery',
-      email: userEmail,
-      options: {
-        redirectTo: `${baseUrl}/admin/reset-password`
+    console.log('Sending password reset email for:', userEmail, 'redirectTo:', `${baseUrl}/admin/reset-password`)
+
+    // Nejprve zkontrolujeme, zda uživatel existuje v auth.users
+    const { data: users, error: listError } = await adminClient.auth.admin.listUsers()
+
+    const existingUser = users?.users?.find(u => u.email?.toLowerCase() === userEmail.toLowerCase())
+
+    if (!existingUser) {
+      throw createError({
+        statusCode: 404,
+        message: 'Uživatel s tímto emailem neexistuje v systému'
+      })
+    }
+
+    console.log('User found in auth.users:', existingUser.id, existingUser.email)
+
+    // Použijeme běžný auth klient (s anon key) pro odeslání e-mailu
+    // Admin API generateLink vytváří link, ale neodesílá e-mail automaticky
+    // resetPasswordForEmail odešle e-mail automaticky
+    const authClient = createClient(supabaseUrl, process.env.NUXT_PUBLIC_SUPABASE_KEY || '', {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
     })
 
+    // Nastavíme redirect URL do cookies nebo použijeme options
+    const { data: resetData, error: resetError } = await authClient.auth.resetPasswordForEmail(userEmail, {
+      redirectTo: `${baseUrl}/admin/reset-password`
+    })
+
     if (resetError) {
-      console.error('Error generating reset password link:', resetError)
+      console.error('Error sending password reset email:', resetError)
       throw createError({
         statusCode: 500,
         message: 'Nepodařilo se odeslat email pro reset hesla: ' + resetError.message
       })
     }
 
-    console.log('Reset link generated successfully:', data)
+    console.log('Password reset email sent successfully:', resetData)
+    console.log('Email by měl být odeslán přes SMTP server nakonfigurovaný v Supabase Dashboard.')
 
     return {
       success: true,
