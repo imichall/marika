@@ -1,11 +1,14 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
     <AdminNavigation v-if="isAuthenticated" />
-    <main v-if="isAuthenticated" class="pt-16">
-      <div class="container mx-auto px-4">
+    <AdminSidebar v-if="isAuthenticated">
+      <div class="w-full">
         <slot />
       </div>
-    </main>
+    </AdminSidebar>
+    <div v-if="!isAuthenticated" class="flex items-center justify-center min-h-screen">
+      <slot />
+    </div>
     <ToastNotifications />
     <!-- <div v-else>
       <p>Přesměrování na přihlášení...</p>
@@ -19,6 +22,7 @@ definePageMeta({
 });
 
 import AdminNavigation from "~/components/AdminNavigation.vue";
+import AdminSidebar from "~/components/AdminSidebar.vue";
 import { useAuth } from "~/composables/useAuth";
 import { useRouter } from "vue-router";
 import { useSupabaseClient } from "#imports";

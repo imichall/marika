@@ -1,16 +1,18 @@
 <template>
   <nav class="fixed top-0 w-full bg-white dark:bg-gray-900 z-50 shadow-lg border-b dark:border-gray-800">
-    <div class="container mx-auto px-4">
+    <div class="w-full px-4">
       <div class="flex justify-between items-center h-16">
         <!-- Logo a název -->
         <div class="flex items-center space-x-4">
           <NuxtLink to="/admin" class="flex items-center space-x-3">
-            <img
-              src="/images/svg/marika-singers-logo.svg"
-              alt="Logo"
-              class="h-8"
-            />
-            <span class="text-xl font-semibold text-gray-900 dark:text-white hidden sm:inline"
+            <div class="h-8 px-2 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center transition-colors duration-200">
+              <img
+                src="/images/svg/marika-singers-logo.svg"
+                alt="Logo"
+                class="h-6 dark:opacity-90 dark:brightness-150"
+              />
+            </div>
+            <span class="text-xl font-semibold text-gray-900 dark:text-gray-100 hidden sm:inline"
               >Administrace</span
             >
           </NuxtLink>
@@ -19,7 +21,7 @@
         <!-- Mobilní menu tlačítko -->
         <button
           @click="isMenuOpen = !isMenuOpen"
-          class="lg:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+          class="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
         >
           <span class="sr-only">Otevřít menu</span>
           <svg
@@ -535,13 +537,13 @@ onMounted(() => {
 
 <style scoped>
 .router-link-active {
-  @apply text-red-500 bg-red-50;
+  @apply text-red-500;
 }
 
 /* Přidáme styl pro aktivní položku v mobilním menu */
 @media (max-width: 1024px) {
   .router-link-active {
-    @apply bg-red-50 text-red-500;
+    @apply bg-red-50 dark:bg-gray-900/20 text-red-500 dark:text-red-400;
   }
 }
 </style>

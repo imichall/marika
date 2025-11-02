@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-4 py-8 pb-10">
+  <div class="w-full px-4 py-8 pb-10">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
@@ -118,7 +118,7 @@
     </div>
 
     <!-- Grid Layout Visualization -->
-    <div class="container mx-auto px-4 mt-8 mb-12">
+    <div class="w-full px-4 mt-8 mb-12">
       <h2 class="text-xl font-semibold mb-4">Rozložení fotografií na webu</h2>
       <div
         class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3] bg-gray-50 p-4 rounded-xl"

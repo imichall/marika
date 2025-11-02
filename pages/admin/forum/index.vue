@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 via-indigo-50/30 to-purple-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900">
-    <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Breadcrumbs -->
       <AdminBreadcrumbs />
 
@@ -111,17 +111,17 @@
           </div>
         </div>
       </div>
-    </div>
-    <!-- Loading -->
-    <div v-if="loading" class="text-center py-8">
-      <div
-        class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 dark:border-indigo-400 border-t-transparent mx-auto"
-      ></div>
-    </div>
 
-    <!-- Seznam témat -->
-    <div v-else class="space-y-4">
-      <div
+      <!-- Loading -->
+      <div v-if="loading" class="text-center py-8">
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 dark:border-indigo-400 border-t-transparent mx-auto"
+        ></div>
+      </div>
+
+      <!-- Seznam témat -->
+      <div v-else class="space-y-4">
+        <div
         v-for="(topic, index) in filteredTopics"
         :key="topic.id"
         class="group relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100 dark:border-gray-800"
@@ -133,7 +133,7 @@
       >
         <div class="p-6">
           <div class="flex justify-between items-start gap-6">
-          <div class="flex-1 min-w-0">
+            <div class="flex-1 min-w-0">
             <div class="flex items-center gap-3 mb-2 flex-wrap">
               <NuxtLink
                 :to="`/admin/forum/${topic.slug || topic.id}`"
@@ -219,7 +219,7 @@
             </div>
           </div>
 
-          <div class="flex gap-2 flex-shrink-0">
+            <div class="flex gap-2 flex-shrink-0">
             <button
               v-if="permissions.edit"
               @click="editTopic(topic)"
@@ -270,13 +270,14 @@
               class="p-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Smazat"
             >
-              <span class="material-icons-outlined text-[20px]">delete</span>
+              <span class="material-icons-outlined text-[20px]">delete              </span>
             </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div
+        <div
         v-if="filteredTopics.length === 0"
         class="text-center py-16 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
       >

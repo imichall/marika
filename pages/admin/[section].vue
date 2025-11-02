@@ -1,5 +1,5 @@
 <template v-if="">
-  <div class="container mx-auto px-4 py-8 pb-20">
+  <div class="w-full px-4 py-8 pb-20">
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">

@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-50/50 dark:bg-gray-950">
-    <div class="container mx-auto px-4 py-8 pb-20 max-w-5xl">
+    <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
       <!-- Breadcrumbs -->
       <AdminBreadcrumbs />
 

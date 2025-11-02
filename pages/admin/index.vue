@@ -1,108 +1,22 @@
 <template>
-  <div class="flex bg-gray-50 dark:bg-gray-950 min-h-screen">
-    <!-- Mobile menu button -->
-    <div class="lg:hidden fixed top-2 left-1/2 -translate-x-1/2 z-50">
-      <button
-        @click="isSidebarOpen = !isSidebarOpen"
-        class="flex items-center justify-center p-2 rounded-lg bg-white dark:bg-gray-900 shadow-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white focus:outline-none"
-      >
-        <span class="material-icons-outlined">{{
-          isSidebarOpen ? "close" : "menu"
-        }}</span>
-      </button>
+  <div class="w-full">
+    <!-- Top bar -->
+    <div
+      class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-16 z-30"
+    >
+      <div class="flex items-center space-x-4">
+        <h1 class="text-xl lg:text-2xl font-semibold text-gray-800 dark:text-white">
+          Dashboard
+        </h1>
+        <span
+          class="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full hidden sm:inline-block"
+        >
+          Live
+        </span>
+      </div>
     </div>
 
-    <!-- Backdrop for mobile sidebar -->
-    <div
-      v-if="isSidebarOpen"
-      class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
-      @click="isSidebarOpen = false"
-    ></div>
-
-    <!-- Sidebar -->
-    <aside
-      :class="[
-        'bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 z-40',
-        'lg:relative lg:w-64 lg:translate-x-0',
-        isSidebarOpen
-          ? 'fixed inset-y-0 left-0 w-64 translate-x-0'
-          : 'fixed inset-y-0 left-0 w-64 -translate-x-full',
-      ]"
-    >
-      <div class="p-6">
-        <h2
-          class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"
-        >
-          Marika Admin
-        </h2>
-      </div>
-
-      <nav class="mt-2 px-4">
-        <div
-          v-for="(section, index) in sidebarSections"
-          :key="index"
-          class="mb-4"
-        >
-          <div
-            class="px-3 mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider"
-          >
-            {{ section.title }}
-          </div>
-
-          <div class="space-y-1">
-            <NuxtLink
-              v-for="item in section.items"
-              :key="item.name"
-              :to="item.to"
-              :class="[
-                route.path === item.to
-                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
-                'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
-              ]"
-              @click="isSidebarOpen = false"
-            >
-              <span
-                class="material-icons-outlined mr-3 text-xl"
-                :class="{ 'text-indigo-600 dark:text-indigo-400': route.path === item.to }"
-              >
-                {{ item.icon }}
-              </span>
-              {{ item.name }}
-              <span
-                v-if="item.badge"
-                :class="[
-                  item.badgeColor || 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400',
-                  'ml-auto px-2 py-0.5 text-xs rounded-full',
-                ]"
-              >
-                {{ item.badge }}
-              </span>
-            </NuxtLink>
-          </div>
-        </div>
-      </nav>
-    </aside>
-
-    <!-- Main content -->
-    <main :class="['flex-1', 'lg:ml-0', isSidebarOpen ? 'ml-64' : 'ml-0']">
-      <!-- Top bar -->
-      <div
-            class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-30"
-      >
-        <div class="flex items-center space-x-4">
-          <h1 class="text-xl lg:text-2xl font-semibold text-gray-800 dark:text-white">
-            Dashboard
-          </h1>
-          <span
-            class="px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full hidden sm:inline-block"
-          >
-            Live
-          </span>
-        </div>
-      </div>
-
-      <div class="p-4 lg:p-8">
+    <div class="p-4 lg:p-8">
         <!-- Stats overview -->
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8"
@@ -475,8 +389,7 @@
           </div>
         </div>
       </div>
-    </main>
-  </div>
+    </div>
 
   <!-- Modal pro všechny aktivity -->
   <div
@@ -924,106 +837,6 @@ const clearError = () => {
   router.replace({ query: {} });
 };
 
-
-// Sidebar sections with permissions check
-const sidebarSections = computed(() =>
-  [
-    {
-      title: "Hlavní",
-      items: [
-        { name: "Dashboard", to: "/admin", icon: "dashboard" },
-        permissions.value.concerts.view && {
-          name: "Koncerty",
-          to: "/admin/koncerty",
-          icon: "music_note",
-          badge:
-            concerts.value?.filter((concert) => !concert.is_archived)?.length ||
-            "0",
-        },
-        permissions.value.choir_groups.view && {
-          name: "Tělesa",
-          to: "/admin/skupiny",
-          icon: "groups",
-          badge: "3",
-        },
-        permissions.value.gallery.view && {
-          name: "Galerie",
-          to: "/admin/galerie",
-          icon: "photo_library",
-        },
-      ].filter(Boolean),
-    },
-    {
-      title: "Správa",
-      items: [
-        permissions.value.orders.view && {
-          name: "Objednávky",
-          to: "/admin/objednavky",
-          icon: "receipt_long",
-          badge: pendingOrders,
-          badgeColor: "bg-yellow-100 text-yellow-700",
-        },
-        permissions.value.testimonials.view && {
-          name: "Reference",
-          to: "/admin/reference",
-          icon: "rate_review",
-          badge:
-            testimonials.value?.filter(
-              (testimonial) => !testimonial.is_archived
-            )?.length || "0",
-        },
-        permissions.value.form_messages.view && {
-          name: "Zprávy",
-          to: "/admin/zpravy",
-          icon: "mail",
-          badge: pendingMessages,
-          badgeColor: "bg-red-100 text-red-700",
-        },
-        permissions.value.contacts.view && {
-          name: "Kontakty",
-          to: "/admin/kontakty",
-          icon: "contacts",
-        },
-        permissions.value.media?.view && {
-          name: "Média",
-          to: "/admin/media",
-          icon: "perm_media",
-        },
-      ].filter(Boolean),
-    },
-    {
-      title: "Systém",
-      items: [
-        permissions.value.users.view && {
-          name: "Uživatelé",
-          to: "/admin/uzivatele",
-          icon: "manage_accounts",
-        },
-        permissions.value.audit.view && {
-          name: "Audit",
-          to: "/admin/audit",
-          icon: "fact_check",
-        },
-        permissions.value.settings.view && {
-          name: "Nastavení",
-          to: "/admin/system",
-          icon: "settings",
-        },
-        permissions.value.forum?.view && {
-          name: "Fórum",
-          to: "/admin/forum",
-          icon: "forum",
-        },
-        permissions.value.forum?.view && {
-          name: "Agenda tagů",
-          to: "/admin/forum/agenda",
-          icon: "info",
-        },
-      ].filter(Boolean),
-    },
-  ].filter((section) => section.items.length > 0)
-);
-
 // Stats data with real data
 const stats = computed(() => [
   {
@@ -1275,9 +1088,6 @@ const editConcert = (concert) => {
     },
   });
 };
-
-// V script části přidáme:
-const isSidebarOpen = ref(false);
 
 // V script části přidáme:
 const getWebPUrl = (originalUrl) => {
