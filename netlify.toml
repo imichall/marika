@@ -1,5 +1,5 @@
 [build]
-command = "npm run build"
+command = "yarn build"
 publish = "dist"
 functions = "netlify/functions"
 
@@ -10,4 +10,5 @@ node_bundler = "esbuild"
 schedule = "0 * * * *"
 
 [build.environment]
+NETLIFY_USE_YARN = "true"
 NODE_VERSION = "18"
