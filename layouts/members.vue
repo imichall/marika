@@ -38,12 +38,13 @@ definePageMeta({
 
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 // @ts-ignore Nuxt runtime import
-import { useRouter, useRoute, useColorMode, useState } from '#imports'
+import { useRouter, useRoute, useColorMode, useState, useSupabaseClient } from '#imports'
 import { useAuth } from '~/composables/useAuth'
 
 const { user, logout, checkUser } = useAuth()
 const router = useRouter()
 const route = useRoute()
+const supabase = useSupabaseClient()
 
 const sidebarUser = useState<{ email: string | null; role: string }>('current-user-role', () => ({ email: null, role: 'viewer' }))
 
@@ -104,11 +105,27 @@ const currentTitle = computed(() => {
 
 const ensureAuthenticated = async () => {
   await checkUser()
-  if (!user.value) {
+  if (!user.value?.email) {
+    sidebarUser.value = { email: null, role: 'viewer' }
     router.push(`/clenska-sekce/prihlaseni?redirect=${encodeURIComponent(route.fullPath)}`)
     return
   }
-  const role = (user.value as any)?.user_metadata?.role || 'viewer'
+
+  let role = 'viewer'
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('email', user.value.email)
+      .single()
+
+    if (!error && data?.role) {
+      role = data.role
+    }
+  } catch (err) {
+    console.error('Nepodařilo se načíst roli uživatele:', err)
+  }
+
   sidebarUser.value = {
     email: user.value.email,
     role

@@ -187,32 +187,32 @@
     <Modal v-model="showCreateModal" title="Přidat skladbu do repertoáru">
       <form class="space-y-4" @submit.prevent="submitCreate">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Název skladby *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Název skladby *</label>
           <input
             v-model="form.title"
             required
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Autor / autoři</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Autor / autoři</label>
           <input
             v-model="form.authors"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             placeholder="např. Freddie Mercury, Queen"
           />
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Poznámka</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Poznámka</label>
           <textarea
             v-model="form.description"
             rows="3"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
 
         <div class="space-y-3">
-          <label class="text-sm font-medium text-slate-700">Notové materiály</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Notové materiály</label>
           <input
             key="create-upload"
             type="file"
@@ -221,8 +221,8 @@
             @change="handleFileInput($event, 'create')"
             class="block w-full text-sm text-slate-500 file:mr-4 file:rounded-md file:border-0 file:bg-red-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-red-600 hover:file:bg-red-100"
           />
-          <p class="text-xs text-slate-500">
-            Maximálně 100&nbsp;MB na soubor. Přidejte poznámku k hlasu nebo nástroji pro každý soubor zvlášť.
+          <p class="text-xs text-slate-500 dark:text-slate-300">
+            Maximálně 100 MB na soubor. Přidejte poznámku k hlasu nebo nástroji pro každý soubor zvlášť.
           </p>
           <div
             v-if="pendingUploads.length"
@@ -245,7 +245,7 @@
               </div>
               <input
                 v-model="upload.voicePart"
-                class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100"
+                class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200"
                 placeholder="Poznámka k hlasu (např. Soprán, Alt, Tenor...)"
               />
             </div>
@@ -276,31 +276,31 @@
     <Modal v-model="showEditModal" title="Upravit skladbu">
       <form v-if="editingItem" class="space-y-4" @submit.prevent="submitEdit">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Název skladby *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Název skladby *</label>
           <input
             v-model="form.title"
             required
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Autor / autoři</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Autor / autoři</label>
           <input
             v-model="form.authors"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Poznámka</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Poznámka</label>
           <textarea
             v-model="form.description"
             rows="3"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
 
         <div class="space-y-3">
-          <label class="text-sm font-medium text-slate-700">Přidat nové soubory</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Přidat nové soubory</label>
           <input
             key="edit-upload"
             type="file"
@@ -330,7 +330,7 @@
               </div>
               <input
                 v-model="upload.voicePart"
-                class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100"
+                class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200"
                 placeholder="Poznámka k hlasu"
               />
             </div>
@@ -392,7 +392,7 @@
             </div>
             <input
               v-model="upload.voicePart"
-              class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100"
+              class="rounded-md border border-slate-200 px-3 py-1.5 text-xs text-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-200"
               placeholder="Poznámka k hlasu"
             />
           </div>

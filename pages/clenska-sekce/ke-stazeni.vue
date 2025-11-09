@@ -185,34 +185,34 @@
     <Modal v-model="showModal" :title="modalTitle">
       <form class="space-y-4" @submit.prevent="submitForm">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Název *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Název *</label>
           <input
             v-model="form.title"
             required
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Popis</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Popis</label>
           <textarea
             v-model="form.description"
             rows="3"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Kategorie</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Kategorie</label>
           <input
             v-model="form.category"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             placeholder="např. Stanovy, Logo, Materiály, Kronika..."
           />
         </div>
 
         <div v-if="!editingResource" class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Soubor *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Soubor *</label>
           <input
             ref="fileInput"
             type="file"

@@ -163,66 +163,66 @@
       <form class="space-y-4" @submit.prevent="submitForm">
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Celé jméno *</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Celé jméno *</label>
             <input
               v-model="form.full_name"
               required
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Hlas / nástroj</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Hlas / nástroj</label>
             <input
               v-model="form.voice_part"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
               placeholder="např. Soprán, Alt, Tenor, Bicí..."
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">E-mail</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">E-mail</label>
             <input
               v-model="form.email"
               type="email"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Telefon</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Telefon</label>
             <input
               v-model="form.phone"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
               placeholder="+420 123 456 789"
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Datum nástupu</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Datum nástupu</label>
             <input
               v-model="form.joined_at"
               type="date"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:[color-scheme:dark]"
             />
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-slate-700">Datum odchodu</label>
+            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Datum odchodu</label>
             <input
               v-model="form.left_at"
               type="date"
-              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:[color-scheme:dark]"
             />
           </div>
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700">Poznámka</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Poznámka</label>
           <textarea
             v-model="form.notes"
             rows="4"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
           />
         </div>
 
         <div class="flex items-center justify-between pt-2">
-          <label class="flex items-center gap-2 text-sm text-slate-600">
+          <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
             <input
               v-model="form.is_active"
               type="checkbox"

@@ -92,7 +92,7 @@ const filteredLinks = computed(() =>
   props.links.filter((link) => (link.permission ? link.permission === props.userRole : true))
 )
 
-const canAccessAdmin = computed(() => props.userRole === 'admin')
+const canAccessAdmin = computed(() => props.userRole === 'admin' || props.userRole === 'editor')
 
 const toggleCollapse = () => {
   collapsed.value = !collapsed.value
