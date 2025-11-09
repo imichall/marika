@@ -54,6 +54,7 @@
     "qrcode": "^1.5.3",
     "qrcode-vue3": "^1.7.1",
     "sortablejs": "^1.15.2",
+    "xlsx": "^0.18.5",
     "vue-chartjs": "^5.3.2",
     "vue-toastification": "^2.0.0-rc.5",
     "vuedraggable": "^4.1.0"

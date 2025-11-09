@@ -13,3 +13,5 @@ export interface MenuItem {
   text: string;
   requiresAuth: boolean;
 }
+
+export type PermissionMap<T extends string> = Record<T, boolean>;

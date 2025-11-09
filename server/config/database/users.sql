@@ -305,6 +305,11 @@ begin
       or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
       -- Nastavení - základní správa
       or (p.section = 'settings' and p.action in ('view', 'edit'))
+      -- Členská sekce - repertoár, adresář a dokumenty
+      or (p.section = 'repertoire' and p.action in ('view', 'create', 'edit'))
+      or (p.section = 'member_directory' and p.action in ('view', 'create', 'edit', 'delete'))
+      or (p.section = 'member_resources' and p.action in ('view', 'create', 'edit'))
+      or (p.section = 'members_area' and p.action = 'view')
     on conflict (role_id, permission_id) do nothing;
   end if;
 
@@ -346,7 +351,20 @@ insert into permissions (section, action, description) values
   ('users', 'view', 'Zobrazení uživatelů'),
   ('users', 'create', 'Vytváření uživatelů'),
   ('users', 'edit', 'Úprava uživatelů'),
-  ('users', 'delete', 'Mazání uživatelů')
+  ('users', 'delete', 'Mazání uživatelů'),
+  ('repertoire', 'view', 'Zobrazení repertoáru'),
+  ('repertoire', 'create', 'Přidávání skladeb do repertoáru'),
+  ('repertoire', 'edit', 'Úprava skladeb v repertoáru'),
+  ('repertoire', 'delete', 'Mazání skladeb z repertoáru'),
+  ('member_directory', 'view', 'Zobrazení seznamu členů'),
+  ('member_directory', 'create', 'Přidávání členů'),
+  ('member_directory', 'edit', 'Úprava informací o členech'),
+  ('member_directory', 'delete', 'Mazání členů'),
+  ('member_resources', 'view', 'Zobrazení dokumentů pro členy'),
+  ('member_resources', 'create', 'Nahrávání dokumentů pro členy'),
+  ('member_resources', 'edit', 'Úprava metadat dokumentů pro členy'),
+  ('member_resources', 'delete', 'Mazání dokumentů pro členy'),
+  ('members_area', 'view', 'Přístup do členské sekce')
 on conflict (section, action) do nothing;
 
 -- Create trigger function for auto-creating user_roles

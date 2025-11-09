@@ -42,12 +42,16 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase'
   ],
 
+  icon: {
+    mode: 'svg'
+  },
+
   supabase: {
     redirect: false,
     redirectOptions: {
       login: '/admin/login',
       callback: '/admin/login',
-      exclude: ['/', '/koncerty/*', '/clenove']
+      exclude: ['/', '/koncerty/*', '/clenove', '/clenska-sekce', '/clenska-sekce/*']
     }
   },
 

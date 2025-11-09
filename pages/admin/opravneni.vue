@@ -297,6 +297,10 @@ const getSectionName = (section) => {
     emails: "Emaily",
     gallery_layout: "Rozložení galerie",
     forum: "Fórum",
+    repertoire: "Repertoár",
+    member_directory: "Členský seznam",
+    member_resources: "Dokumenty ke stažení",
+    members_area: "Členská sekce",
   };
   return sections[section] || section;
 };

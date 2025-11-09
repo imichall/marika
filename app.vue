@@ -6,10 +6,10 @@
         rel="stylesheet"
       />
     </Head>
-    <Navigation />
+    <Navigation v-if="!isAdminRoute && !isConcertRoute && !isMembersRoute" />
     <NuxtLayout>
       <NuxtPage />
-      <Footer v-if="!isAdminRoute && !isConcertRoute" />
+      <Footer v-if="!isAdminRoute && !isConcertRoute && !isMembersRoute" />
       <ConsentManager v-if="!isAdminRoute" />
     </NuxtLayout>
   </div>
@@ -30,7 +30,6 @@ const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
 });
 
-const isConcertRoute = computed(() => {
-  return route.path.startsWith("/koncerty");
-});
+const isConcertRoute = computed(() => route.path.startsWith("/koncerty"));
+const isMembersRoute = computed(() => route.path.startsWith("/clenska-sekce"));
 </script>

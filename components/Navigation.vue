@@ -73,8 +73,8 @@
               />
             </svg>
           </NuxtLink>
-          <button
-            @click="openLoginModal"
+          <NuxtLink
+            :to="memberLink"
             class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
             Členská sekce
@@ -91,7 +91,7 @@
                 d="M14 5l7 7m0 0l-7 7m7-7H3"
               />
             </svg>
-          </button>
+          </NuxtLink>
         </div>
       </div>
     </div>
@@ -166,78 +166,6 @@
     </Transition>
   </nav>
 
-  <!-- Login Modal -->
-  <Teleport to="body">
-    <div
-      v-if="showLoginModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl w-96">
-        <h2 class="text-xl font-bold mb-4">Přihlášení do privátní sekce</h2>
-        <form
-          method="post"
-          action="https://ms.marikasingers.cz/prihlaseni.aspx"
-          autocomplete="off"
-          data-lpignore="true"
-          data-form-type="other"
-          data-kwimpalastatus="dead"
-          data-kwimpalaid="1234567890"
-        >
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              class="w-full p-2 border rounded"
-              required
-              @input="e => loginForm.username = (e.target as HTMLInputElement).value"
-              autocomplete="chrome-off"
-              data-lpignore="true"
-              data-form-type="other"
-              data-kwimpalastatus="dead"
-              data-kwimpalaid="1234567890"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Heslo:</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              class="w-full p-2 border rounded"
-              required
-              @input="e => loginForm.password = (e.target as HTMLInputElement).value"
-              autocomplete="chrome-off"
-              data-lpignore="true"
-              data-form-type="other"
-              data-kwimpalastatus="dead"
-              data-kwimpalaid="1234567890"
-              readonly
-              onfocus="this.removeAttribute('readonly');"
-            />
-          </div>
-          <div class="flex justify-between">
-            <button
-              type="submit"
-              name="submit"
-              id="submit"
-              value="přihlásit"
-              class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-            >
-              Přihlásit
-            </button>
-            <button
-              @click="showLoginModal = false"
-              class="text-gray-600 hover:text-gray-800"
-            >
-              Zavřít
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -260,7 +188,9 @@ const route = useRoute();
 const { user } = useAuth();
 const { socialMedia, fetchSocialMedia, onSocialMediaUpdate } = useSocialMedia();
 const isMenuOpen = ref(false);
-const showLoginModal = ref(false);
+const memberLink = computed(() =>
+  user.value ? "/clenska-sekce" : "/clenska-sekce/prihlaseni"
+);
 const { scrollToSection } = useScroll();
 
 const isAdminRoute = computed(() => {
@@ -341,30 +271,6 @@ watch(isMenuOpen, (newValue: boolean) => {
     document.body.style.overflow = newValue ? "hidden" : "";
   }
 });
-
-const loginForm = ref({
-  username: "",
-  password: "",
-});
-
-const openLoginModal = () => {
-  // Reset form values when opening
-  loginForm.value = {
-    username: "",
-    password: "",
-  };
-  showLoginModal.value = true;
-
-  /* // Log values after 5 seconds
-  setTimeout(() => {
-    const usernameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
-    const passwordInput = document.querySelector(
-      "#password"
-    ) as HTMLInputElement;
-  }, 5000); */
-};
 
 defineComponent({
   name: "Navigation",
