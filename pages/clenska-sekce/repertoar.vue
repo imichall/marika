@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-8">
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6">
+    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800">
       <div class="flex flex-col gap-6">
         <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div class="space-y-3">
@@ -8,9 +8,9 @@
               <div class="rounded-full bg-red-50 text-red-600 p-3">
                 <Icon name="mdi:music-note-plus" class="text-2xl" />
               </div>
-              <h2 class="text-2xl font-semibold text-slate-900">Repertoár</h2>
+              <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Repertoár</h2>
             </div>
-            <p class="text-sm text-slate-600 leading-relaxed">
+            <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-300">
               Kompletní seznam skladeb seřazený abecedně. Vyhledávejte dle názvu nebo autora, spravujte notové materiály
               a vytvářejte exporty pro hlášení OSA.
             </p>
@@ -46,13 +46,13 @@
           </div>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-inner flex flex-col gap-4">
+        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 shadow-inner flex flex-col gap-4 dark:border-slate-700 dark:bg-slate-800/60">
           <div class="flex flex-wrap gap-2">
             <button
               v-for="letter in alphabet"
               :key="letter"
               class="px-3 py-1.5 rounded-md text-sm font-semibold transition"
-              :class="selectedLetter === letter ? 'bg-red-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100'"
+              :class="selectedLetter === letter ? 'bg-red-600 text-white shadow-sm dark:bg-red-500' : 'bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'"
               @click="selectedLetter = letter"
             >
               {{ letter }}
@@ -72,112 +72,114 @@
       </div>
     </section>
 
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-12"></th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Název skladby</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Autor / Autoři</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Noty</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-slate-200">
-            <tr v-if="loading">
-              <td colspan="5" class="px-4 py-10 text-center text-slate-500">
-                <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
-                Načítám repertoár...
-              </td>
-            </tr>
-            <tr v-else-if="!filteredItems.length">
-              <td colspan="5" class="px-4 py-10 text-center text-slate-500">
-                Žádné skladby odpovídající vyhledávání.
-              </td>
-            </tr>
-            <tr
-              v-for="item in filteredItems"
-              :key="item.id"
-              :class="selectedIds.has(item.id) ? 'bg-red-50/50' : ''"
-            >
-              <td class="px-4 py-3 align-top">
-                <input
-                  type="checkbox"
-                  class="rounded border-slate-300 text-red-600 focus:ring-red-500"
-                  :checked="selectedIds.has(item.id)"
-                  @change="toggleSelection(item.id)"
-                />
-              </td>
-              <td class="px-4 py-3 align-top">
-                <p class="text-sm font-semibold text-slate-900">{{ item.title }}</p>
-                <p v-if="item.description" class="text-xs text-slate-500 mt-1">{{ item.description }}</p>
-              </td>
-              <td class="px-4 py-3 align-top">
-                <p class="text-sm text-slate-700">{{ item.authors || '—' }}</p>
-              </td>
-              <td class="px-4 py-3 align-top">
-                <div class="flex flex-col gap-2">
-                  <div
-                    v-for="file in item.files"
-                    :key="file.id"
-                    class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm"
-                  >
-                    <div>
-                      <p class="font-medium text-slate-800">{{ file.file_name }}</p>
-                      <p v-if="file.voice_part" class="text-xs text-slate-500">hlas: {{ file.voice_part }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <button
-                        class="inline-flex items-center justify-center text-slate-500 hover:text-slate-900"
-                        @click="downloadFile(file)"
-                        title="Stáhnout"
-                      >
-                        <Icon name="mdi:download" class="text-lg" />
-                      </button>
-                      <button
-                        v-if="permissions.edit || permissions.delete"
-                        class="inline-flex items-center justify-center text-slate-500 hover:text-red-600"
-                        @click="confirmRemoveFile(file)"
-                        title="Smazat"
-                      >
-                        <Icon name="mdi:delete" class="text-lg" />
-                      </button>
+    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm dark:bg-slate-900/80 dark:border-slate-800">
+      <div class="overflow-hidden rounded-2xl">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <thead class="bg-slate-50 dark:bg-slate-800/60">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-12"></th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Název skladby</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Autor / Autoři</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Noty</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200 dark:bg-slate-900 dark:divide-slate-800">
+              <tr v-if="loading">
+                <td colspan="5" class="px-4 py-10 text-center text-slate-500">
+                  <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
+                  Načítám repertoár...
+                </td>
+              </tr>
+              <tr v-else-if="!filteredItems.length">
+                <td colspan="5" class="px-4 py-10 text-center text-slate-500">
+                  Žádné skladby odpovídající vyhledávání.
+                </td>
+              </tr>
+              <tr
+                v-for="item in filteredItems"
+                :key="item.id"
+                :class="selectedIds.has(item.id) ? 'bg-red-50/50' : ''"
+              >
+                <td class="px-4 py-3 align-top">
+                  <input
+                    type="checkbox"
+                    class="rounded border-slate-300 text-red-600 focus:ring-red-500"
+                    :checked="selectedIds.has(item.id)"
+                    @change="toggleSelection(item.id)"
+                  />
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
+                  <p v-if="item.description" class="text-xs text-slate-500 mt-1 dark:text-slate-300/80">{{ item.description }}</p>
+                </td>
+                <td class="px-4 py-3 align-top text-sm text-slate-700 dark:text-slate-200">
+                  <p class="text-sm text-slate-700 dark:text-slate-200">{{ item.authors || '—' }}</p>
+                </td>
+                <td class="px-4 py-3 align-top">
+                  <div class="flex flex-col gap-2">
+                    <div
+                      v-for="file in item.files"
+                      :key="file.id"
+                      class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/60"
+                    >
+                      <div>
+                        <p class="font-medium text-slate-800 dark:text-slate-100">{{ file.file_name }}</p>
+                        <p v-if="file.voice_part" class="text-xs text-slate-500 dark:text-slate-300">hlas: {{ file.voice_part }}</p>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button
+                          class="inline-flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                          @click="downloadFile(file)"
+                          title="Stáhnout"
+                        >
+                          <Icon name="mdi:download" class="text-lg" />
+                        </button>
+                        <button
+                          v-if="permissions.edit || permissions.delete"
+                          class="inline-flex items-center justify-center text-slate-500 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-300"
+                          @click="confirmRemoveFile(file)"
+                          title="Smazat"
+                        >
+                          <Icon name="mdi:delete" class="text-lg" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <button
-                  v-if="permissions.edit"
-                  class="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-medium text-slate-500 hover:border-red-400 hover:text-red-600 transition-colors"
-                  @click="startUploadFor(item)"
-                >
-                  <Icon name="mdi:plus" class="text-base" />
-                  Přidat další soubory
-                </button>
-              </td>
-              <td class="px-4 py-3 align-top text-right">
-                <div class="inline-flex items-center gap-2">
                   <button
-                    class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                    @click="openEditModal(item)"
-                    :disabled="!permissions.edit"
+                    v-if="permissions.edit"
+                    class="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-medium text-slate-500 hover:border-red-400 hover:text-red-600 transition-colors"
+                    @click="startUploadFor(item)"
                   >
-                    <Icon name="mdi:pencil" class="text-sm" />
-                    Upravit
+                    <Icon name="mdi:plus" class="text-base" />
+                    Přidat další soubory
                   </button>
-                  <button
-                    class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                    @click="confirmDelete(item)"
-                    :disabled="!permissions.delete"
-                  >
-                    <Icon name="mdi:trash-can" class="text-sm" />
-                    Smazat
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="px-4 py-3 align-top text-right">
+                  <div class="inline-flex items-center gap-2">
+                    <button
+                      class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                      @click="openEditModal(item)"
+                      :disabled="!permissions.edit"
+                    >
+                      <Icon name="mdi:pencil" class="text-sm" />
+                      Upravit
+                    </button>
+                    <button
+                      class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
+                      @click="confirmDelete(item)"
+                      :disabled="!permissions.delete"
+                    >
+                      <Icon name="mdi:trash-can" class="text-sm" />
+                      Smazat
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 

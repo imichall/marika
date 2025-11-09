@@ -1,13 +1,8 @@
 <template>
   <!-- Frontend Navigation -->
-  <nav
-    v-if="!isAdminRoute"
-    class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800"
-  >
+  <nav v-if="!isAdminRoute" class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800">
     <div class="bg-black">
-      <div
-        class="container mx-auto px-4 py-2 flex justify-between items-center"
-      >
+      <div class="container mx-auto px-4 py-2 flex justify-between items-center">
         <!-- Social Icons -->
         <div class="flex items-center space-x-4">
           <a
@@ -95,34 +90,18 @@
         </div>
       </div>
     </div>
-
-    <!-- Mobilní menu trigger -->
-    <button
-      @click="toggleMenu"
-      class="md:hidden fixed top-10 right-4 z-50 flex flex-col gap-3 p-2"
-      :class="{ hidden: isMenuOpen }"
-    >
-      <span
-        class="w-16 h-1.5 bg-black transition-all duration-300 rounded-sm"
-      ></span>
-      <span
-        class="w-8 h-1.5 self-end bg-black transition-all duration-300 rounded-sm"
-      ></span>
-    </button>
-
-    <!-- Desktop menu -->
-    <div class="container mx-auto px-4 py-2">
-      <div class="flex justify-between items-center">
-        <div class="logo flex items-center">
+    <div class="bg-white">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center">
           <NuxtLink to="/">
             <img
               src="/images/svg/marika-singers-logo.svg"
-              alt="Logo"
+              alt="Marika Singers"
               class="w-[68px] min-w-[68px] h-auto"
             />
           </NuxtLink>
         </div>
-        <div class="hidden md:flex space-x-6">
+        <div class="hidden md:flex items-center space-x-6">
           <button
             v-for="item in visibleMenuItems"
             :key="item.id"
@@ -165,7 +144,6 @@
       </div>
     </Transition>
   </nav>
-
 </template>
 
 <script setup lang="ts">
@@ -176,8 +154,8 @@ import {
   onMounted,
   onUnmounted,
   defineComponent,
-} from "#imports";
-import { useRouter, useRoute } from "#imports";
+} from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "~/composables/useAuth";
 import { useSocialMedia } from "~/composables/useSocialMedia";
 import { useScroll } from "~/composables/useScroll";

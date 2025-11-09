@@ -13,27 +13,27 @@
         v-for="card in cards"
         :key="card.href"
         :to="card.href"
-        class="group rounded-2xl bg-white shadow-sm hover:shadow-xl transition shadow duration-200 border border-slate-100 p-6 flex flex-col gap-3"
+        class="group rounded-2xl bg-white shadow hover:shadow-xl transition duration-200 border border-slate-100 p-6 flex flex-col gap-3 dark:bg-slate-900/80 dark:border-slate-800 dark:hover:bg-slate-800"
       >
         <div class="flex items-center gap-3">
-          <div class="rounded-full bg-red-50 text-red-600 p-3">
+          <div class="rounded-full bg-red-50 text-red-600 p-3 dark:bg-red-500/20 dark:text-red-200">
             <Icon :name="card.icon" class="text-2xl" />
           </div>
-          <h3 class="text-lg font-semibold text-slate-900">{{ card.title }}</h3>
+          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ card.title }}</h3>
         </div>
-        <p class="text-sm text-slate-600 flex-1">
+        <p class="text-sm text-slate-600 flex-1 dark:text-slate-300">
           {{ card.description }}
         </p>
-        <span class="inline-flex items-center gap-2 text-sm font-medium text-red-600 group-hover:gap-3 transition-all">
+        <span class="inline-flex items-center gap-2 text-sm font-medium text-red-600 group-hover:gap-3 transition-all dark:text-red-300">
           Přesunout se
           <Icon name="mdi:arrow-right" class="text-lg" />
         </span>
       </NuxtLink>
     </section>
 
-    <section class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6">
-      <h3 class="text-lg font-semibold text-slate-900 mb-2">Tipy pro práci s repertoárem</h3>
-      <ul class="list-disc list-inside space-y-2 text-sm text-slate-600">
+    <section class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800">
+      <h3 class="text-lg font-semibold text-slate-900 mb-2 dark:text-white">Tipy pro práci s repertoárem</h3>
+      <ul class="list-disc list-inside space-y-2 text-sm text-slate-600 dark:text-slate-300">
         <li>Vyberte více skladeb pomocí zaškrtávacích políček a exportujte je do Excelu pro hlášení na OSA.</li>
         <li>Každá skladba může mít více souborů podle hlasů – při nahrávání je možné je označit.</li>
         <li>Vyhledávání funguje podle názvu i autora, můžete také filtrovat abecedně podle počátečního písmene.</li>

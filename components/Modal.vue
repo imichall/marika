@@ -32,18 +32,18 @@
             leave-to="opacity-0 scale-95"
           >
             <DialogPanel
-              class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+              class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all dark:bg-slate-900 dark:text-slate-100"
             >
               <div class="flex items-center justify-between mb-6">
                 <DialogTitle
                   as="h2"
-                  class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"
+                  class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent dark:from-red-300 dark:to-rose-300"
                 >
                   {{ title }}
                 </DialogTitle>
                 <button
                   @click="$emit('update:modelValue', false)"
-                  class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200"
+                  class="rounded-full p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-all duration-200 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800"
                 >
                   <span class="material-icons-outlined">close</span>
                 </button>

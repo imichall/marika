@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-8">
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 space-y-6">
+    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 space-y-6 dark:bg-slate-900/80 dark:border-slate-800">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-3">
           <div class="flex items-center gap-3">
             <div class="rounded-full bg-red-50 text-red-600 p-3">
               <Icon name="mdi:account-group" class="text-2xl" />
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900">Seznam členů</h2>
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Seznam členů</h2>
           </div>
-          <p class="text-sm text-slate-600">
+          <p class="text-sm text-slate-600 dark:text-slate-300">
             Archiv všech, kteří kdy prošli sborem. Evidujte hlasové obsazení, kontakty i poznámky.
           </p>
         </div>
@@ -29,7 +29,7 @@
           <input
             v-model="searchQuery"
             type="search"
-            class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             placeholder="Hledat podle jména, kontaktu nebo poznámky..."
           />
         </div>
@@ -61,10 +61,12 @@
       </div>
     </section>
 
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm">
+    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm dark:bg-slate-900/80 dark:border-slate-800">
+      <div class="overflow-hidden rounded-2xl">
+
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50">
+        <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+          <thead class="bg-slate-50 dark:bg-slate-800/60">
             <tr>
               <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Jméno</th>
               <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Hlas</th>
@@ -74,7 +76,7 @@
               <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Akce</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-slate-200">
+          <tbody class="bg-white divide-y divide-slate-200 dark:bg-slate-900 dark:divide-slate-800">
             <tr v-if="loading">
               <td colspan="6" class="px-4 py-10 text-center text-slate-500">
                 <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
@@ -98,29 +100,29 @@
                     :class="member.is_active ? 'bg-emerald-500' : 'bg-slate-300'"
                   />
                   <div>
-                    <p class="text-sm font-semibold text-slate-900">{{ member.full_name }}</p>
-                    <p class="text-xs text-slate-500">
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ member.full_name }}</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-300">
                       {{ member.is_active ? 'Aktivní člen' : 'Bývalý člen' }}
                     </p>
                   </div>
                 </div>
               </td>
-              <td class="px-4 py-3 text-sm text-slate-700">
+              <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 {{ member.voice_part || '—' }}
               </td>
-              <td class="px-4 py-3 text-sm text-slate-700">
+              <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 <div class="space-y-1">
                   <p v-if="member.email">
                     <Icon name="mdi:email-outline" class="inline mr-1 text-red-500" />
-                    <a :href="`mailto:${member.email}`" class="hover:underline">{{ member.email }}</a>
+                    <a :href="`mailto:${member.email}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.email }}</a>
                   </p>
                   <p v-if="member.phone">
                     <Icon name="mdi:phone" class="inline mr-1 text-red-500" />
-                    <a :href="`tel:${member.phone}`" class="hover:underline">{{ member.phone }}</a>
+                    <a :href="`tel:${member.phone}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.phone }}</a>
                   </p>
                 </div>
               </td>
-              <td class="px-4 py-3 text-sm text-slate-700">
+              <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 <p>
                   {{ member.joined_at ? formatDate(member.joined_at) : '—' }}
                   –
@@ -128,12 +130,12 @@
                 </p>
               </td>
               <td class="px-4 py-3 text-sm text-slate-600 max-w-xs">
-                <p class="line-clamp-3">{{ member.notes || '—' }}</p>
+                <p class="line-clamp-3 text-slate-600 dark:text-slate-300">{{ member.notes || '—' }}</p>
               </td>
               <td class="px-4 py-3 text-right">
                 <div class="inline-flex items-center gap-2">
                   <button
-                    class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                    class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                     @click="openEditModal(member)"
                     :disabled="!permissions.edit"
                   >
@@ -141,7 +143,7 @@
                     Upravit
                   </button>
                   <button
-                    class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
                     @click="confirmDelete(member)"
                     :disabled="!permissions.delete"
                   >
@@ -153,6 +155,7 @@
             </tr>
           </tbody>
         </table>
+      </div>
       </div>
     </section>
 
