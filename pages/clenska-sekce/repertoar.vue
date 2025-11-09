@@ -64,7 +64,7 @@
             <input
               v-model="searchQuery"
               type="search"
-              class="w-full rounded-lg border border-slate-200 bg-white pl-10 pr-4 py-2 text-sm text-slate-800 shadow-sm focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
               placeholder="Hledat dle názvu nebo autora..."
             />
           </div>

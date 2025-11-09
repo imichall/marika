@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full px-4 py-8 pb-20">
+  <div class="w-full px-4 py-8 pb-20 text-slate-900 dark:text-slate-100">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
@@ -17,82 +17,150 @@
     <!-- Error state -->
     <div
       v-else-if="error"
-      class="bg-red-50 text-red-600 p-4 rounded-lg text-center"
+      class="bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-200 border border-red-200/70 dark:border-red-800/50 p-4 rounded-lg text-center"
     >
       {{ error }}
     </div>
 
     <!-- Permissions matrix -->
-    <div v-else class="bg-white rounded-xl shadow-sm overflow-hidden p-6">
-      <div class="mb-6">
-        <h2 class="text-lg font-semibold mb-2">Matice oprávnění</h2>
-        <p class="text-gray-600">
-          Zde můžete spravovat oprávnění pro jednotlivé role a sekce.
-        </p>
-      </div>
-
-      <!-- Role tabs -->
-      <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex space-x-8">
-          <button
-            v-for="role in ['admin', 'editor', 'viewer']"
-            :key="role"
-            @click="selectedRole = role"
-            class="py-2 px-1 border-b-2 font-medium text-sm"
-            :class="[
-              selectedRole === role
-                ? 'border-violet-500 text-violet-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-            ]"
-          >
-            {{ getRoleName(role) }}
-          </button>
-        </nav>
-      </div>
-
-      <!-- Permissions grid -->
-      <div class="grid gap-6">
-        <div
-          v-for="section in groupedPermissions"
-          :key="section.name"
-          class="bg-gray-50 rounded-lg p-4"
-        >
-          <h3 class="font-medium text-gray-900 mb-4">
-            {{ getSectionName(section.name) }}
-          </h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div
-              v-for="permission in section.permissions"
-              :key="permission.id"
-              class="flex items-center"
-            >
-              <label class="flex items-center space-x-3">
-                <input
-                  type="checkbox"
-                  :checked="hasPermission(selectedRole, permission.id)"
-                  @change="togglePermission(selectedRole, permission.id)"
-                  :disabled="selectedRole === 'admin'"
-                  class="h-4 w-4 text-violet-600 focus:ring-violet-500 border-gray-300 rounded"
-                />
-                <span class="text-sm text-gray-700">{{
-                  permission.description
-                }}</span>
-              </label>
-            </div>
-          </div>
+    <div
+      v-else
+      class="bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden"
+    >
+      <div class="p-6 lg:p-8">
+        <div class="mb-6">
+          <h2 class="text-lg font-semibold mb-2">Matice oprávnění</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-300">
+            Zde můžete spravovat oprávnění pro jednotlivé role a sekce.
+          </p>
         </div>
-      </div>
 
-      <!-- Save button -->
-      <div class="mt-6 flex justify-end">
-        <button
-          @click="savePermissions"
-          class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors duration-200 disabled:opacity-50"
-          :disabled="selectedRole === 'admin' || saving"
+        <!-- Role tabs -->
+        <div class="border-b border-slate-200 dark:border-slate-700 mb-6">
+          <nav class="-mb-px flex flex-wrap gap-4">
+            <button
+              v-for="role in ['admin', 'editor', 'viewer']"
+              :key="role"
+              @click="selectedRole = role"
+              class="py-2 px-1 border-b-2 font-medium text-sm transition-colors"
+              :class="[
+                selectedRole === role
+                  ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:border-slate-500',
+              ]"
+            >
+              {{ getRoleName(role) }}
+            </button>
+          </nav>
+        </div>
+
+        <div
+          v-if="selectedRole === 'admin'"
+          class="mb-6 rounded-xl border border-violet-200/70 dark:border-violet-500/40 bg-violet-50/80 dark:bg-violet-500/10 px-4 py-3 text-sm text-violet-800 dark:text-violet-200"
         >
-          <span v-if="saving" class="inline-block animate-spin mr-2">⌛</span>
-          Uložit změny
-        </button>
+          Administrátor má vždy všechna oprávnění a není možné je upravit.
+        </div>
+
+        <!-- Permissions grid -->
+        <div class="space-y-6">
+          <section
+            v-for="section in groupedPermissions"
+            :key="section.name"
+            class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40"
+          >
+            <header class="px-4 py-3 border-b border-slate-200/70 dark:border-slate-700">
+              <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="font-semibold text-slate-900 dark:text-slate-100">
+                    {{ getSectionName(section.name) }}
+                  </h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-300">
+                    {{ formatPermissionCount(section.permissions.length) }}
+                  </p>
+                </div>
+              </div>
+            </header>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                <thead class="bg-slate-100/80 dark:bg-slate-800/60">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300"
+                    >
+                      Oprávnění
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300"
+                    >
+                      Popis
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 text-right"
+                    >
+                      Stav
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                  <tr
+                    v-for="permission in section.permissions"
+                    :key="permission.id"
+                    class="bg-white odd:bg-white even:bg-slate-50 dark:odd:bg-slate-900/60 dark:even:bg-slate-900/30"
+                  >
+                    <td class="px-4 py-3 align-top">
+                      <div class="flex flex-col gap-1">
+                        <span class="text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {{ getPermissionLabel(permission) }}
+                        </span>
+                        <span
+                          class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400"
+                        >
+                          {{ permission.action }}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <p class="text-sm text-slate-600 dark:text-slate-200">
+                        {{ permission.description || 'Popis není k dispozici' }}
+                      </p>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <label
+                        class="flex items-center justify-end gap-3 text-sm font-medium text-slate-700 dark:text-slate-200"
+                      >
+                        <span class="hidden sm:inline" :class="{ 'text-green-500': hasPermission(selectedRole, permission.id), 'text-red-500': !hasPermission(selectedRole, permission.id) }">
+                          {{ hasPermission(selectedRole, permission.id) ? 'Povoleno' : 'Zakázáno' }}
+                        </span>
+                        <input
+                          type="checkbox"
+                          :checked="hasPermission(selectedRole, permission.id)"
+                          @change="togglePermission(selectedRole, permission.id)"
+                          :disabled="selectedRole === 'admin'"
+                          class="h-5 w-5 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-violet-600 focus:ring-violet-500 dark:focus:ring-violet-400 disabled:opacity-60"
+                        />
+                      </label>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Save button -->
+        <div class="mt-8 flex justify-end">
+          <button
+            @click="savePermissions"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            :disabled="selectedRole === 'admin' || saving"
+          >
+            <span v-if="saving" class="inline-block animate-spin">⌛</span>
+            <span>{{ saving ? 'Ukládám změny…' : 'Uložit změny' }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -164,19 +232,57 @@ const fetchPermissions = async () => {
   }
 };
 
-// Seskupení oprávnění podle sekcí
+const actionLabels = {
+  view: "Zobrazení",
+  create: "Vytváření",
+  edit: "Úprava",
+  delete: "Mazání",
+  manage: "Správa",
+  complete: "Dokončení",
+  cancel: "Zrušení",
+};
+
+const getPermissionLabel = (permission) => {
+  const sectionLabel = (getSectionName(permission.section) || "").toLowerCase();
+  const actionLabel = actionLabels[permission.action] || permission.action;
+
+  if (!sectionLabel) {
+    return actionLabel;
+  }
+
+  return `${actionLabel} ${sectionLabel}`;
+};
+
 const groupedPermissions = computed(() => {
-  const groups = {};
+  const groups = new Map();
+
   permissions.value.forEach((perm) => {
-    if (!groups[perm.section]) {
-      groups[perm.section] = {
-        name: perm.section,
+    const sectionKey = perm.section || "ostatni";
+    if (!groups.has(sectionKey)) {
+      groups.set(sectionKey, {
+        name: sectionKey,
         permissions: [],
-      };
+      });
     }
-    groups[perm.section].permissions.push(perm);
+    groups.get(sectionKey)?.permissions.push(perm);
   });
-  return Object.values(groups);
+
+  return Array.from(groups.values())
+    .map((group) => ({
+      ...group,
+      permissions: [...group.permissions].sort((a, b) =>
+        getPermissionLabel(a).localeCompare(getPermissionLabel(b), "cs", {
+          sensitivity: "base",
+        })
+      ),
+    }))
+    .sort((a, b) =>
+      (getSectionName(a.name) || "").localeCompare(
+        getSectionName(b.name) || "",
+        "cs",
+        { sensitivity: "base" }
+      )
+    );
 });
 
 // Kontrola, zda role má dané oprávnění
@@ -271,6 +377,16 @@ const savePermissions = async () => {
   }
 };
 
+const formatPermissionCount = (count) => {
+  if (count === 1) {
+    return "1 oprávnění";
+  }
+  if (count >= 2 && count <= 4) {
+    return `${count} oprávnění`;
+  }
+  return `${count} oprávnění`;
+};
+
 // Překlad rolí do češtiny
 const getRoleName = (role) => {
   const roles = {
@@ -301,8 +417,34 @@ const getSectionName = (section) => {
     member_directory: "Členský seznam",
     member_resources: "Dokumenty ke stažení",
     members_area: "Členská sekce",
+    ostatni: "Ostatní",
   };
   return sections[section] || section;
+};
+
+// Helper to get a label for a section name
+const getSectionLabel = (sectionName) => {
+  const sections = {
+    concerts: "Koncerty",
+    gallery: "Galerie",
+    testimonials: "Reference",
+    orders: "Objednávky",
+    social_media: "Sociální sítě",
+    contacts: "Kontakty",
+    choir_groups: "Skupiny",
+    settings: "Nastavení",
+    users: "Uživatelé",
+    form_messages: "Zprávy z formuláře",
+    emails: "Emaily",
+    gallery_layout: "Rozložení galerie",
+    forum: "Fórum",
+    repertoire: "Repertoár",
+    member_directory: "Členský seznam",
+    member_resources: "Dokumenty ke stažení",
+    members_area: "Členská sekce",
+    ostatni: "Ostatní",
+  };
+  return sections[sectionName] || sectionName;
 };
 
 onMounted(async () => {
