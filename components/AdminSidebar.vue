@@ -167,6 +167,7 @@ const permissions = ref({
   audit: { view: false },
   settings: { view: false },
   forum: { view: false },
+  members_area: { view: false },
 });
 
 // Load permissions
@@ -297,6 +298,11 @@ const sidebarSections = computed(() =>
           name: "Média",
           to: "/admin/media",
           icon: "perm_media",
+        },
+        permissions.value.members_area?.view && {
+          name: "Členská sekce",
+          to: "/clenska-sekce",
+          icon: "account_circle",
         },
       ].filter(Boolean),
     },

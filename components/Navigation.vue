@@ -49,7 +49,7 @@
         <!-- Login a Admin Buttons -->
         <div class="flex items-center gap-4">
           <NuxtLink
-            v-if="user"
+            v-if="canAccessAdmin"
             to="/admin"
             class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
@@ -87,6 +87,13 @@
               />
             </svg>
           </NuxtLink>
+          <span
+            v-if="currentUserEmail"
+            class="hidden sm:inline-flex items-center gap-2 text-sm text-white/80"
+          >
+            <Icon name="mdi:account-circle" class="text-lg" />
+            {{ currentUserEmail }}
+          </span>
         </div>
       </div>
     </div>
@@ -160,6 +167,8 @@ import { useAuth } from "~/composables/useAuth";
 import { useSocialMedia } from "~/composables/useSocialMedia";
 import { useScroll } from "~/composables/useScroll";
 import type { SocialMedia, MenuItem } from "~/types";
+// @ts-ignore Nuxt runtime import
+import { useSupabaseClient, useState } from "#imports";
 
 const router = useRouter();
 const route = useRoute();
@@ -170,14 +179,55 @@ const memberLink = computed(() =>
   user.value ? "/clenska-sekce" : "/clenska-sekce/prihlaseni"
 );
 const { scrollToSection } = useScroll();
+const supabase = useSupabaseClient();
+const sharedUser = useState<{ email: string | null; role: string }>(
+  "current-user-role",
+  () => ({ email: null, role: "viewer" })
+);
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
 });
 
+const currentUserEmail = computed(() => sharedUser.value?.email ?? user.value?.email ?? "");
+const canAccessAdmin = computed(() =>
+  ["admin", "editor"].includes(sharedUser.value?.role ?? "viewer")
+);
+
+const loadUserRole = async () => {
+  if (!user.value?.email) {
+    sharedUser.value = { email: null, role: "viewer" };
+    return;
+  }
+
+  if (
+    sharedUser.value.email === user.value.email &&
+    sharedUser.value.role !== "viewer"
+  ) {
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", user.value.email)
+      .single();
+
+    sharedUser.value = {
+      email: user.value.email,
+      role: !error && data?.role ? data.role : "viewer",
+    };
+  } catch (err) {
+    console.error("Nepodařilo se načíst roli uživatele:", err);
+    sharedUser.value = { email: user.value.email, role: "viewer" };
+  }
+};
+
 // Initial data fetch and event listener setup
 onMounted(async () => {
   await fetchSocialMedia();
+  await loadUserRole();
   const cleanup = onSocialMediaUpdate(async () => {
     await fetchSocialMedia();
   });
@@ -249,6 +299,13 @@ watch(isMenuOpen, (newValue: boolean) => {
     document.body.style.overflow = newValue ? "hidden" : "";
   }
 });
+
+watch(
+  () => user.value?.email,
+  async () => {
+    await loadUserRole();
+  }
+);
 
 defineComponent({
   name: "Navigation",
