@@ -440,6 +440,13 @@
   dependencies:
     "@iconify/types" "*"
 
+"@iconify-json/ph@^1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@iconify-json/ph/-/ph-1.2.2.tgz#eac734e80f4639df6ade990690a825540b4259c4"
+  integrity sha512-PgkEZNtqa8hBGjHXQa4pMwZa93hmfu8FUSjs/nv4oUU6yLsgv+gh9nu28Kqi8Fz9CCVu4hj1MZs9/60J57IzFw==
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify/collections@^1.0.425":
   version "1.0.615"
   resolved "https://registry.yarnpkg.com/@iconify/collections/-/collections-1.0.615.tgz#aec992ec9e6625f97a81c63dc12e655cf92b905f"

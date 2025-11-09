@@ -10,6 +10,7 @@
     <NuxtLayout>
       <NuxtPage />
       <Footer v-if="!isAdminRoute && !isConcertRoute" />
+      <ConsentManager v-if="!isAdminRoute" />
     </NuxtLayout>
   </div>
 </template>
@@ -20,6 +21,7 @@ import { useRoute } from "#imports";
 import { computed } from "vue";
 import Navigation from "~/components/Navigation.vue";
 import Footer from "~/components/Footer.vue";
+import ConsentManager from "~/components/ConsentManager.vue";
 
 const { isAuthenticated } = useAuth();
 const route = useRoute();

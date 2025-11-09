@@ -70,7 +70,8 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY,
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
+      privacyPolicyUrl: process.env.NUXT_PUBLIC_PRIVACY_POLICY_URL || "/zasady-ochrany-soukromi"
     },
     // Server-only environment variables
     supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,

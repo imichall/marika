@@ -195,11 +195,16 @@
     <div class="relative">
       <div class="absolute inset-0 bg-black"></div>
       <div class="container mx-auto px-4 py-8 relative">
-        <div class="text-center text-gray-300">
-          <p class="text-sm">
-            © {{ new Date().getFullYear() }} Marika Singers, z.s. | Všechna
-            práva vyhrazena
+        <div class="flex flex-col items-center justify-center gap-2 text-center text-gray-300 text-sm md:flex-row md:gap-3">
+          <p>
+            © {{ new Date().getFullYear() }} Marika Singers, z.s. | Všechna práva vyhrazena
           </p>
+          <NuxtLink
+            to="/zasady-ochrany-soukromi"
+            class="text-rose-200 underline decoration-rose-400/40 transition hover:decoration-rose-200 hover:text-white"
+          >
+            Zásady ochrany soukromí
+          </NuxtLink>
         </div>
       </div>
     </div>
