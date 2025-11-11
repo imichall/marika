@@ -1,14 +1,14 @@
 # Vytvořím novou stránku pro správu zpráv z formuláře
 <template>
-  <div class="w-full px-4 py-8 pb-20">
+  <div class="w-full px-4 py-8 pb-20 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
     <!-- Header sekce -->
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold">Zprávy z formuláře</h1>
-        <p class="text-gray-600 mt-2">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Zprávy z formuláře</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">
           Spravujte zprávy od návštěvníků a schvalujte reference
         </p>
       </div>
@@ -17,73 +17,73 @@
     <!-- Loading stav -->
     <div v-if="loading" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"
       ></div>
-      <p class="mt-2 text-gray-600">Načítání zpráv...</p>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Načítání zpráv...</p>
     </div>
 
     <!-- Error stav -->
-    <div v-else-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg mb-8">
+    <div v-else-if="error" class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 p-4 rounded-lg mb-8 border border-red-100 dark:border-red-900">
       {{ error }}
     </div>
 
     <!-- Tabulka zpráv -->
-    <div v-else class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div v-else class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Email
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Jméno
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Zpráva
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Stav
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Reference
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Vytvořeno
               </th>
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
               >
                 Akce
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
               v-for="message in messages"
               :key="message.id"
-              class="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors duration-200"
               @click="openDetailModal(message)"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ message.email }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ message.name }}
               </td>
-              <td class="px-6 py-4 text-sm text-gray-900">
+              <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                 <div class="max-w-xs overflow-hidden text-ellipsis">
                   {{ message.message }}
                 </div>
@@ -92,28 +92,28 @@
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   :class="{
-                    'bg-yellow-100 text-yellow-800':
+                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300':
                       message.status === 'pending',
-                    'bg-green-100 text-green-800':
+                    'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300':
                       message.status === 'approved',
-                    'bg-red-100 text-red-800': message.status === 'rejected',
+                    'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300': message.status === 'rejected',
                   }"
                 >
                   {{ getStatusText(message.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   :class="{
-                    'bg-blue-100 text-blue-800': message.is_testimonial,
-                    'bg-gray-100 text-gray-800': !message.is_testimonial,
+                    'bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300': message.is_testimonial,
+                    'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300': !message.is_testimonial,
                   }"
                 >
                   {{ message.is_testimonial ? "Ano" : "Ne" }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ formatDate(message.created_at) }}
               </td>
               <td
@@ -187,23 +187,23 @@
       </div>
 
       <!-- Paginace -->
-      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <div class="text-sm text-gray-700">
+            <div class="text-sm text-gray-700 dark:text-gray-300">
               Zobrazuji {{ startIndex + 1 }} až
               {{ Math.min(endIndex, totalMessages) }} z
               {{ totalMessages }} zpráv
             </div>
             <div class="flex items-center gap-2">
-              <label for="itemsPerPage" class="text-sm text-gray-600"
+              <label for="itemsPerPage" class="text-sm text-gray-600 dark:text-gray-400"
                 >Počet na stránku:</label
               >
               <select
                 id="itemsPerPage"
                 v-model="itemsPerPage"
                 @change="changeItemsPerPage($event.target.value)"
-                class="text-sm border-gray-300 rounded-md focus:border-red-500 focus:ring-red-500"
+                class="text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:border-red-500 focus:ring-red-500"
               >
                 <option value="10">10</option>
                 <option value="25">25</option>
@@ -216,7 +216,7 @@
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Předchozí
             </button>
@@ -226,21 +226,21 @@
                   v-if="page !== '...'"
                   @click="goToPage(page)"
                   :class="[
-                    'px-3 py-1 border rounded-md',
+                    'px-3 py-1 border rounded-md transition-colors',
                     currentPage === page
-                      ? 'bg-red-600 text-white'
-                      : 'hover:bg-gray-100',
+                      ? 'bg-red-600 text-white border-red-600'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300',
                   ]"
                 >
                   {{ page }}
                 </button>
-                <span v-else class="px-2">...</span>
+                <span v-else class="px-2 dark:text-gray-400">...</span>
               </template>
             </div>
             <button
               @click="nextPage"
               :disabled="currentPage === totalPages"
-              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Další
             </button>
@@ -279,15 +279,15 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <div class="relative">
-                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8">
+                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8 text-gray-900 dark:text-gray-100">
                     Detail zprávy
                   </DialogTitle>
                   <button
                     @click="closeDetailModal"
-                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 transition-colors"
+                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <span class="material-icons-outlined">close</span>
                   </button>
@@ -295,34 +295,34 @@
                   <div class="space-y-6">
                     <div class="flex gap-8">
                       <div class="flex-1">
-                        <div class="text-sm text-gray-500 mb-1">Odesílatel</div>
-                        <div class="font-medium">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Odesílatel</div>
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
                           {{ selectedMessage?.name }}
                         </div>
-                        <div class="text-sm text-gray-600">
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
                           {{ selectedMessage?.email }}
                         </div>
                       </div>
                       <div class="flex-1">
-                        <div class="text-sm text-gray-500 mb-1">
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">
                           Datum odeslání
                         </div>
-                        <div class="font-medium">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
                           {{ formatDate(selectedMessage?.created_at) }}
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <div class="text-sm text-gray-500 mb-2">Stav</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">Stav</div>
                       <span
                         class="px-3 py-1 text-sm font-medium rounded-full"
                         :class="{
-                          'bg-yellow-100 text-yellow-800':
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300':
                             selectedMessage?.status === 'pending',
-                          'bg-green-100 text-green-800':
+                          'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300':
                             selectedMessage?.status === 'approved',
-                          'bg-red-100 text-red-800':
+                          'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300':
                             selectedMessage?.status === 'rejected',
                         }"
                       >
@@ -331,9 +331,9 @@
                     </div>
 
                     <div>
-                      <div class="text-sm text-gray-500 mb-2">Zpráva</div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">Zpráva</div>
                       <div
-                        class="bg-gray-50 p-4 rounded-lg text-gray-800 whitespace-pre-wrap"
+                        class="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-lg text-gray-800 dark:text-gray-100 whitespace-pre-wrap"
                       >
                         {{ selectedMessage?.message }}
                       </div>
@@ -417,15 +417,15 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-8 shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <div class="relative">
-                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8">
+                  <DialogTitle as="h3" class="text-2xl font-bold mb-6 pr-8 text-gray-900 dark:text-gray-100">
                     Upravit zprávu
                   </DialogTitle>
                   <button
                     @click="closeEditModal"
-                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 transition-colors"
+                    class="absolute top-0 right-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                   >
                     <span class="material-icons-outlined">close</span>
                   </button>
@@ -433,7 +433,7 @@
                   <form @submit.prevent="handleEditSubmit" class="space-y-6">
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Email
                       </label>
@@ -441,13 +441,13 @@
                         v-model="editForm.email"
                         type="email"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Jméno
                       </label>
@@ -455,13 +455,13 @@
                         v-model="editForm.name"
                         type="text"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Zpráva
                       </label>
@@ -469,7 +469,7 @@
                         v-model="editForm.message"
                         required
                         rows="4"
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
                       ></textarea>
                     </div>
 
@@ -477,7 +477,7 @@
                       <button
                         type="button"
                         @click="closeEditModal"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
                       >
                         Zrušit
                       </button>
@@ -527,31 +527,31 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-xl font-bold text-gray-900 mb-4"
+                  class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4"
                 >
                   Smazat zprávu?
                 </DialogTitle>
 
                 <div class="mt-2">
-                  <p class="text-gray-600">
+                  <p class="text-gray-600 dark:text-gray-400">
                     Opravdu chcete smazat tuto zprávu? Tuto akci nelze vrátit
                     zpět.
                   </p>
 
-                  <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                  <div class="mt-4 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
                     <div class="text-sm">
-                      <div class="font-medium text-gray-700">Od:</div>
-                      <div class="text-gray-600">
+                      <div class="font-medium text-gray-700 dark:text-gray-300">Od:</div>
+                      <div class="text-gray-600 dark:text-gray-400">
                         {{ messageToDelete?.email }}
                       </div>
                     </div>
                     <div class="text-sm mt-2">
-                      <div class="font-medium text-gray-700">Zpráva:</div>
-                      <div class="text-gray-600">
+                      <div class="font-medium text-gray-700 dark:text-gray-300">Zpráva:</div>
+                      <div class="text-gray-600 dark:text-gray-400">
                         {{ messageToDelete?.message }}
                       </div>
                     </div>
@@ -561,7 +561,7 @@
                 <div class="mt-6 flex justify-end gap-3">
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
                     @click="closeDeleteModal"
                   >
                     Zrušit

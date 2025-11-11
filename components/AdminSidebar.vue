@@ -151,7 +151,7 @@ const supabase = useSupabaseClient();
 const { concerts } = useConcerts();
 const { testimonials } = useTestimonials();
 const { orders } = useTicketOrders();
-const { messages } = useFormMessages();
+const { messages, fetchAllMessages } = useFormMessages();
 
 // Permissions
 const permissions = ref({
@@ -343,6 +343,10 @@ const sidebarSections = computed(() =>
 
 onMounted(async () => {
   await loadPermissions();
+  // Načtení zpráv pro zobrazení pending countu
+  if (permissions.value.form_messages.view) {
+    await fetchAllMessages();
+  }
 });
 </script>
 
