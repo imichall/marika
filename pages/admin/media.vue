@@ -1,13 +1,13 @@
 <template>
-  <div class="p-6">
+  <div class="p-6 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
     <!-- Breadcrumbs -->
     <div class="mb-6">
       <AdminBreadcrumbs />
     </div>
 
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Správa médií</h1>
-      <p class="mt-1 text-sm text-gray-600">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Správa médií</h1>
+      <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
         Zde můžete spravovat a optimalizovat obrázky na webu.
       </p>
     </div>

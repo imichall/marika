@@ -1,15 +1,15 @@
 <template>
-  <div class="p-4 bg-white rounded-lg shadow">
+  <div class="p-4 bg-white dark:bg-gray-900 rounded-lg shadow border border-gray-200 dark:border-gray-700 transition-colors duration-200">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold">Optimalizace obrázků</h2>
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Optimalizace obrázků</h2>
       <div class="flex items-center gap-3">
-        <span v-if="processing" class="text-sm text-gray-600">
+        <span v-if="processing" class="text-sm text-gray-600 dark:text-gray-400">
           Zpracováno: {{ processedCount }}/{{ totalImages }}
         </span>
         <button
           @click="startOptimization"
           :disabled="processing"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-white rounded-lg transition-colors duration-200"
         >
           <span class="material-icons-outlined text-xl" v-if="processing"
             >sync</span
@@ -22,28 +22,30 @@
 
     <!-- Progress -->
     <div v-if="processing" class="space-y-4">
-      <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
         <div
-          class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+          class="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-300"
           :style="{ width: `${(processedCount / totalImages) * 100}%` }"
         ></div>
       </div>
-      <div v-if="currentFile" class="text-sm text-gray-600">
+      <div v-if="currentFile" class="text-sm text-gray-600 dark:text-gray-400">
         Zpracovávám: {{ currentBucket }}/{{ currentFile }}
       </div>
     </div>
 
     <!-- Results -->
     <div v-if="results.length > 0" class="mt-4">
-      <h3 class="text-sm font-medium mb-2">Výsledky optimalizace:</h3>
+      <h3 class="text-sm font-medium mb-2 text-gray-900 dark:text-gray-100">
+        Výsledky optimalizace:
+      </h3>
       <div class="space-y-2">
         <div
           v-for="(result, index) in results"
           :key="index"
-          class="text-sm"
+          class="text-sm transition-colors duration-200"
           :class="{
-            'text-green-600': result.success,
-            'text-red-600': !result.success,
+            'text-green-600 dark:text-green-400': result.success,
+            'text-red-600 dark:text-red-400': !result.success,
           }"
         >
           {{ result.message }}

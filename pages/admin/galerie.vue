@@ -1,21 +1,21 @@
 <template>
-  <div class="w-full px-4 py-8 pb-10">
+  <div class="w-full px-4 py-8 pb-10 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Správa galerie</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Správa galerie</h1>
       <div class="flex gap-4">
         <button
           @click="handleClearCache"
-          class="inline-flex items-center gap-2 bg-gray-500 text-white px-6 py-3 rounded-xl hover:bg-gray-600 transition-all duration-300 shadow-sm hover:shadow-md"
+          class="inline-flex items-center gap-2 bg-gray-500 dark:bg-gray-700 text-white px-6 py-3 rounded-xl hover:bg-gray-600 dark:hover:bg-gray-600 transition-all duration-300 shadow-sm hover:shadow-md"
         >
           Obnovit
         </button>
         <button
           v-if="permissions.create"
           @click="zobrazitModalNahraniFotek = true"
-          class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow-md"
+          class="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-600 hover:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 transition-all duration-300 shadow-sm hover:shadow-md"
           :disabled="nacitani"
         >
           <svg
@@ -38,10 +38,10 @@
     </div>
 
     <div v-if="nacitani" class="text-center py-8">
-      <p>Načítání...</p>
+      <p class="text-gray-600 dark:text-gray-400">Načítání...</p>
     </div>
 
-    <div v-else-if="error" class="text-center py-8 text-red-600">
+    <div v-else-if="error" class="text-center py-8 text-red-600 dark:text-red-400">
       <p>{{ error }}</p>
     </div>
 
@@ -110,7 +110,7 @@
         class="px-4 py-2 rounded-lg transition-colors duration-200"
         :class="{
           'bg-red-500 text-white': currentPage === page,
-          'bg-gray-200 hover:bg-gray-300': currentPage !== page,
+          'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100': currentPage !== page,
         }"
       >
         {{ page }}
@@ -119,18 +119,18 @@
 
     <!-- Grid Layout Visualization -->
     <div class="w-full px-4 mt-8 mb-12">
-      <h2 class="text-xl font-semibold mb-4">Rozložení fotografií na webu</h2>
+      <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Rozložení fotografií na webu</h2>
       <div
-        class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3] bg-gray-50 p-4 rounded-xl"
+        class="grid grid-cols-7 grid-rows-3 gap-2 aspect-[7/3] bg-gray-50 dark:bg-gray-800 p-4 rounded-xl"
       >
         <!-- Velký obrázek vlevo nahoře -->
         <div
-          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(1, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >1</span
           >
           <div
@@ -173,17 +173,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">2×2</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">2×2</span>
         </div>
 
         <!-- Široký obrázek nahoře uprostřed -->
         <div
-          class="col-span-2 row-span-1 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-2 row-span-1 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(2, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >2</span
           >
           <div
@@ -226,17 +226,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">2×1</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">2×1</span>
         </div>
 
         <!-- Velký obrázek vpravo nahoře -->
         <div
-          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-2 row-span-2 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(3, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >3</span
           >
           <div
@@ -279,17 +279,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">2×2</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">2×2</span>
         </div>
 
         <!-- Úzký vysoký obrázek vpravo -->
         <div
-          class="col-span-1 row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-1 row-span-2 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(4, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >4</span
           >
           <div
@@ -332,17 +332,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">1×2</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">1×2</span>
         </div>
 
         <!-- Malý čtvercový obrázek -->
         <div
-          class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(5, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >5</span
           >
           <div
@@ -385,17 +385,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">1×1</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">1×1</span>
         </div>
 
         <!-- Úzký vysoký obrázek -->
         <div
-          class="row-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="row-span-2 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(6, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >6</span
           >
           <div
@@ -438,17 +438,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">1×2</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">1×2</span>
         </div>
 
         <!-- Široký obrázek dole -->
         <div
-          class="col-span-3 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-3 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(7, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >7</span
           >
           <div
@@ -491,17 +491,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">3×1</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">3×1</span>
         </div>
 
         <!-- Široký obrázek dole -->
         <div
-          class="col-span-2 border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="col-span-2 border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(8, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >8</span
           >
           <div
@@ -544,17 +544,17 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">2×1</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">2×1</span>
         </div>
 
         <!-- Malý čtvercový obrázek dole -->
         <div
-          class="border-2 border-dashed border-gray-400 rounded-xl flex items-center justify-center relative group"
+          class="border-2 border-dashed border-gray-400 dark:border-gray-600 rounded-xl flex items-center justify-center relative group"
           @dragover.prevent
           @drop="onDrop(9, $event)"
         >
           <span
-            class="absolute top-2 left-2 bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-sm"
+            class="absolute top-2 left-2 bg-gray-200 dark:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center text-sm text-gray-900 dark:text-gray-100"
             >9</span
           >
           <div
@@ -597,21 +597,21 @@
               </svg>
             </button>
           </div>
-          <span v-else class="text-gray-500">1×1</span>
+          <span v-else class="text-gray-500 dark:text-gray-400">1×1</span>
         </div>
       </div>
-      <p class="text-sm text-gray-500 mt-2">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
         Toto schéma zobrazuje rozložení fotografií na webu. Čísla představují
         poměr velikostí (šířka×výška).
       </p>
     </div>
 
     <div class="grid grid-cols-3 gap-4 mb-20">
-      <h2 class="text-2xl font-bold col-span-2">Náčrt rozložení</h2>
+      <h2 class="text-2xl font-bold col-span-2 text-gray-900 dark:text-gray-100">Náčrt rozložení</h2>
       <div class="flex justify-end">
         <button
           @click="saveLayout"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
+          class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors duration-200 flex items-center gap-2"
           :class="{ 'opacity-50 cursor-not-allowed': !hasUnsavedChanges }"
           :disabled="!hasUnsavedChanges"
         >
@@ -656,27 +656,27 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-2xl">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-2xl border border-gray-200 dark:border-gray-700">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                   Nahrát fotografie
                 </DialogTitle>
 
                 <div
-                  class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-red-500 transition-colors duration-200"
-                  :class="{ 'border-red-500': isDragging }"
+                  class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-red-500 dark:hover:border-red-400 transition-colors duration-200"
+                  :class="{ 'border-red-500 dark:border-red-400': isDragging }"
                   @dragenter.prevent="isDragging = true"
                   @dragleave.prevent="isDragging = false"
                   @dragover.prevent
                   @drop.prevent="handleDrop"
                 >
                   <div v-if="!selectedFiles.length" class="py-8">
-                    <span class="text-4xl text-gray-400 mb-2">
+                    <span class="text-4xl text-gray-400 dark:text-gray-500 mb-2">
                       Nahrát obrázek
                     </span>
-                    <p class="text-gray-500">
+                    <p class="text-gray-500 dark:text-gray-400">
                       Přetáhněte sem fotografie nebo
                       <label
-                        class="text-red-500 hover:text-red-600 cursor-pointer"
+                        class="text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 cursor-pointer"
                       >
                         vyberte ze zařízení
                         <input
@@ -688,7 +688,7 @@
                         />
                       </label>
                     </p>
-                    <p class="text-sm text-gray-400 mt-1">
+                    <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
                       Podporované formáty: JPG, PNG, WebP
                     </p>
                   </div>
@@ -719,7 +719,7 @@
 
                 <div v-if="uploading" class="mt-4">
                   <div
-                    class="w-full h-2 bg-gray-200 rounded-full overflow-hidden"
+                    class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
                   >
                     <div
                       class="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 relative overflow-hidden"
@@ -730,15 +730,15 @@
                       ></div>
                     </div>
                   </div>
-                  <p class="text-sm text-gray-600 text-center mt-2">
+                  <p class="text-sm text-gray-600 dark:text-gray-400 text-center mt-2">
                     Nahrávání: {{ uploadProgress }}%
                   </p>
                 </div>
 
                 <div class="mt-4">
-                  <h3 class="text-sm font-medium text-gray-700 mb-2">Náhled</h3>
+                  <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Náhled</h3>
                   <div
-                    class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden"
+                    class="relative aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden"
                   >
                     <img
                       v-if="previewUrl"
@@ -750,7 +750,7 @@
                       v-else
                       class="w-full h-full flex items-center justify-center"
                     >
-                      <span class="text-gray-400"
+                      <span class="text-gray-400 dark:text-gray-500"
                         >Vyberte obrázek pro náhled</span
                       >
                     </div>
@@ -761,14 +761,14 @@
                   <button
                     type="button"
                     @click="closeUploadModal"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="uploadFiles"
                     :disabled="!selectedFiles.length || uploading"
-                    class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded hover:bg-green-700 dark:hover:bg-green-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span v-if="uploading">Nahrávání...</span>
                     <span v-else
@@ -809,23 +809,23 @@
               leave-from="opacity-100 scale-100"
               leave-to="opacity-0 scale-95"
             >
-              <DialogPanel class="bg-white p-6 rounded-lg w-full max-w-md">
-                <DialogTitle as="h2" class="text-xl font-bold mb-4">
+              <DialogPanel class="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md border border-gray-200 dark:border-gray-700">
+                <DialogTitle as="h2" class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                   Smazat fotografii
                 </DialogTitle>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 dark:text-gray-400 mb-6">
                   Opravdu chcete smazat tuto fotografii?
                 </p>
                 <div class="flex justify-end space-x-4">
                   <button
                     @click="showDeleteModal = false"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-400 dark:hover:bg-gray-600 transition-colors duration-200"
                   >
                     Zrušit
                   </button>
                   <button
                     @click="confirmDelete"
-                    class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200"
+                    class="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600 transition-colors duration-200"
                   >
                     Smazat
                   </button>
