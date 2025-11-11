@@ -164,9 +164,11 @@ const permissions = ref({
   contacts: { view: false },
   media: { view: false },
   users: { view: false },
-  audit: { view: false },
+  audit: { view: false, manage: false },
   settings: { view: false },
-  forum: { view: false },
+  forum_view: { view: false },
+  forum_categories: { manage: false },
+  forum_tags: { manage: false },
   members_area: { view: false },
 });
 
@@ -261,6 +263,11 @@ const sidebarSections = computed(() =>
           to: "/admin/galerie",
           icon: "photo_library",
         },
+        permissions.value.forum_view?.view && {
+          name: "Fórum",
+          to: "/admin/forum",
+          icon: "forum",
+        },
       ].filter(Boolean),
     },
     {
@@ -324,12 +331,7 @@ const sidebarSections = computed(() =>
           to: "/admin/system",
           icon: "settings",
         },
-        permissions.value.forum?.view && {
-          name: "Fórum",
-          to: "/admin/forum",
-          icon: "forum",
-        },
-        permissions.value.forum?.view && {
+        (permissions.value.forum_categories?.manage || permissions.value.forum_tags?.manage) && {
           name: "Agenda tagů",
           to: "/admin/forum/agenda",
           icon: "info",

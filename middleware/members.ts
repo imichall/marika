@@ -9,6 +9,7 @@ const routePermissions: Record<string, RequiredPermission> = {
   '/clenska-sekce': { section: 'members_area', action: 'view' },
   '/clenska-sekce/repertoar': { section: 'repertoire', action: 'view' },
   '/clenska-sekce/clenove': { section: 'member_directory', action: 'view' },
+  '/clenska-sekce/zpravy': { section: 'members_area', action: 'view' },
   '/clenska-sekce/ke-stazeni': { section: 'member_resources', action: 'view' }
 }
 
@@ -36,7 +37,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  const required = routePermissions[to.path]
+  let required = routePermissions[to.path]
+  if (!required && to.path.startsWith('/clenska-sekce/zpravy/')) {
+    required = routePermissions['/clenska-sekce/zpravy']
+  }
+
   if (!required) {
     return
   }

@@ -191,6 +191,19 @@ const rolePermissions = ref({
   viewer: [],
 });
 
+const forumPermissionMeta = {
+  forum_view: { group: 'forum', label: 'Zobrazení fóra' },
+  forum_create: { group: 'forum', label: 'Přidávání příspěvků' },
+  forum_delete: { group: 'forum', label: 'Mazání příspěvků' },
+  forum_categories: { group: 'forum', label: 'Správa kategorií' },
+  forum_tags: { group: 'forum', label: 'Správa tagů' },
+};
+
+const normalizeSection = (section) => {
+  if (!section) return 'ostatni';
+  return forumPermissionMeta[section]?.group || section;
+};
+
 // Načtení oprávnění
 const fetchPermissions = async () => {
   try {
@@ -243,6 +256,9 @@ const actionLabels = {
 };
 
 const getPermissionLabel = (permission) => {
+  if (forumPermissionMeta[permission.section]) {
+    return forumPermissionMeta[permission.section].label;
+  }
   const sectionLabel = (getSectionName(permission.section) || "").toLowerCase();
   const actionLabel = actionLabels[permission.action] || permission.action;
 
@@ -257,7 +273,7 @@ const groupedPermissions = computed(() => {
   const groups = new Map();
 
   permissions.value.forEach((perm) => {
-    const sectionKey = perm.section || "ostatni";
+    const sectionKey = normalizeSection(perm.section);
     if (!groups.has(sectionKey)) {
       groups.set(sectionKey, {
         name: sectionKey,
@@ -277,8 +293,8 @@ const groupedPermissions = computed(() => {
       ),
     }))
     .sort((a, b) =>
-      (getSectionName(a.name) || "").localeCompare(
-        getSectionName(b.name) || "",
+      getSectionName(a.name).localeCompare(
+        getSectionName(b.name),
         "cs",
         { sensitivity: "base" }
       )
@@ -287,6 +303,7 @@ const groupedPermissions = computed(() => {
 
 // Kontrola, zda role má dané oprávnění
 const hasPermission = (role, permissionId) => {
+  if (role === 'admin') return true; // Admin má vždy všechna oprávnění
   return rolePermissions.value[role]?.includes(permissionId);
 };
 
@@ -399,6 +416,7 @@ const getRoleName = (role) => {
 
 // Překlad sekcí do češtiny
 const getSectionName = (section) => {
+  const normalized = normalizeSection(section);
   const sections = {
     concerts: "Koncerty",
     gallery: "Galerie",
@@ -419,11 +437,12 @@ const getSectionName = (section) => {
     members_area: "Členská sekce",
     ostatni: "Ostatní",
   };
-  return sections[section] || section;
+  return sections[normalized] || sections[section] || section;
 };
 
 // Helper to get a label for a section name
 const getSectionLabel = (sectionName) => {
+  const normalized = normalizeSection(sectionName);
   const sections = {
     concerts: "Koncerty",
     gallery: "Galerie",
@@ -444,7 +463,7 @@ const getSectionLabel = (sectionName) => {
     members_area: "Členská sekce",
     ostatni: "Ostatní",
   };
-  return sections[sectionName] || sectionName;
+  return sections[normalized] || sections[sectionName] || sectionName;
 };
 
 onMounted(async () => {

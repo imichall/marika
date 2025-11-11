@@ -15,7 +15,7 @@
           </div>
           <div class="flex gap-3">
             <button
-              v-if="isAdmin"
+              v-if="canManageCategories"
               @click="showCategoriesModal = true"
               class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -23,7 +23,7 @@
               Správa kategorií
             </button>
             <button
-              v-if="isAdmin"
+              v-if="canManageTags"
               @click="showTagsModal = true"
               class="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 flex items-center gap-2 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -31,7 +31,7 @@
               Správa tagů
             </button>
             <button
-              v-if="permissions.create"
+              v-if="canCreateOrEditTopics"
               @click="showAddModal = true"
               class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 flex items-center gap-2 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -221,7 +221,7 @@
 
             <div class="flex gap-2 flex-shrink-0">
             <button
-              v-if="permissions.edit"
+              v-if="canCreateOrEditTopics"
               @click="editTopic(topic)"
               class="p-2.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Upravit"
@@ -229,7 +229,7 @@
               <span class="material-icons-outlined text-[20px]">edit</span>
             </button>
             <button
-              v-if="permissions.edit"
+              v-if="canCreateOrEditTopics"
               @click="togglePinTopic(topic)"
               class="p-2.5 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               :class="{ 'bg-yellow-50 text-yellow-600': topic.is_pinned }"
@@ -249,7 +249,7 @@
               </span>
             </button>
             <button
-              v-if="permissions.edit && topic.status !== 'archived'"
+              v-if="canCreateOrEditTopics && topic.status !== 'archived'"
               @click="archiveTopic(topic)"
               class="p-2.5 text-gray-500 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Archivovat"
@@ -257,7 +257,7 @@
               <span class="material-icons-outlined text-[20px]">archive</span>
             </button>
             <button
-              v-if="permissions.edit && topic.status === 'archived'"
+              v-if="canCreateOrEditTopics && topic.status === 'archived'"
               @click="unarchiveTopic(topic)"
               class="p-2.5 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Odarchivovat"
@@ -265,7 +265,7 @@
               <span class="material-icons-outlined text-[20px]">unarchive</span>
             </button>
             <button
-              v-if="isAdmin"
+              v-if="canDeleteTopics"
               @click="deleteTopic(topic)"
               class="p-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Smazat"
@@ -636,7 +636,7 @@ const {
   createTag,
   updateCategory,
   updateTag,
-} = useForum();
+} = useForum('admin');
 
 const showAddModal = ref(false);
 const showCategoriesModal = ref(false);
@@ -660,12 +660,18 @@ const form = ref({
 const permissions = ref({
   view: false,
   create: false,
-  edit: false,
   delete: false,
+  manageCategories: false,
+  manageTags: false,
 });
 
 // Admin status
 const isAdmin = ref(false);
+
+const canCreateOrEditTopics = computed(() => isAdmin.value || permissions.value.create);
+const canDeleteTopics = computed(() => isAdmin.value || permissions.value.delete);
+const canManageCategories = computed(() => isAdmin.value || permissions.value.manageCategories);
+const canManageTags = computed(() => isAdmin.value || permissions.value.manageTags);
 
 const filteredTopics = computed(() => {
   let result = [...topics.value];
@@ -836,6 +842,10 @@ const handleSubmit = async () => {
 };
 
 const deleteTopic = async (topic: any) => {
+  if (!canDeleteTopics.value) {
+    toast.error("Nemáte oprávnění mazat příspěvky.");
+    return;
+  }
   if (!confirm("Opravdu chcete smazat toto téma? Tato akce je nevratná.")) {
     return;
   }
@@ -975,14 +985,21 @@ const loadPermissions = async () => {
 
     isAdmin.value = userRole?.role === "admin";
 
-    const actions: Array<"view" | "create" | "edit" | "delete"> = ["view", "create", "edit", "delete"];
-    for (const action of actions) {
+    const checks = [
+      { key: "view", section: "forum_view", action: "view" },
+      { key: "create", section: "forum_create", action: "create" },
+      { key: "delete", section: "forum_delete", action: "delete" },
+      { key: "manageCategories", section: "forum_categories", action: "manage" },
+      { key: "manageTags", section: "forum_tags", action: "manage" },
+    ];
+
+    for (const check of checks) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
-        p_section: "forum",
-        p_action: action,
+        p_section: check.section,
+        p_action: check.action,
       });
-      permissions.value[action] = hasPermission;
+      permissions.value[check.key] = !!hasPermission;
     }
   } catch (err) {
     console.error("Error loading permissions:", err);

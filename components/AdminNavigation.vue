@@ -74,9 +74,9 @@
 
           <!-- Historie emailů -->
           <NuxtLink
-            v-if="permissions.emails?.view"
+            v-if="currentUserRole === 'admin' || permissions.emails?.view"
             to="/admin/emaily"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +99,7 @@
           <NuxtLink
             v-if="currentUserRole === 'admin'"
             to="/admin/opravneni"
-            class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+            class="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

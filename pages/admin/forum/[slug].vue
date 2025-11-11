@@ -134,7 +134,7 @@
             <!-- Akční tlačítka -->
             <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <button
-                v-if="permissions.edit"
+                v-if="canCreateOrEditTopics"
                 @click="editTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -142,7 +142,7 @@
                 Upravit
               </button>
               <button
-                v-if="permissions.edit"
+                v-if="canCreateOrEditTopics"
                 @click="togglePinTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-white rounded-lg hover:from-amber-700 hover:to-amber-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -160,7 +160,7 @@
                 {{ topic.is_locked ? "Odemknout" : "Zamknout" }}
               </button>
               <button
-                v-if="isAdmin"
+                v-if="canDeleteTopics"
                 @click="deleteTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -180,7 +180,7 @@
                 <span class="text-lg font-normal text-gray-500 dark:text-gray-400">({{ replies.length }})</span>
               </h2>
               <button
-                v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
+                v-if="!topic.is_locked && topic.status !== 'archived' && canCreateOrEditTopics"
                 @click="showReplyForm = !showReplyForm"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -257,7 +257,7 @@
                     </span>
                     <div class="flex gap-1">
                       <button
-                        v-if="permissions.edit"
+                        v-if="canCreateOrEditTopics"
                         @click="editReply(reply)"
                         class="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                         title="Upravit"
@@ -265,7 +265,7 @@
                         <span class="material-icons-outlined text-[18px]">edit</span>
                       </button>
                       <button
-                        v-if="permissions.edit && !reply.is_best_answer"
+                        v-if="canCreateOrEditTopics && !reply.is_best_answer"
                         @click="setBestAnswer(reply.id)"
                         class="p-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
                         title="Označit jako nejlepší odpověď"
@@ -311,7 +311,7 @@
                 </div>
                 <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 justify-between">
                   <button
-                    v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
+                    v-if="!topic.is_locked && topic.status !== 'archived' && canCreateOrEditTopics"
                     @click="replyToReply(reply)"
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                   >
@@ -801,7 +801,7 @@ const {
   fetchTags,
   createCategory,
   createTag,
-} = useForum();
+} = useForum('admin');
 
 // Ref pro sledování, zda došlo k chybě při načítání tématu
 const topicNotFound = ref(false);
@@ -828,12 +828,18 @@ const replyToDelete = ref<any>(null);
 const permissions = ref({
   view: false,
   create: false,
-  edit: false,
   delete: false,
+  manageCategories: false,
+  manageTags: false,
 });
 
 // Admin status
 const isAdmin = ref(false);
+
+const canCreateOrEditTopics = computed(() => isAdmin.value || permissions.value.create);
+const canDeleteTopics = computed(() => isAdmin.value || permissions.value.delete);
+const canManageCategories = computed(() => isAdmin.value || permissions.value.manageCategories);
+const canManageTags = computed(() => isAdmin.value || permissions.value.manageTags);
 
 // Computed properties pro počty liků a disliků
 const topicLikeCount = ref(0);
@@ -1164,14 +1170,21 @@ const loadPermissions = async () => {
 
     isAdmin.value = userRole?.role === "admin";
 
-    const actions: Array<"view" | "create" | "edit" | "delete"> = ["view", "create", "edit", "delete"];
-    for (const action of actions) {
+    const checks = [
+      { key: "view", section: "forum_view", action: "view" },
+      { key: "create", section: "forum_create", action: "create" },
+      { key: "delete", section: "forum_delete", action: "delete" },
+      { key: "manageCategories", section: "forum_categories", action: "manage" },
+      { key: "manageTags", section: "forum_tags", action: "manage" },
+    ];
+
+    for (const check of checks) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
-        p_section: "forum",
-        p_action: action,
+        p_section: check.section,
+        p_action: check.action,
       });
-      permissions.value[action] = hasPermission;
+      permissions.value[check.key] = !!hasPermission;
     }
   } catch (err) {
     console.error("Error loading permissions:", err);
