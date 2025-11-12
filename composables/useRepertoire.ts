@@ -110,7 +110,7 @@ export const useRepertoire = () => {
 
       if (fetchError) throw fetchError
 
-      items.value = (data ?? []).map((item) => ({
+      items.value = (data ?? []).map((item: any) => ({
         ...item,
         files: item.files ?? []
       }))

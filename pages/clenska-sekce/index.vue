@@ -1,83 +1,132 @@
 <template>
   <div class="space-y-8">
-    <section class="rounded-2xl bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg px-8 py-10">
+    <section
+      class="rounded-2xl bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg px-8 py-10"
+    >
       <h2 class="text-3xl font-semibold mb-3">Vítejte v členské sekci</h2>
       <p class="text-red-50 max-w-3xl">
-        Zde najdete kompletní repertoár včetně notových materiálů, archiv všech členů sboru a důležité dokumenty ke stažení.
-        Veškerý obsah je dostupný pouze přihlášeným členům.
+        Zde najdete kompletní repertoár včetně notových materiálů, archiv všech
+        členů sboru a důležité dokumenty ke stažení. Veškerý obsah je dostupný
+        pouze přihlášeným členům.
       </p>
     </section>
 
     <section class="grid gap-6 md:grid-cols-2">
       <NuxtLink
-        v-for="card in cards"
+        v-for="card in visibleCards"
         :key="card.href"
         :to="card.href"
         class="group rounded-2xl bg-white shadow hover:shadow-xl transition duration-200 border border-slate-100 p-6 flex flex-col gap-3 dark:bg-slate-900/80 dark:border-slate-800 dark:hover:bg-slate-800"
       >
         <div class="flex items-center gap-3">
-          <div class="rounded-full bg-red-50 text-red-600 p-3 dark:bg-red-500/20 dark:text-red-200">
+          <div
+            class="rounded-full bg-red-50 text-red-600 p-3 dark:bg-red-500/20 dark:text-red-200"
+          >
             <Icon :name="card.icon" class="text-2xl" />
           </div>
-          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ card.title }}</h3>
+          <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+            {{ card.title }}
+          </h3>
         </div>
         <p class="text-sm text-slate-600 flex-1 dark:text-slate-300">
           {{ card.description }}
         </p>
-        <span class="inline-flex items-center gap-2 text-sm font-medium text-red-600 group-hover:gap-3 transition-all dark:text-red-300">
+        <span
+          class="inline-flex items-center gap-2 text-sm font-medium text-red-600 group-hover:gap-3 transition-all dark:text-red-300"
+        >
           Přesunout se
           <Icon name="mdi:arrow-right" class="text-lg" />
         </span>
       </NuxtLink>
     </section>
 
-    <section class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800">
-      <h3 class="text-lg font-semibold text-slate-900 mb-2 dark:text-white">Tipy pro práci s repertoárem</h3>
-      <ul class="list-disc list-inside space-y-2 text-sm text-slate-600 dark:text-slate-300">
-        <li>Vyberte více skladeb pomocí zaškrtávacích políček a exportujte je do Excelu pro hlášení na OSA.</li>
-        <li>Každá skladba může mít více souborů podle hlasů – při nahrávání je možné je označit.</li>
-        <li>Vyhledávání funguje podle názvu i autora, můžete také filtrovat abecedně podle počátečního písmene.</li>
+    <section
+      class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800"
+    >
+      <h3 class="text-lg font-semibold text-slate-900 mb-2 dark:text-white">
+        Tipy pro práci s repertoárem
+      </h3>
+      <ul
+        class="list-disc list-inside space-y-2 text-sm text-slate-600 dark:text-slate-300"
+      >
+        <li>
+          Vyberte více skladeb pomocí zaškrtávacích políček a exportujte je do
+          Excelu pro hlášení na OSA.
+        </li>
+        <li>
+          Každá skladba může mít více souborů podle hlasů – při nahrávání je
+          možné je označit.
+        </li>
+        <li>
+          Vyhledávání funguje podle názvu i autora, můžete také filtrovat
+          abecedně podle počátečního písmene.
+        </li>
       </ul>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+
 definePageMeta({
-  layout: 'members'
-})
+  layout: "members",
+});
+
+const { checkPermission } = usePermissions();
+const canManagePermissions = ref(false);
 
 const cards = [
   {
-    title: 'Repertoár',
-    description: 'Kompletní seznam skladeb včetně autorů a notových materiálů připravených ke stažení.',
-    href: '/clenska-sekce/repertoar',
-    icon: 'mdi:music-note-plus'
+    title: "Repertoár",
+    description:
+      "Kompletní seznam skladeb včetně autorů a notových materiálů připravených ke stažení.",
+    href: "/clenska-sekce/repertoar",
+    icon: "mdi:music-note-plus",
   },
   {
-    title: 'Členové',
-    description: 'Evidujte všechny, kdo prošli sborem. Udržujte poznámky, hlasové obsazení a kontakty.',
-    href: '/clenska-sekce/clenove',
-    icon: 'mdi:account-group'
+    title: "Členové",
+    description:
+      "Evidujte všechny, kdo prošli sborem. Udržujte poznámky, hlasové obsazení a kontakty.",
+    href: "/clenska-sekce/clenove",
+    icon: "mdi:account-group",
   },
   {
-    title: 'Zprávy',
-    description: 'Sdílejte interní oznámení, domlouvejte zkoušky a udržujte diskuzi přehledně na jednom místě.',
-    href: '/clenska-sekce/zpravy',
-    icon: 'mdi:forum'
+    title: "Zprávy",
+    description:
+      "Sdílejte interní oznámení, domlouvejte zkoušky a udržujte diskuzi přehledně na jednom místě.",
+    href: "/clenska-sekce/zpravy",
+    icon: "mdi:forum",
   },
   {
-    title: 'Dokumenty ke stažení',
-    description: 'Logo, stanovy, kronika a další interní dokumenty na jednom místě.',
-    href: '/clenska-sekce/ke-stazeni',
-    icon: 'mdi:folder-download'
+    title: "Dokumenty ke stažení",
+    description:
+      "Logo, stanovy, kronika a další interní dokumenty na jednom místě.",
+    href: "/clenska-sekce/ke-stazeni",
+    icon: "mdi:folder-download",
   },
   {
-    title: 'Správa oprávnění',
-    description: 'Oprávnění a přístupy se nastavují v administraci v sekci Správa oprávnění a Uživatelé.',
-    href: '/admin/opravneni',
-    icon: 'mdi:shield-key-outline'
-  }
-]
-</script>
+    title: "Správa oprávnění",
+    description:
+      "Oprávnění a přístupy se nastavují v administraci v sekci Správa oprávnění a Uživatelé.",
+    href: "/admin/opravneni",
+    icon: "mdi:shield-key-outline",
+    requiresPermission: true,
+  },
+];
 
+// Filtrování karet na základě oprávnění
+const visibleCards = computed(() => {
+  return cards.filter((card) => {
+    if (card.requiresPermission) {
+      return canManagePermissions.value;
+    }
+    return true;
+  });
+});
+
+// Načtení oprávnění při inicializaci komponenty
+onMounted(async () => {
+  canManagePermissions.value = await checkPermission("users", "edit");
+});
+</script>

@@ -10,7 +10,7 @@
     <NuxtLayout>
       <NuxtPage />
       <Footer v-if="!isAdminRoute && !isConcertRoute && !isMembersRoute" />
-      <ConsentManager v-if="!isAdminRoute" />
+      <!-- <ConsentManager v-if="!isAdminRoute" /> -->
     </NuxtLayout>
   </div>
 </template>
