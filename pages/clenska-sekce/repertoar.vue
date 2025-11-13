@@ -8,7 +8,7 @@
               <div class="rounded-full bg-red-50 text-red-600 p-3">
                 <Icon name="mdi:music-note-plus" class="text-2xl" />
               </div>
-              <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Repertoár</h2>
+              <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Repertoár (notový archiv)</h2>
             </div>
             <p class="text-sm text-slate-600 leading-relaxed dark:text-slate-300">
               Kompletní seznam skladeb seřazený abecedně. Vyhledávejte dle názvu nebo autora, spravujte notové materiály
