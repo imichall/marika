@@ -15,7 +15,7 @@
           </div>
           <div class="flex gap-3">
             <button
-              v-if="isAdmin"
+              v-if="canManageCategories"
               @click="showCategoriesModal = true"
               class="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-600 flex items-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -23,7 +23,7 @@
               Správa kategorií
             </button>
             <button
-              v-if="isAdmin"
+              v-if="canManageTags"
               @click="showTagsModal = true"
               class="bg-gradient-to-r from-green-600 to-green-500 text-white px-6 py-3 rounded-xl hover:from-green-700 hover:to-green-600 flex items-center gap-2 shadow-lg shadow-green-500/30 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -31,7 +31,7 @@
               Správa tagů
             </button>
             <button
-              v-if="permissions.create"
+              v-if="canCreateOrEditTopics"
               @click="showAddModal = true"
               class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-indigo-700 hover:to-purple-700 flex items-center gap-2 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-300 transform hover:scale-105"
             >
@@ -221,7 +221,7 @@
 
             <div class="flex gap-2 flex-shrink-0">
             <button
-              v-if="permissions.edit"
+              v-if="canCreateOrEditTopics"
               @click="editTopic(topic)"
               class="p-2.5 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Upravit"
@@ -229,7 +229,7 @@
               <span class="material-icons-outlined text-[20px]">edit</span>
             </button>
             <button
-              v-if="permissions.edit"
+              v-if="canCreateOrEditTopics"
               @click="togglePinTopic(topic)"
               class="p-2.5 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               :class="{ 'bg-yellow-50 text-yellow-600': topic.is_pinned }"
@@ -249,7 +249,7 @@
               </span>
             </button>
             <button
-              v-if="permissions.edit && topic.status !== 'archived'"
+              v-if="canCreateOrEditTopics && topic.status !== 'archived'"
               @click="archiveTopic(topic)"
               class="p-2.5 text-gray-500 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Archivovat"
@@ -257,7 +257,7 @@
               <span class="material-icons-outlined text-[20px]">archive</span>
             </button>
             <button
-              v-if="permissions.edit && topic.status === 'archived'"
+              v-if="canCreateOrEditTopics && topic.status === 'archived'"
               @click="unarchiveTopic(topic)"
               class="p-2.5 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Odarchivovat"
@@ -265,7 +265,7 @@
               <span class="material-icons-outlined text-[20px]">unarchive</span>
             </button>
             <button
-              v-if="isAdmin"
+              v-if="canDeleteTopics"
               @click="deleteTopic(topic)"
               class="p-2.5 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-md"
               title="Smazat"
@@ -404,9 +404,9 @@
           <Transition name="modal">
             <div
               v-if="showCategoriesModal"
-              class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl transform"
+              class="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl transform border border-gray-200 dark:border-gray-700"
             >
-              <div class="bg-gradient-to-r from-blue-600 to-blue-500 p-6">
+              <div class="bg-gradient-to-r from-blue-600 to-blue-500 dark:from-blue-700 dark:to-blue-600 p-6">
                 <h2 class="text-2xl font-bold text-white">Správa kategorií</h2>
               </div>
               <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
@@ -414,7 +414,7 @@
                   <div
                     v-for="cat in categories"
                     :key="cat.id"
-                    class="p-4 bg-gray-50 rounded-xl border border-gray-200"
+                    class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
                   >
                     <div v-if="!editingCategory || editingCategory.id !== cat.id" class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -423,8 +423,8 @@
                           :style="{ backgroundColor: cat.color }"
                         ></div>
                         <div>
-                          <p class="font-semibold text-gray-900">{{ cat.name }}</p>
-                          <p class="text-xs text-gray-500">{{ cat.slug }}</p>
+                          <p class="font-semibold text-gray-900 dark:text-gray-100">{{ cat.name }}</p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">{{ cat.slug }}</p>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
@@ -440,7 +440,7 @@
                         </span>
                         <button
                           @click="startEditCategory(cat)"
-                          class="p-2 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          class="p-2 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                           title="Upravit"
                         >
                           <span class="material-icons-outlined text-lg">edit</span>
@@ -452,13 +452,13 @@
                         <input
                           v-model="editingCategory.color"
                           type="color"
-                          class="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer"
+                          class="w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
                         />
                         <div class="flex-1">
                           <input
                             v-model="editingCategory.name"
                             type="text"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="Název kategorie"
                           />
                         </div>
@@ -466,13 +466,13 @@
                       <div class="flex justify-end gap-2">
                         <button
                           @click="editingCategory = null"
-                          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                          class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
                           Zrušit
                         </button>
                         <button
                           @click="saveCategory"
-                          class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                          class="px-4 py-2 bg-blue-500 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
                         >
                           Uložit
                         </button>
@@ -480,10 +480,10 @@
                     </div>
                   </div>
                 </div>
-                <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
+                <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     @click="showCategoriesModal = false"
-                    class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-all duration-200 hover:scale-105"
+                    class="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
                   >
                     Zavřít
                   </button>
@@ -506,9 +506,9 @@
           <Transition name="modal">
             <div
               v-if="showTagsModal"
-              class="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl transform"
+              class="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl transform border border-gray-200 dark:border-gray-700"
             >
-              <div class="bg-gradient-to-r from-green-600 to-green-500 p-6">
+              <div class="bg-gradient-to-r from-green-600 to-green-500 dark:from-green-700 dark:to-green-600 p-6">
                 <h2 class="text-2xl font-bold text-white">Správa tagů</h2>
               </div>
               <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
@@ -516,7 +516,7 @@
                   <div
                     v-for="tag in tags"
                     :key="tag.id"
-                    class="p-4 bg-gray-50 rounded-xl border border-gray-200"
+                    class="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
                   >
                     <div v-if="!editingTag || editingTag.id !== tag.id" class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
@@ -525,8 +525,8 @@
                           :style="{ backgroundColor: tag.color }"
                         ></div>
                         <div>
-                          <p class="font-semibold text-gray-900">{{ tag.name }}</p>
-                          <p class="text-xs text-gray-500">{{ tag.slug }}</p>
+                          <p class="font-semibold text-gray-900 dark:text-gray-100">{{ tag.name }}</p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">{{ tag.slug }}</p>
                         </div>
                       </div>
                       <div class="flex items-center gap-2">
@@ -542,7 +542,7 @@
                         </span>
                         <button
                           @click="startEditTag(tag)"
-                          class="p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          class="p-2 text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                           title="Upravit"
                         >
                           <span class="material-icons-outlined text-lg">edit</span>
@@ -554,13 +554,13 @@
                         <input
                           v-model="editingTag.color"
                           type="color"
-                          class="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer"
+                          class="w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 cursor-pointer"
                         />
                         <div class="flex-1">
                           <input
                             v-model="editingTag.name"
                             type="text"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 dark:bg-gray-800 dark:text-gray-100"
                             placeholder="Název tagu"
                           />
                         </div>
@@ -568,13 +568,13 @@
                       <div class="flex justify-end gap-2">
                         <button
                           @click="editingTag = null"
-                          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                          class="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
                           Zrušit
                         </button>
                         <button
                           @click="saveTag"
-                          class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                          class="px-4 py-2 bg-green-500 dark:bg-green-600 text-white rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
                         >
                           Uložit
                         </button>
@@ -582,10 +582,10 @@
                     </div>
                   </div>
                 </div>
-                <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
+                <div class="flex justify-end gap-4 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
                   <button
                     @click="showTagsModal = false"
-                    class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-medium transition-all duration-200 hover:scale-105"
+                    class="px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 font-medium transition-all duration-200 hover:scale-105"
                   >
                     Zavřít
                   </button>
@@ -636,7 +636,7 @@ const {
   createTag,
   updateCategory,
   updateTag,
-} = useForum();
+} = useForum('admin');
 
 const showAddModal = ref(false);
 const showCategoriesModal = ref(false);
@@ -660,12 +660,18 @@ const form = ref({
 const permissions = ref({
   view: false,
   create: false,
-  edit: false,
   delete: false,
+  manageCategories: false,
+  manageTags: false,
 });
 
 // Admin status
 const isAdmin = ref(false);
+
+const canCreateOrEditTopics = computed(() => isAdmin.value || permissions.value.create);
+const canDeleteTopics = computed(() => isAdmin.value || permissions.value.delete);
+const canManageCategories = computed(() => isAdmin.value || permissions.value.manageCategories);
+const canManageTags = computed(() => isAdmin.value || permissions.value.manageTags);
 
 const filteredTopics = computed(() => {
   let result = [...topics.value];
@@ -836,6 +842,10 @@ const handleSubmit = async () => {
 };
 
 const deleteTopic = async (topic: any) => {
+  if (!canDeleteTopics.value) {
+    toast.error("Nemáte oprávnění mazat příspěvky.");
+    return;
+  }
   if (!confirm("Opravdu chcete smazat toto téma? Tato akce je nevratná.")) {
     return;
   }
@@ -975,14 +985,21 @@ const loadPermissions = async () => {
 
     isAdmin.value = userRole?.role === "admin";
 
-    const actions: Array<"view" | "create" | "edit" | "delete"> = ["view", "create", "edit", "delete"];
-    for (const action of actions) {
+    const checks = [
+      { key: "view", section: "forum_view", action: "view" },
+      { key: "create", section: "forum_create", action: "create" },
+      { key: "delete", section: "forum_delete", action: "delete" },
+      { key: "manageCategories", section: "forum_categories", action: "manage" },
+      { key: "manageTags", section: "forum_tags", action: "manage" },
+    ];
+
+    for (const check of checks) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
-        p_section: "forum",
-        p_action: action,
+        p_section: check.section,
+        p_action: check.action,
       });
-      permissions.value[action] = hasPermission;
+      permissions.value[check.key] = !!hasPermission;
     }
   } catch (err) {
     console.error("Error loading permissions:", err);

@@ -43,7 +43,7 @@
 
         <!-- Poslední příspěvky ve fóru -->
         <div
-          v-if="permissions.forum?.view && recentForumTopics.length > 0"
+          v-if="permissions.forum_view?.view && recentForumTopics.length > 0"
           class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4 lg:p-6 mb-8"
         >
           <div class="flex items-center justify-between mb-4">
@@ -661,7 +661,14 @@ const {
 const { messages, fetchAllMessages } = useFormMessages();
 
 // Přidám ref pro fórum
-const { topics: forumTopics, categories, tags, fetchTopics: fetchForumTopics, fetchCategories, fetchTags } = useForum();
+const {
+  topics: forumTopics,
+  categories,
+  tags,
+  fetchTopics: fetchForumTopics,
+  fetchCategories,
+  fetchTags
+} = useForum('admin');
 
 // Stav oprávnění
 const permissions = ref({
@@ -716,11 +723,20 @@ const permissions = ref({
   media: {
     view: false,
   },
-  forum: {
+  forum_view: {
     view: false,
+  },
+  forum_create: {
     create: false,
-    edit: false,
+  },
+  forum_delete: {
     delete: false,
+  },
+  forum_categories: {
+    manage: false,
+  },
+  forum_tags: {
+    manage: false,
   },
 });
 
@@ -793,7 +809,7 @@ onMounted(async () => {
   await loadPermissions();
 
   // Načtení posledních témat z fóra (pokud má uživatel oprávnění), ale bez archivovaných
-  if (permissions.value.forum?.view) {
+  if (permissions.value.forum_view?.view) {
     await fetchForumTopics({ status: "!archived" });
     await fetchCategories();
     await fetchTags();

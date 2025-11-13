@@ -55,9 +55,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/zpravy': { section: 'form_messages', action: 'view' },
     '/admin/emaily': { section: 'emails', action: 'view' },
     '/admin/emaily/nahled': { section: 'emails', action: 'view' },
+    '/admin/audit': { section: 'audit', action: 'view' },
     '/admin/media': { section: 'media', action: 'view' },
-    '/admin/forum': { section: 'forum', action: 'view' },
-    '/admin/forum/agenda': { section: 'forum', action: 'view' }
+    '/admin/forum': { section: 'forum_view', action: 'view' },
+    '/admin/forum/agenda': { section: 'forum_view', action: 'view' }
   }
 
   // Kontrola oprávnění pro aktuální cestu
@@ -97,12 +98,27 @@ export default defineNuxtRouteMiddleware(async (to) => {
       const { data: hasPermission, error: permError } = await supabase
         .rpc('check_permission', {
           p_email: user.email,
-          p_section: 'forum',
+          p_section: 'forum_view',
           p_action: 'view'
         })
 
       if (permError || !hasPermission) {
-        console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'forum', action: 'view' })
+        console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'forum_view', action: 'view' })
+        return navigateTo('/admin?error=nemate-opravneni')
+      }
+      return
+    }
+
+    if (to.path.startsWith('/admin/audit/')) {
+      const { data: hasPermission, error: permError } = await supabase
+        .rpc('check_permission', {
+          p_email: user.email,
+          p_section: 'audit',
+          p_action: 'view'
+        })
+
+      if (permError || !hasPermission) {
+        console.error('Uživatel nemá potřebná oprávnění:', user.email, { section: 'audit', action: 'view' })
         return navigateTo('/admin?error=nemate-opravneni')
       }
       return

@@ -151,7 +151,7 @@ const supabase = useSupabaseClient();
 const { concerts } = useConcerts();
 const { testimonials } = useTestimonials();
 const { orders } = useTicketOrders();
-const { messages } = useFormMessages();
+const { messages, fetchAllMessages } = useFormMessages();
 
 // Permissions
 const permissions = ref({
@@ -164,9 +164,12 @@ const permissions = ref({
   contacts: { view: false },
   media: { view: false },
   users: { view: false },
-  audit: { view: false },
+  audit: { view: false, manage: false },
   settings: { view: false },
-  forum: { view: false },
+  forum_view: { view: false },
+  forum_categories: { manage: false },
+  forum_tags: { manage: false },
+  members_area: { view: false },
 });
 
 // Load permissions
@@ -260,6 +263,11 @@ const sidebarSections = computed(() =>
           to: "/admin/galerie",
           icon: "photo_library",
         },
+        permissions.value.forum_view?.view && {
+          name: "Fórum",
+          to: "/admin/forum",
+          icon: "forum",
+        },
       ].filter(Boolean),
     },
     {
@@ -298,6 +306,11 @@ const sidebarSections = computed(() =>
           to: "/admin/media",
           icon: "perm_media",
         },
+        permissions.value.members_area?.view && {
+          name: "Členská sekce",
+          to: "/clenska-sekce",
+          icon: "account_circle",
+        },
       ].filter(Boolean),
     },
     {
@@ -318,12 +331,7 @@ const sidebarSections = computed(() =>
           to: "/admin/system",
           icon: "settings",
         },
-        permissions.value.forum?.view && {
-          name: "Fórum",
-          to: "/admin/forum",
-          icon: "forum",
-        },
-        permissions.value.forum?.view && {
+        (permissions.value.forum_categories?.manage || permissions.value.forum_tags?.manage) && {
           name: "Agenda tagů",
           to: "/admin/forum/agenda",
           icon: "info",
@@ -335,6 +343,10 @@ const sidebarSections = computed(() =>
 
 onMounted(async () => {
   await loadPermissions();
+  // Načtení zpráv pro zobrazení pending countu
+  if (permissions.value.form_messages.view) {
+    await fetchAllMessages();
+  }
 });
 </script>
 

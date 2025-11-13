@@ -1,13 +1,13 @@
 <!-- Email Preview Component -->
 <template>
-  <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+  <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
     <!-- Email náhled -->
-    <div class="border-b border-gray-200 p-4">
+    <div class="border-b border-gray-200 dark:border-gray-700 p-4">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Náhled emailu</h2>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Náhled emailu</h2>
         <button
           @click="copyHtml"
-          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2"
+          class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
         >
           <span>Kopírovat HTML</span>
           <svg
@@ -30,16 +30,16 @@
       <!-- Email metadata -->
       <div class="space-y-2 mb-4">
         <div class="flex items-start">
-          <span class="text-gray-500 w-20">Od:</span>
-          <span class="text-gray-900">{{ from }}</span>
+          <span class="text-gray-500 dark:text-gray-400 w-20">Od:</span>
+          <span class="text-gray-900 dark:text-gray-100">{{ from }}</span>
         </div>
         <div class="flex items-start">
-          <span class="text-gray-500 w-20">Komu:</span>
-          <span class="text-gray-900">{{ to }}</span>
+          <span class="text-gray-500 dark:text-gray-400 w-20">Komu:</span>
+          <span class="text-gray-900 dark:text-gray-100">{{ to }}</span>
         </div>
         <div class="flex items-start">
-          <span class="text-gray-500 w-20">Předmět:</span>
-          <span class="text-gray-900">{{ subject }}</span>
+          <span class="text-gray-500 dark:text-gray-400 w-20">Předmět:</span>
+          <span class="text-gray-900 dark:text-gray-100">{{ subject }}</span>
         </div>
       </div>
     </div>

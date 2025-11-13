@@ -262,18 +262,16 @@ begin
     raise exception 'Unauthorized';
   end if;
 
-  -- Delete existing permissions for the user
-  delete from user_permissions up
-  using user_roles ur
-  where ur.email = p_email
-  and ur.id = up.role_id;
-
   -- Update or insert the role
   insert into public.user_roles (email, role)
   values (p_email, p_role)
   on conflict (email)
   do update set role = p_role
   returning id into v_role_id;
+
+  -- Delete existing permissions for the user (after we have role id)
+  delete from user_permissions
+  where role_id = v_role_id;
 
   -- If setting admin role, grant all permissions
   if p_role = 'admin' then
@@ -285,27 +283,97 @@ begin
 
   -- If setting editor role, grant editor permissions
   if p_role = 'editor' then
+    -- Try to copy permissions from default template role if it exists
+    insert into user_permissions (role_id, permission_id)
+    select v_role_id, permission_id
+    from user_permissions up
+    join user_roles ur on ur.id = up.role_id
+    where ur.role = p_role
+      and ur.email = format('default.%s@system.local', p_role)
+    on conflict (role_id, permission_id) do nothing;
+
+    -- If no template permissions were found, fall back to predefined defaults
+    if not exists (
+      select 1 from user_permissions up
+      where up.role_id = v_role_id
+    ) then
     insert into user_permissions (role_id, permission_id)
     select v_role_id, p.id
     from permissions p
     where
       -- Koncerty - plná správa
-      (p.section = 'concerts' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Galerie - plná správa
-      or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Reference - plná správa
-      or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Objednávky - rozšířená oprávnění
-      or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel'))
-      -- Sociální sítě - základní správa
-      or (p.section = 'social_media' and p.action in ('view', 'edit'))
-      -- Kontakty - plná správa
-      or (p.section = 'contacts' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Skupiny - plná správa
-      or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
-      -- Nastavení - základní správa
-      or (p.section = 'settings' and p.action in ('view', 'edit'))
+        (p.section = 'concerts' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Galerie - plná správa
+        or (p.section = 'gallery' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Reference - plná správa
+        or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Objednávky - rozšířená oprávnění
+        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel', 'delete'))
+        -- Sociální sítě - základní správa
+        or (p.section = 'social_media' and p.action in ('view', 'edit'))
+        -- Kontakty - plná správa
+        or (p.section = 'contacts' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Zprávy z formuláře - plná správa
+        or (p.section = 'form_messages' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Audit - konfigurace i zobrazení
+        or (p.section = 'audit' and p.action in ('view', 'manage'))
+        -- Skupiny - plná správa
+        or (p.section = 'choir_groups' and p.action in ('view', 'create', 'edit', 'delete'))
+        -- Nastavení - základní správa
+        or (p.section = 'settings' and p.action in ('view', 'edit'))
+        -- Fórum - kompletní správa
+        or (p.section = 'forum_view' and p.action = 'view')
+        or (p.section = 'forum_create' and p.action = 'create')
+        or (p.section = 'forum_delete' and p.action = 'delete')
+        or (p.section = 'forum_categories' and p.action = 'manage')
+        or (p.section = 'forum_tags' and p.action = 'manage')
+        -- E-maily - historie i správa
+        or (p.section = 'emails' and p.action in ('view', 'manage'))
+        -- Členská sekce - repertoár, adresář a dokumenty
+        or (p.section = 'repertoire' and p.action in ('view', 'create', 'edit'))
+        or (p.section = 'member_directory' and p.action in ('view', 'create', 'edit', 'delete'))
+        or (p.section = 'member_resources' and p.action in ('view', 'create', 'edit'))
+        or (p.section = 'members_area' and p.action = 'view')
     on conflict (role_id, permission_id) do nothing;
+    end if;
+  elsif p_role = 'viewer' then
+    -- Viewer role - copy template if available, otherwise fallback to defaults
+    insert into user_permissions (role_id, permission_id)
+    select v_role_id, permission_id
+    from user_permissions up
+    join user_roles ur on ur.id = up.role_id
+    where ur.role = p_role
+      and ur.email = format('default.%s@system.local', p_role)
+    on conflict (role_id, permission_id) do nothing;
+
+    if not exists (
+      select 1 from user_permissions up
+      where up.role_id = v_role_id
+    ) then
+      insert into user_permissions (role_id, permission_id)
+      select v_role_id, p.id
+      from permissions p
+      where p.section in (
+        'concerts',
+        'gallery',
+        'testimonials',
+        'orders',
+        'social_media',
+        'contacts',
+        'choir_groups',
+        'settings',
+        'form_messages',
+        'audit',
+        'repertoire',
+        'member_directory',
+        'member_resources',
+        'members_area',
+        'emails',
+        'forum_view'
+      )
+      and p.action = 'view'
+      on conflict (role_id, permission_id) do nothing;
+    end if;
   end if;
 
   return true;
@@ -330,6 +398,7 @@ insert into permissions (section, action, description) values
   ('orders', 'edit', 'Správa objednávek'),
   ('orders', 'complete', 'Označení objednávky jako dokončené'),
   ('orders', 'cancel', 'Zrušení objednávky'),
+  ('orders', 'delete', 'Mazání objednávek'),
   ('social_media', 'view', 'Zobrazení sociálních sítí'),
   ('social_media', 'edit', 'Správa sociálních sítí'),
   ('contacts', 'view', 'Zobrazení kontaktů'),
@@ -346,7 +415,33 @@ insert into permissions (section, action, description) values
   ('users', 'view', 'Zobrazení uživatelů'),
   ('users', 'create', 'Vytváření uživatelů'),
   ('users', 'edit', 'Úprava uživatelů'),
-  ('users', 'delete', 'Mazání uživatelů')
+  ('users', 'delete', 'Mazání uživatelů'),
+  ('repertoire', 'view', 'Zobrazení repertoáru'),
+  ('repertoire', 'create', 'Přidávání skladeb do repertoáru'),
+  ('repertoire', 'edit', 'Úprava skladeb v repertoáru'),
+  ('repertoire', 'delete', 'Mazání skladeb z repertoáru'),
+  ('member_directory', 'view', 'Zobrazení seznamu členů'),
+  ('member_directory', 'create', 'Přidávání členů'),
+  ('member_directory', 'edit', 'Úprava informací o členech'),
+  ('member_directory', 'delete', 'Mazání členů'),
+  ('member_resources', 'view', 'Zobrazení dokumentů pro členy'),
+  ('member_resources', 'create', 'Nahrávání dokumentů pro členy'),
+  ('member_resources', 'edit', 'Úprava metadat dokumentů pro členy'),
+  ('member_resources', 'delete', 'Mazání dokumentů pro členy'),
+  ('form_messages', 'view', 'Zobrazení zpráv z formuláře'),
+  ('form_messages', 'create', 'Přidávání zpráv z formuláře'),
+  ('form_messages', 'edit', 'Úprava zpráv z formuláře'),
+  ('form_messages', 'delete', 'Mazání zpráv z formuláře'),
+  ('audit', 'view', 'Zobrazení auditních záznamů'),
+  ('audit', 'manage', 'Správa konfigurace auditu'),
+  ('forum_view', 'view', 'Zobrazení fóra v členské sekci'),
+  ('forum_create', 'create', 'Vytváření témat a odpovědí'),
+  ('forum_delete', 'delete', 'Mazání témat a odpovědí'),
+  ('forum_categories', 'manage', 'Správa kategorií fóra'),
+  ('forum_tags', 'manage', 'Správa tagů fóra'),
+  ('emails', 'view', 'Zobrazení historie emailů'),
+  ('emails', 'manage', 'Správa emailů a příjemců'),
+  ('members_area', 'view', 'Přístup do členské sekce')
 on conflict (section, action) do nothing;
 
 -- Create trigger function for auto-creating user_roles

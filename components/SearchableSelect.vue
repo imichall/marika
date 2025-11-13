@@ -8,20 +8,20 @@
       @blur="handleBlur"
       :placeholder="placeholder"
       :required="required"
-      class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white shadow-sm transition-all duration-200"
+      :class="inputClass || 'w-full px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent bg-white dark:bg-gray-800 shadow-sm transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500'"
     />
 
     <!-- Dropdown options -->
     <Transition name="dropdown">
       <div
         v-if="isOpen && filteredOptions.length > 0"
-        class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto"
+        class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-auto"
       >
         <div
           v-for="option in filteredOptions"
           :key="option.value"
           @mousedown.prevent="selectOption(option)"
-          class="px-4 py-2 hover:bg-indigo-50 cursor-pointer transition-colors"
+          class="px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer transition-colors text-gray-900 dark:text-gray-100"
         >
           {{ option.label }}
         </div>
@@ -32,13 +32,13 @@
     <Transition name="dropdown">
       <div
         v-if="isOpen && showCreateOption && canCreate"
-        class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg"
+        class="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg"
       >
         <div
           @mousedown.prevent="createNewOption"
-          class="px-4 py-3 hover:bg-green-50 cursor-pointer transition-colors border-t border-gray-200 border-dashed"
+          class="px-4 py-3 hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer transition-colors border-t border-gray-200 dark:border-gray-600 border-dashed"
         >
-          <div class="flex items-center gap-2 text-green-600">
+          <div class="flex items-center gap-2 text-green-600 dark:text-green-400">
             <span class="material-icons-outlined text-lg">add_circle</span>
             <span class="font-medium">Vytvořit "{{ searchQuery }}"</span>
           </div>

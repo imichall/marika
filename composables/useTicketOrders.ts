@@ -12,6 +12,7 @@ interface TicketOrder {
   variable_symbol?: string;
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
   concert_name?: string;
   concerts?: {
     title: string;
@@ -63,6 +64,7 @@ export const useTicketOrders = () => {
         .from('ticket_orders')
         .select('*')
         .eq('customer_email', email)
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (err) throw err;
@@ -91,6 +93,7 @@ export const useTicketOrders = () => {
             title
           )
         `)
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (err) throw err;
@@ -144,14 +147,20 @@ export const useTicketOrders = () => {
   const deleteOrder = async (orderId: number) => {
     try {
       loading.value = true;
+      // Soft delete - místo DELETE použijeme UPDATE a nastavíme is_active = false
       const { data, error: err } = await supabase
         .from('ticket_orders')
-        .delete()
+        .update({ is_active: false })
         .eq('id', orderId)
+        .eq('is_active', true) // Pouze pokud je ještě aktivní
         .select()
         .single();
 
-      if (err) throw err;
+      if (err) {
+        console.error('Error deleting order - Supabase error:', err);
+        console.error('Error details:', JSON.stringify(err, null, 2));
+        throw err;
+      }
 
       // Remove from local state
       orders.value = orders.value.filter(order => order.id !== orderId);
@@ -159,7 +168,11 @@ export const useTicketOrders = () => {
       return data;
     } catch (err) {
       console.error('Error deleting order:', err);
-      error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      if (err && typeof err === 'object' && 'message' in err) {
+        error.value = err.message as string;
+      } else {
+        error.value = err instanceof Error ? err.message : 'Unknown error occurred';
+      }
       throw err;
     } finally {
       loading.value = false;
@@ -213,12 +226,16 @@ export const useTicketOrders = () => {
       .on(
         'postgres_changes',
         {
-          event: 'DELETE',
+          event: 'UPDATE',
           schema: 'public',
-          table: 'ticket_orders'
+          table: 'ticket_orders',
+          filter: 'is_active=eq.false'
         },
         (payload) => {
-          handleOrderDelete(payload);
+          // Zkontrolujeme, zda se změnil is_active z true na false
+          if (payload.old && payload.old.is_active === true && payload.new.is_active === false) {
+            handleOrderDelete(payload);
+          }
         }
       )
   };
@@ -265,6 +282,12 @@ export const useTicketOrders = () => {
     const updatedOrder = payload.new;
     const oldOrder = payload.old;
 
+    // Pokud se is_active změnil z true na false, jedná se o soft delete
+    if (oldOrder.is_active === true && updatedOrder.is_active === false) {
+      handleOrderDelete(payload);
+      return;
+    }
+
     const index = orders.value.findIndex(order => order.id === updatedOrder.id);
     if (index !== -1) {
       const newOrders = [...orders.value];
@@ -295,15 +318,19 @@ export const useTicketOrders = () => {
   };
 
   // Funkce pro smazání objednávky z lokálního stavu
+  // Nyní se jedná o soft delete, takže se objednávka aktualizuje (is_active = false)
   const handleOrderDelete = (payload: any) => {
-    const deletedOrderId = payload.old.id;
-    const deletedOrder = orders.value.find(order => order.id === deletedOrderId);
+    // Pokud je to UPDATE s is_active změnou, zpracujeme to jako soft delete
+    if (payload.new && payload.new.is_active === false && payload.old.is_active === true) {
+      const deletedOrderId = payload.new.id;
+      const deletedOrder = orders.value.find(order => order.id === deletedOrderId);
 
-    orders.value = orders.value.filter(order => order.id !== deletedOrderId);
+      orders.value = orders.value.filter(order => order.id !== deletedOrderId);
 
-    if (deletedOrder) {
-      const toast = useToast();
-      toast.warning(`Objednávka ${deletedOrder.concert_name || 'Neznámý koncert'} byla smazána`);
+      if (deletedOrder) {
+        const toast = useToast();
+        toast.warning(`Objednávka ${deletedOrder.concert_name || 'Neznámý koncert'} byla smazána`);
+      }
     }
   };
 

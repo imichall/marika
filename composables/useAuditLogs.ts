@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 
-interface AuditLog {
+export interface AuditLog {
   id: string
   user_email: string
   section: string
@@ -11,7 +11,7 @@ interface AuditLog {
   created_at: string
 }
 
-interface AuditConfig {
+export interface AuditConfig {
   id: string
   section: string
   action: string

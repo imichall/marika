@@ -1,14 +1,14 @@
 <template>
-  <div class="w-full px-4 py-8 pb-20">
+  <div class="w-full px-4 py-8 pb-20 bg-gray-50 dark:bg-gray-950 min-h-screen transition-colors duration-200">
     <!-- Breadcrumbs -->
     <AdminBreadcrumbs />
 
     <div class="flex justify-between items-center mb-8">
-      <h1 class="text-3xl font-bold">Auditní záznamy</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Auditní záznamy</h1>
       <button
         v-if="permissions.manage"
         @click="showConfigModal = true"
-        class="bg-violet-600 text-white px-4 py-2 rounded-md hover:bg-violet-700"
+        class="flex bg-violet-600 text-white px-4 py-2 rounded-md hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-600 shadow-sm shadow-violet-500/30"
       >
         <span class="material-icons-outlined mr-2">settings</span>
         Konfigurace
@@ -17,14 +17,14 @@
 
     <!-- Filtry -->
     <div
-      class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6 transition-all duration-200 hover:shadow-md"
+      class="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 mb-6 transition-all duration-200 hover:shadow-md dark:hover:shadow-lg/20"
     >
       <div class="flex flex-col space-y-4">
         <!-- Horní řada filtrů -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div class="relative">
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >category</span
@@ -34,7 +34,7 @@
             <div class="relative group">
               <select
                 v-model="filters.section"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 group-hover:bg-white dark:group-hover:bg-gray-800 appearance-none"
               >
                 <option value="">Všechny sekce</option>
                 <option
@@ -46,10 +46,10 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 dark:text-gray-500"
               >
                 <span
-                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500 dark:group-hover:text-violet-400"
                   >expand_more</span
                 >
               </div>
@@ -58,7 +58,7 @@
 
           <div class="relative">
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >edit_note</span
@@ -68,7 +68,7 @@
             <div class="relative group">
               <select
                 v-model="filters.action"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 group-hover:bg-white dark:group-hover:bg-gray-800 appearance-none"
               >
                 <option value="">Všechny akce</option>
                 <option
@@ -80,10 +80,10 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 dark:text-gray-500"
               >
                 <span
-                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500 dark:group-hover:text-violet-400"
                   >expand_more</span
                 >
               </div>
@@ -92,7 +92,7 @@
 
           <div class="relative">
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >person</span
@@ -102,7 +102,7 @@
             <div class="relative group">
               <select
                 v-model="filters.user_email"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 group-hover:bg-white dark:group-hover:bg-gray-800 appearance-none"
               >
                 <option value="">Všichni uživatelé</option>
                 <option
@@ -114,10 +114,10 @@
                 </option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 dark:text-gray-500"
               >
                 <span
-                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500 dark:group-hover:text-violet-400"
                   >expand_more</span
                 >
               </div>
@@ -126,7 +126,7 @@
 
           <div class="relative">
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >calendar_today</span
@@ -136,7 +136,7 @@
             <div class="relative group">
               <select
                 v-model="selectedPeriod"
-                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 group-hover:bg-white appearance-none"
+                class="w-full pl-3 pr-10 py-2.5 text-base border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 group-hover:bg-white dark:group-hover:bg-gray-800 appearance-none"
               >
                 <option value="all">Celé období</option>
                 <option value="today">Dnes</option>
@@ -146,10 +146,10 @@
                 <option value="custom">Vlastní období</option>
               </select>
               <div
-                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400"
+                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400 dark:text-gray-500"
               >
                 <span
-                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500"
+                  class="material-icons-outlined text-xl transition-transform duration-200 group-hover:text-violet-500 dark:group-hover:text-violet-400"
                   >expand_more</span
                 >
               </div>
@@ -164,7 +164,7 @@
         >
           <div>
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >event</span
@@ -174,12 +174,12 @@
             <input
               v-model="filters.from_date"
               type="date"
-              class="w-full px-3 py-2.5 border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 hover:bg-white"
+              class="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-gray-800"
             />
           </div>
           <div>
             <label
-              class="block text-sm font-medium text-gray-700 mb-2 flex items-center"
+              class="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               <span class="material-icons-outlined text-violet-400 mr-2 text-lg"
                 >event</span
@@ -189,7 +189,7 @@
             <input
               v-model="filters.to_date"
               type="date"
-              class="w-full px-3 py-2.5 border border-gray-200 focus:border-violet-500 focus:ring focus:ring-violet-200 rounded-lg transition-all duration-200 bg-gray-50 hover:bg-white"
+              class="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-400 rounded-lg transition-all duration-200 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 hover:bg-white dark:hover:bg-gray-800"
             />
           </div>
         </div>
@@ -197,56 +197,56 @@
     </div>
 
     <!-- Seznam záznamů -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden border border-gray-100 dark:border-gray-700">
       <!-- Nastavení počtu záznamů na stránku -->
       <div
-        class="px-6 py-4 border-b border-gray-200 flex justify-between items-center"
+        class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/60 dark:bg-gray-900"
       >
         <div class="flex items-center space-x-2">
-          <span class="text-sm text-gray-600">Zobrazit:</span>
+          <span class="text-sm text-gray-600 dark:text-gray-300">Zobrazit:</span>
           <select
             v-model="itemsPerPage"
-            class="border-gray-300 rounded-md text-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 appearance-none pl-3 pr-8 py-1"
+            class="border-gray-300 dark:border-gray-600 rounded-md text-sm focus:outline-none focus:ring-violet-500 focus:border-violet-500 dark:focus:border-violet-400 dark:focus:ring-violet-400 appearance-none pl-3 pr-8 py-1 bg-white dark:bg-gray-800 dark:text-gray-100"
           >
             <option :value="10">10</option>
             <option :value="20">20</option>
             <option :value="50">50</option>
             <option :value="100">100</option>
           </select>
-          <span class="text-sm text-gray-600">záznamů</span>
+          <span class="text-sm text-gray-600 dark:text-gray-300">záznamů</span>
         </div>
-        <div class="text-sm text-gray-600">
+        <div class="text-sm text-gray-600 dark:text-gray-300">
           Celkem: {{ totalItems }} záznamů
         </div>
       </div>
 
       <!-- Tabulka -->
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead class="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th
               v-for="header in tableHeaders"
               :key="header.key"
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               {{ header.label }}
             </th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
           <tr
             v-for="log in paginatedLogs"
             :key="log.id"
             @click="openDiffModal(log)"
-            class="hover:bg-violet-50 cursor-pointer transition-colors duration-150"
+            class="hover:bg-violet-50 dark:hover:bg-violet-500/10 cursor-pointer transition-colors duration-150"
           >
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
               {{ formatDate(log.created_at) }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
               {{ log.user_email }}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
               {{ log.section }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
@@ -257,16 +257,16 @@
                 {{ log.action }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
               {{ log.entity_id }}
             </td>
-            <td class="px-6 py-4 text-sm text-gray-900">
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
               <div class="flex items-center">
                 <span class="truncate max-w-sm">{{
                   getDetailsPreview(log.details)
                 }}</span>
                 <span
-                  class="material-icons-outlined text-violet-400 ml-2 text-lg"
+                  class="material-icons-outlined text-violet-400 dark:text-violet-300 ml-2 text-lg"
                   >chevron_right</span
                 >
               </div>
@@ -275,7 +275,7 @@
           <tr v-if="paginatedLogs.length === 0">
             <td
               :colspan="tableHeaders.length"
-              class="px-6 py-4 text-center text-gray-500"
+              class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
             >
               Nebyly nalezeny žádné záznamy
             </td>
@@ -285,14 +285,14 @@
 
       <!-- Stránkování -->
       <div
-        class="px-6 py-4 border-t border-gray-200 flex justify-between items-center"
+        class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/60 dark:bg-gray-900"
       >
-        <div class="text-sm text-gray-600">Zobrazeno {{ paginationInfo }}</div>
+        <div class="text-sm text-gray-600 dark:text-gray-300">Zobrazeno {{ paginationInfo }}</div>
         <div class="flex space-x-2">
           <button
             @click="changePage(currentPage - 1)"
             :disabled="currentPage === 1"
-            class="px-3 py-1 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="material-icons-outlined text-lg">chevron_left</span>
           </button>
@@ -304,8 +304,8 @@
               :class="[
                 'px-3 py-1 rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500',
                 currentPage === page
-                  ? 'bg-violet-100 text-violet-700'
-                  : 'text-gray-700 hover:bg-gray-50',
+                  ? 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800',
               ]"
             >
               {{ page }}
@@ -314,7 +314,7 @@
           <button
             @click="changePage(currentPage + 1)"
             :disabled="currentPage === totalPages"
-            class="px-3 py-1 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3 py-1 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span class="material-icons-outlined text-lg">chevron_right</span>
           </button>
@@ -349,11 +349,11 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-lg font-medium leading-6 text-gray-900 mb-4"
+                  class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100 mb-4"
                 >
                   Konfigurace auditování
                 </DialogTitle>
@@ -362,9 +362,9 @@
                   <div
                     v-for="section in groupedConfig"
                     :key="section.name"
-                    class="border-b pb-4"
+                    class="border-b border-gray-200 dark:border-gray-700 pb-4"
                   >
-                    <h4 class="font-medium text-gray-900 mb-2">
+                    <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">
                       {{ section.name }}
                     </h4>
                     <div class="space-y-2">
@@ -373,7 +373,7 @@
                         :key="item.id"
                         class="flex items-center justify-between"
                       >
-                        <span class="text-sm text-gray-600">{{
+                        <span class="text-sm text-gray-600 dark:text-gray-300">{{
                           item.action
                         }}</span>
                         <Switch
@@ -381,7 +381,9 @@
                           @change="updateConfigItem(item)"
                           class="relative inline-flex h-6 w-11 items-center rounded-full"
                           :class="
-                            item.is_enabled ? 'bg-violet-600' : 'bg-gray-200'
+                            item.is_enabled
+                              ? 'bg-violet-600 dark:bg-violet-500'
+                              : 'bg-gray-200 dark:bg-gray-700'
                           "
                         >
                           <span class="sr-only">Povolit auditování</span>
@@ -402,7 +404,7 @@
                 <div class="mt-6 flex justify-end">
                   <button
                     @click="showConfigModal = false"
-                    class="bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2"
+                    class="bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                   >
                     Zavřít
                   </button>
@@ -444,18 +446,18 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all"
+                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <div class="flex justify-between items-center mb-6">
                   <DialogTitle
                     as="h3"
-                    class="text-lg font-medium leading-6 text-gray-900"
+                    class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100"
                   >
                     Detail změn
                   </DialogTitle>
                   <button
                     @click="showDiffModal = false"
-                    class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                    class="text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
                   >
                     <span class="material-icons-outlined">close</span>
                   </button>
@@ -464,16 +466,16 @@
                 <div v-if="selectedLog" class="space-y-6">
                   <!-- Metadata -->
                   <div
-                    class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg text-sm"
+                    class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
                   >
                     <div>
-                      <span class="block text-gray-500 text-xs uppercase"
+                      <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase"
                         >Sekce</span
                       >
-                      <span class="font-medium">{{ selectedLog.section }}</span>
+                      <span class="font-medium text-gray-900 dark:text-gray-100">{{ selectedLog.section }}</span>
                     </div>
                     <div>
-                      <span class="block text-gray-500 text-xs uppercase"
+                      <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase"
                         >Akce</span
                       >
                       <span
@@ -484,18 +486,18 @@
                       </span>
                     </div>
                     <div>
-                      <span class="block text-gray-500 text-xs uppercase"
+                      <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase"
                         >Uživatel</span
                       >
-                      <span class="font-medium">{{
+                      <span class="font-medium text-gray-900 dark:text-gray-100">{{
                         selectedLog.user_email
                       }}</span>
                     </div>
                     <div>
-                      <span class="block text-gray-500 text-xs uppercase"
+                      <span class="block text-gray-500 dark:text-gray-400 text-xs uppercase"
                         >Datum a čas</span
                       >
-                      <span class="font-medium">{{
+                      <span class="font-medium text-gray-900 dark:text-gray-100">{{
                         formatDate(selectedLog.created_at)
                       }}</span>
                     </div>
@@ -507,37 +509,37 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Původní stav -->
                         <div
-                          class="bg-red-50 p-4 rounded-lg border border-red-100"
+                          class="bg-red-50 dark:bg-red-500/10 p-4 rounded-lg border border-red-100 dark:border-red-500/40"
                         >
                           <h4
-                            class="font-medium text-red-700 mb-2 flex items-center"
+                            class="font-medium text-red-700 dark:text-red-300 mb-2 flex items-center"
                           >
                             <span
-                              class="material-icons-outlined mr-2 text-red-400"
+                              class="material-icons-outlined mr-2 text-red-400 dark:text-red-300"
                               >history</span
                             >
                             Původní stav
                           </h4>
                           <pre
-                            class="whitespace-pre-wrap text-sm text-red-900 font-mono"
+                            class="whitespace-pre-wrap text-sm text-red-900 dark:text-red-200 font-mono"
                             >{{ formatOldState(selectedLog.details) }}</pre
                           >
                         </div>
                         <!-- Nový stav -->
                         <div
-                          class="bg-green-50 p-4 rounded-lg border border-green-100"
+                          class="bg-green-50 dark:bg-green-500/10 p-4 rounded-lg border border-green-100 dark:border-green-500/40"
                         >
                           <h4
-                            class="font-medium text-green-700 mb-2 flex items-center"
+                            class="font-medium text-green-700 dark:text-green-300 mb-2 flex items-center"
                           >
                             <span
-                              class="material-icons-outlined mr-2 text-green-400"
+                              class="material-icons-outlined mr-2 text-green-400 dark:text-green-300"
                               >update</span
                             >
                             Nový stav
                           </h4>
                           <pre
-                            class="whitespace-pre-wrap text-sm text-green-900 font-mono"
+                            class="whitespace-pre-wrap text-sm text-green-900 dark:text-green-200 font-mono"
                             >{{ formatNewState(selectedLog.details) }}</pre
                           >
                         </div>
@@ -545,18 +547,18 @@
                     </template>
                     <template v-else>
                       <div
-                        class="bg-gray-50 p-4 rounded-lg border border-gray-200"
+                        class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700"
                       >
                         <h4
-                          class="font-medium text-gray-700 mb-2 flex items-center"
+                          class="font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center"
                         >
                           <span
-                            class="material-icons-outlined mr-2 text-gray-400"
+                            class="material-icons-outlined mr-2 text-gray-400 dark:text-gray-500"
                             >info</span
                           >
                           Detaily
                         </h4>
-                        <pre class="whitespace-pre-wrap text-sm font-mono">{{
+                        <pre class="whitespace-pre-wrap text-sm font-mono text-gray-900 dark:text-gray-100">{{
                           formatDetails(selectedLog.details)
                         }}</pre>
                       </div>
@@ -575,6 +577,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { useAuditLogs } from "~/composables/useAuditLogs";
+import type { AuditLog, AuditConfig } from "~/composables/useAuditLogs";
 import { useSupabaseClient } from "#imports";
 import {
   Dialog,
@@ -597,10 +600,20 @@ const supabase = useSupabaseClient();
 const showConfigModal = ref(false);
 
 // Stav oprávnění
-const permissions = ref({
+const permissionActions = ["view", "manage"] as const;
+type AuditPermissionAction = (typeof permissionActions)[number];
+
+const permissions = ref<Record<AuditPermissionAction, boolean>>({
   view: false,
   manage: false,
 });
+
+type AuditDetails = Record<string, any> | null | undefined;
+
+type GroupedConfigSection = {
+  name: string;
+  items: AuditConfig[];
+};
 
 // Načtení oprávnění
 const loadPermissions = async () => {
@@ -608,14 +621,13 @@ const loadPermissions = async () => {
     const user = await supabase.auth.getUser();
     if (!user.data?.user?.email) return;
 
-    const actions = ["view", "manage"];
-    for (const action of actions) {
+    for (const action of permissionActions) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
         p_section: "audit",
         p_action: action,
       });
-      permissions.value[action] = hasPermission;
+      permissions.value[action] = !!hasPermission;
     }
   } catch (err) {
     console.error("Error loading permissions:", err);
@@ -772,9 +784,9 @@ const uniqueUsers = computed(() => [
 ]);
 
 // Seskupená konfigurace podle sekcí
-const groupedConfig = computed(() => {
-  const groups = {};
-  config.value.forEach((item) => {
+const groupedConfig = computed<GroupedConfigSection[]>(() => {
+  const groups: Record<string, GroupedConfigSection> = {};
+  config.value.forEach((item: AuditConfig) => {
     if (!groups[item.section]) {
       groups[item.section] = {
         name: item.section,
@@ -787,7 +799,7 @@ const groupedConfig = computed(() => {
 });
 
 // Aktualizace konfigurace
-const updateConfigItem = async (item) => {
+const updateConfigItem = async (item: AuditConfig) => {
   await updateConfig(item.id, item.is_enabled);
 };
 
@@ -804,61 +816,59 @@ const formatDate = (date: string) => {
 };
 
 // Formátování detailů
-const formatDetails = (details: any) => {
-  if (!details) return "";
+const formatDetails = (details: AuditDetails) => {
+  if (!details || typeof details !== "object") return "";
+  const record = details as Record<string, any>;
 
-  // Pro objednávky
-  if (details.order_id) {
-    const lines = [];
-    lines.push(`Objednávka #${details.order_id}`);
+  if (record.order_id) {
+    const lines: string[] = [`Objednávka #${record.order_id}`];
 
-    if (details.změny) {
-      if (details.změny.původní_stav !== undefined) {
+    if (record.změny) {
+      const changes = record.změny as Record<string, any>;
+      if (changes.původní_stav !== undefined) {
         lines.push(
-          `Původní stav: ${translateOrderState(details.změny.původní_stav)}`
+          `Původní stav: ${translateOrderState(changes.původní_stav)}`
         );
       }
-      if (details.změny.nový_stav !== undefined) {
-        lines.push(
-          `Nový stav: ${translateOrderState(details.změny.nový_stav)}`
-        );
+      if (changes.nový_stav !== undefined) {
+        lines.push(`Nový stav: ${translateOrderState(changes.nový_stav)}`);
       }
-      if (details.změny.původní_částka !== undefined) {
-        lines.push(`Původní částka: ${details.změny.původní_částka} Kč`);
+      if (changes.původní_částka !== undefined) {
+        lines.push(`Původní částka: ${changes.původní_částka} Kč`);
       }
-      if (details.změny.nová_částka !== undefined) {
-        lines.push(`Nová částka: ${details.změny.nová_částka} Kč`);
+      if (changes.nová_částka !== undefined) {
+        lines.push(`Nová částka: ${changes.nová_částka} Kč`);
       }
     } else {
-      if (details.payment_status) {
-        lines.push(`Stav: ${translateOrderState(details.payment_status)}`);
+      if (record.payment_status) {
+        lines.push(`Stav: ${translateOrderState(record.payment_status)}`);
       }
-      if (details.total_price !== undefined) {
-        lines.push(`Částka: ${details.total_price} Kč`);
+      if (record.total_price !== undefined) {
+        lines.push(`Částka: ${record.total_price} Kč`);
       }
     }
 
     return lines.join("\n");
   }
 
-  return JSON.stringify(details, null, 2);
+  return JSON.stringify(record, null, 2);
 };
 
 // CSS třídy pro akce
 const getActionClass = (action: string) => {
   switch (action) {
     case "create":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-200";
     case "update":
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-200";
     case "delete":
-      return "bg-red-100 text-red-800";
+      return "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200";
     case "approve":
-      return "bg-violet-100 text-violet-800";
+      return "bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-200";
     case "reject":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-200";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-100 text-gray-800 dark:bg-gray-700/40 dark:text-gray-200";
   }
 };
 
@@ -879,9 +889,9 @@ onMounted(async () => {
 
 // Přidání nových proměnných a funkcí do <script setup>
 const showDiffModal = ref(false);
-const selectedLog = ref(null);
+const selectedLog = ref<AuditLog | null>(null);
 
-const openDiffModal = (log) => {
+const openDiffModal = (log: AuditLog) => {
   selectedLog.value = log;
   showDiffModal.value = true;
 };
@@ -893,8 +903,8 @@ const translateOrderState = (state: string) => {
     paid: "Zaplaceno",
     cancelled: "Zrušeno",
     refunded: "Vráceno",
-  };
-  return states[state] || state;
+  } as const;
+  return states[state as keyof typeof states] ?? state;
 };
 
 // Formátování hodnoty pro zobrazení
@@ -905,85 +915,80 @@ const formatValue = (key: string, value: any) => {
   return value;
 };
 
-const getDetailsPreview = (details) => {
-  if (!details) return "";
+const getDetailsPreview = (details: AuditDetails) => {
+  if (!details || typeof details !== "object") return "";
+  const record = details as Record<string, any>;
 
   // Pro objednávky
-  if (details.order_id) {
-    const parts = [`Objednávka #${details.order_id}`];
+  if (record.order_id) {
+    const parts: string[] = [`Objednávka #${record.order_id}`];
 
-    // Pro update akce
-    if (details.changes) {
-      if (details.changes.nový_stav !== undefined) {
-        parts.push(`stav: ${translateOrderState(details.changes.nový_stav)}`);
+    const updateChanges = (record.changes || record.změny) as
+      | Record<string, any>
+      | undefined;
+
+    if (updateChanges) {
+      if (updateChanges.nový_stav !== undefined) {
+        parts.push(`stav: ${translateOrderState(updateChanges.nový_stav)}`);
       }
-      if (details.changes.nová_částka !== undefined) {
-        parts.push(`částka: ${details.changes.nová_částka} Kč`);
+      if (updateChanges.nová_částka !== undefined) {
+        parts.push(`částka: ${updateChanges.nová_částka} Kč`);
       }
-    }
-    // Pro create akce
-    else if (details.payment_status !== undefined) {
-      parts.push(`stav: ${translateOrderState(details.payment_status)}`);
-      if (details.total_price !== undefined) {
-        parts.push(`částka: ${details.total_price} Kč`);
+    } else if (record.payment_status !== undefined) {
+      parts.push(`stav: ${translateOrderState(record.payment_status)}`);
+      if (record.total_price !== undefined) {
+        parts.push(`částka: ${record.total_price} Kč`);
       }
-    }
-    // Pro delete akce
-    else if (details.stav !== undefined) {
-      parts.push(`stav: ${translateOrderState(details.stav)}`);
-      if (details.celková_částka !== undefined) {
-        parts.push(`částka: ${details.celková_částka} Kč`);
+    } else if (record.stav !== undefined) {
+      parts.push(`stav: ${translateOrderState(record.stav)}`);
+      if (record.celková_částka !== undefined) {
+        parts.push(`částka: ${record.celková_částka} Kč`);
       }
     }
 
     return parts.join(" - ");
   }
 
-  // Pro ostatní záznamy
-  const preview = JSON.stringify(details).slice(0, 100);
+  const preview = JSON.stringify(record).slice(0, 100);
   return preview.length > 100 ? preview + "..." : preview;
 };
 
-const formatOldState = (details) => {
-  if (!details) return "";
+const formatOldState = (details: AuditDetails) => {
+  if (!details || typeof details !== "object") return "";
+  const record = details as Record<string, any>;
 
-  // Pro objednávky
-  if (details.order_id) {
-    const lines = [];
+  if (record.order_id) {
+    const lines: string[] = [];
+    const changes = (record.changes || record.změny) as
+      | Record<string, any>
+      | undefined;
 
-    // Pro update akce
-    if (details.changes || details.změny) {
-      const changes = details.changes || details.změny;
-      // Zobrazíme pouze původní hodnoty
+    if (changes) {
       Object.entries(changes).forEach(([key, value]) => {
         if (key.startsWith("původní_")) {
           const label = key.replace("původní_", "");
           lines.push(`${label}: ${value}`);
         }
       });
-    }
-    // Pro delete akce
-    else if (details.stav !== undefined) {
-      lines.push(`Stav: ${translateOrderState(details.stav)}`);
-      if (details.celková_částka !== undefined) {
-        lines.push(`Částka: ${details.celková_částka} Kč`);
+    } else if (record.stav !== undefined) {
+      lines.push(`Stav: ${translateOrderState(record.stav)}`);
+      if (record.celková_částka !== undefined) {
+        lines.push(`Částka: ${record.celková_částka} Kč`);
       }
-      if (details.jméno_zákazníka) {
-        lines.push(`Jméno: ${details.jméno_zákazníka}`);
+      if (record.jméno_zákazníka) {
+        lines.push(`Jméno: ${record.jméno_zákazníka}`);
       }
-      if (details.email_zákazníka) {
-        lines.push(`Email: ${details.email_zákazníka}`);
+      if (record.email_zákazníka) {
+        lines.push(`Email: ${record.email_zákazníka}`);
       }
     }
 
     return lines.join("\n");
   }
 
-  // Pro ostatní záznamy
-  if (details.změny) {
-    const lines = [];
-    // Zobrazíme pouze původní hodnoty
-    Object.entries(details.změny).forEach(([key, value]) => {
+  if (record.změny) {
+    const lines: string[] = [];
+    Object.entries(record.změny).forEach(([key, value]) => {
       if (key.startsWith("původní_")) {
         const label = key.replace("původní_", "");
         lines.push(`${label}: ${value}`);
@@ -992,49 +997,45 @@ const formatOldState = (details) => {
     return lines.join("\n");
   }
 
-  return JSON.stringify(details, null, 2);
+  return JSON.stringify(record, null, 2);
 };
 
-const formatNewState = (details) => {
-  if (!details) return "";
+const formatNewState = (details: AuditDetails) => {
+  if (!details || typeof details !== "object") return "";
+  const record = details as Record<string, any>;
 
-  // Pro objednávky
-  if (details.order_id) {
-    const lines = [];
+  if (record.order_id) {
+    const lines: string[] = [];
+    const changes = (record.changes || record.změny) as
+      | Record<string, any>
+      | undefined;
 
-    // Pro update akce
-    if (details.changes || details.změny) {
-      const changes = details.changes || details.změny;
-      // Zobrazíme pouze nové hodnoty
+    if (changes) {
       Object.entries(changes).forEach(([key, value]) => {
         if (key.startsWith("nový_")) {
           const label = key.replace("nový_", "");
           lines.push(`${label}: ${value}`);
         }
       });
-    }
-    // Pro create akce
-    else if (details.payment_status !== undefined) {
-      lines.push(`Stav: ${translateOrderState(details.payment_status)}`);
-      if (details.total_price !== undefined) {
-        lines.push(`Částka: ${details.total_price} Kč`);
+    } else if (record.payment_status !== undefined) {
+      lines.push(`Stav: ${translateOrderState(record.payment_status)}`);
+      if (record.total_price !== undefined) {
+        lines.push(`Částka: ${record.total_price} Kč`);
       }
-      if (details.customer_name) {
-        lines.push(`Jméno: ${details.customer_name}`);
+      if (record.customer_name) {
+        lines.push(`Jméno: ${record.customer_name}`);
       }
-      if (details.customer_email) {
-        lines.push(`Email: ${details.customer_email}`);
+      if (record.customer_email) {
+        lines.push(`Email: ${record.customer_email}`);
       }
     }
 
     return lines.join("\n");
   }
 
-  // Pro ostatní záznamy
-  if (details.změny) {
-    const lines = [];
-    // Zobrazíme pouze nové hodnoty
-    Object.entries(details.změny).forEach(([key, value]) => {
+  if (record.změny) {
+    const lines: string[] = [];
+    Object.entries(record.změny).forEach(([key, value]) => {
       if (key.startsWith("nový_")) {
         const label = key.replace("nový_", "");
         lines.push(`${label}: ${value}`);
@@ -1043,7 +1044,7 @@ const formatNewState = (details) => {
     return lines.join("\n");
   }
 
-  return JSON.stringify(details, null, 2);
+  return JSON.stringify(record, null, 2);
 };
 
 // Přidání nových proměnných a funkcí do <script setup>

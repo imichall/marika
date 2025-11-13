@@ -4,8 +4,8 @@
 
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold">Správa emailů</h1>
-        <p class="text-gray-600 mt-2">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Správa emailů</h1>
+        <p class="text-gray-600 dark:text-gray-300 mt-2">
           Spravujte příjemce emailů a prohlížejte historii odeslaných emailů
         </p>
       </div>
@@ -38,10 +38,10 @@
     </div>
 
     <!-- Sekce příjemců emailů -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 mb-8">
       <div class="p-6">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-semibold">Příjemci emailů</h2>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Příjemci emailů</h2>
           <button
             v-if="permissions.manage"
             @click="openAddRecipientModal"
@@ -54,52 +54,52 @@
         <!-- Loading stav pro příjemce -->
         <div v-if="recipientsLoading" class="text-center py-8">
           <div
-            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"
+            class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"
           ></div>
-          <p class="mt-2 text-gray-600">Načítání příjemců...</p>
+          <p class="mt-2 text-gray-600 dark:text-gray-300">Načítání příjemců...</p>
         </div>
 
         <!-- Error stav pro příjemce -->
         <div
           v-else-if="recipientsError"
-          class="bg-red-50 text-red-600 p-4 rounded-lg mb-8"
+          class="bg-red-50 text-red-600 p-4 rounded-lg mb-8 dark:bg-red-500/10 dark:text-red-200"
         >
           {{ recipientsError }}
         </div>
 
         <!-- Seznam příjemců -->
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-800">
               <tr>
                 <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
                 >
                   Jméno
                 </th>
                 <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
                 >
                   Email
                 </th>
                 <th
-                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
                 >
                   Stav
                 </th>
                 <th
-                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
                 >
                   Akce
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
               <tr v-for="recipient in recipients" :key="recipient.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                   {{ recipient.name }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                   {{ recipient.email }}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -107,8 +107,8 @@
                     :class="[
                       'px-2 py-1 text-xs font-medium rounded-full',
                       recipient.is_active
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800',
+                        ? 'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300'
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
                     ]"
                   >
                     {{ recipient.is_active ? "Aktivní" : "Neaktivní" }}
@@ -161,80 +161,80 @@
     <!-- Loading stav -->
     <div v-if="loading" class="flex justify-center items-center py-8">
       <div
-        class="animate-spin rounded-full h-8 w-8 border-2 border-gray-900 border-t-transparent"
+        class="animate-spin rounded-full h-8 w-8 border-2 border-gray-900 border-t-transparent dark:border-gray-100 dark:border-t-transparent"
       ></div>
     </div>
 
     <!-- Error stav -->
     <div
       v-else-if="error"
-      class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6"
+      class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative mb-6 dark:bg-red-500/10 dark:border-red-500/40 dark:text-red-200"
     >
       {{ error }}
     </div>
 
     <!-- Tabulka s emaily -->
-    <div v-else class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div v-else class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
               >
                 Příjemce
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
               >
                 Předmět
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
               >
                 Stav
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
               >
                 Vytvořeno
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300"
               >
                 Odesláno
               </th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
+          <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
               v-for="log in logs"
               :key="log.id"
-              class="hover:bg-gray-50 cursor-pointer"
+              class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
               @click="openDetailModal(log)"
             >
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ log.recipient }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ log.subject }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   :class="{
-                    'bg-yellow-100 text-yellow-800': log.status === 'pending',
-                    'bg-green-100 text-green-800': log.status === 'sent',
-                    'bg-red-100 text-red-800': log.status === 'failed',
+                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300': log.status === 'pending',
+                    'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300': log.status === 'sent',
+                    'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300': log.status === 'failed',
                   }"
                 >
                   {{ getStatusText(log.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ formatDate(log.created_at) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                 {{ log.sent_at ? formatDate(log.sent_at) : "-" }}
               </td>
             </tr>
@@ -243,9 +243,9 @@
       </div>
 
       <!-- Paginace -->
-      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
             Zobrazuji {{ startIndex + 1 }} až
             {{ Math.min(endIndex, totalEmails) }} z {{ totalEmails }} emailů
           </div>
@@ -253,7 +253,7 @@
             <button
               @click="prevPage"
               :disabled="currentPage === 1"
-              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Předchozí
             </button>
@@ -266,18 +266,18 @@
                     'px-3 py-1 border rounded-md',
                     currentPage === page
                       ? 'bg-red-600 text-white'
-                      : 'hover:bg-gray-100',
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600',
                   ]"
                 >
                   {{ page }}
                 </button>
-                <span v-else class="px-2">...</span>
+                <span v-else class="px-2 text-gray-500 dark:text-gray-400">...</span>
               </template>
             </div>
             <button
               @click="nextPage"
               :disabled="currentPage === totalPages"
-              class="px-3 py-1 border rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="px-3 py-1 border rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Další
             </button>
@@ -313,27 +313,27 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
-                <DialogTitle as="h3" class="text-2xl font-bold mb-4">
+                <DialogTitle as="h3" class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                   Detail emailu
                 </DialogTitle>
 
-                <div v-if="selectedLog" class="space-y-4">
+                <div v-if="selectedLog" class="space-y-4 text-gray-800 dark:text-gray-100">
                   <div>
-                    <h4 class="font-medium text-gray-700">Příjemce</h4>
+                    <h4 class="font-medium text-gray-700 dark:text-gray-300">Příjemce</h4>
                     <p>{{ selectedLog.recipient }}</p>
                   </div>
 
                   <div>
-                    <h4 class="font-medium text-gray-700">Předmět</h4>
+                    <h4 class="font-medium text-gray-700 dark:text-gray-300">Předmět</h4>
                     <p>{{ selectedLog.subject }}</p>
                   </div>
 
                   <div>
-                    <h4 class="font-medium text-gray-700">Obsah</h4>
+                    <h4 class="font-medium text-gray-700 dark:text-gray-300">Obsah</h4>
                     <div
-                      class="mt-1 p-4 bg-gray-50 rounded-lg whitespace-pre-wrap"
+                      class="mt-1 p-4 bg-gray-50 dark:bg-gray-800/60 rounded-lg whitespace-pre-wrap"
                     >
                       {{ selectedLog.body }}
                     </div>
@@ -341,15 +341,15 @@
 
                   <div class="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 class="font-medium text-gray-700">Stav</h4>
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">Stav</h4>
                       <span
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full mt-1"
                         :class="{
-                          'bg-yellow-100 text-yellow-800':
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300':
                             selectedLog.status === 'pending',
-                          'bg-green-100 text-green-800':
+                          'bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-300':
                             selectedLog.status === 'sent',
-                          'bg-red-100 text-red-800':
+                          'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300':
                             selectedLog.status === 'failed',
                         }"
                       >
@@ -358,8 +358,8 @@
                     </div>
 
                     <div v-if="selectedLog.error_message">
-                      <h4 class="font-medium text-gray-700">Chybová zpráva</h4>
-                      <p class="text-red-600">
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">Chybová zpráva</h4>
+                      <p class="text-red-600 dark:text-red-300">
                         {{ selectedLog.error_message }}
                       </p>
                     </div>
@@ -367,12 +367,12 @@
 
                   <div class="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 class="font-medium text-gray-700">Vytvořeno</h4>
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">Vytvořeno</h4>
                       <p>{{ formatDate(selectedLog.created_at) }}</p>
                     </div>
 
                     <div v-if="selectedLog.sent_at">
-                      <h4 class="font-medium text-gray-700">Odesláno</h4>
+                      <h4 class="font-medium text-gray-700 dark:text-gray-300">Odesláno</h4>
                       <p>{{ formatDate(selectedLog.sent_at) }}</p>
                     </div>
                   </div>
@@ -381,7 +381,7 @@
                 <div class="mt-6 flex justify-end">
                   <button
                     @click="closeDetailModal"
-                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                   >
                     Zavřít
                   </button>
@@ -420,21 +420,21 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
-                <DialogTitle as="h3" class="text-2xl font-bold mb-4">
+                <DialogTitle as="h3" class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                   Náhled emailu
                 </DialogTitle>
 
                 <!-- Testovací formulář -->
                 <div
-                  class="bg-white rounded-xl p-6 mb-8 border border-gray-200"
+                  class="bg-white dark:bg-gray-900 rounded-xl p-6 mb-8 border border-gray-200 dark:border-gray-700"
                 >
-                  <h2 class="text-xl font-bold mb-4">Testovací formulář</h2>
+                  <h2 class="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Testovací formulář</h2>
                   <form @submit.prevent="updatePreview" class="space-y-4">
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-1"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Příjemce
                       </label>
@@ -442,13 +442,13 @@
                         v-model="previewForm.to"
                         type="email"
                         required
-                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-1"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Předmět
                       </label>
@@ -456,13 +456,13 @@
                         v-model="previewForm.subject"
                         type="text"
                         required
-                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-1"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                       >
                         Obsah
                       </label>
@@ -470,7 +470,7 @@
                         v-model="previewForm.content"
                         rows="6"
                         required
-                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       ></textarea>
                     </div>
 
@@ -490,19 +490,19 @@
                   :to="previewForm.to"
                   :subject="previewForm.subject"
                 >
-                  <div v-html="formattedContent"></div>
+                  <div class="text-gray-800 dark:text-gray-100" v-html="formattedContent"></div>
                 </EmailPreview>
 
                 <div class="mt-6 flex justify-end space-x-4">
                   <button
                     @click="closePreviewModal"
-                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                   >
                     Zavřít
                   </button>
                   <button
                     @click="loadTestData"
-                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 dark:bg-gray-500 dark:hover:bg-gray-400"
                   >
                     Načíst testovací data
                   </button>
@@ -544,11 +544,11 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-xl font-bold text-gray-900 mb-4"
+                  class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4"
                 >
                   Přidat příjemce
                 </DialogTitle>
@@ -557,7 +557,7 @@
                   <div class="space-y-4">
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Jméno
                       </label>
@@ -565,13 +565,13 @@
                         v-model="recipientForm.name"
                         type="text"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Email
                       </label>
@@ -579,7 +579,7 @@
                         v-model="recipientForm.email"
                         type="email"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
                   </div>
@@ -588,7 +588,7 @@
                     <button
                       type="button"
                       @click="closeAddRecipientModal"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                     >
                       Zrušit
                     </button>
@@ -637,11 +637,11 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-xl font-bold text-gray-900 mb-4"
+                  class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4"
                 >
                   Upravit příjemce
                 </DialogTitle>
@@ -650,7 +650,7 @@
                   <div class="space-y-4">
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Jméno
                       </label>
@@ -658,13 +658,13 @@
                         v-model="recipientForm.name"
                         type="text"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
 
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 mb-2"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                       >
                         Email
                       </label>
@@ -672,7 +672,7 @@
                         v-model="recipientForm.email"
                         type="email"
                         required
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                       />
                     </div>
                   </div>
@@ -681,7 +681,7 @@
                     <button
                       type="button"
                       @click="closeEditRecipientModal"
-                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                     >
                       Zrušit
                     </button>
@@ -730,31 +730,31 @@
               leave-to="opacity-0 scale-95"
             >
               <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all"
+                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700"
               >
                 <DialogTitle
                   as="h3"
-                  class="text-xl font-bold text-gray-900 mb-4"
+                  class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4"
                 >
                   Smazat příjemce?
                 </DialogTitle>
 
-                <div class="mt-2">
-                  <p class="text-gray-600">
+                <div class="mt-2 text-gray-700 dark:text-gray-300">
+                  <p>
                     Opravdu chcete smazat tohoto příjemce? Tuto akci nelze
                     vrátit zpět.
                   </p>
 
-                  <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                  <div class="mt-4 bg-gray-50 dark:bg-gray-800/60 p-4 rounded-lg">
                     <div class="text-sm">
-                      <div class="font-medium text-gray-700">Jméno:</div>
-                      <div class="text-gray-600">
+                      <div class="font-medium text-gray-700 dark:text-gray-300">Jméno:</div>
+                      <div class="text-gray-600 dark:text-gray-200">
                         {{ recipientToDelete?.name }}
                       </div>
                     </div>
                     <div class="text-sm mt-2">
-                      <div class="font-medium text-gray-700">Email:</div>
-                      <div class="text-gray-600">
+                      <div class="font-medium text-gray-700 dark:text-gray-300">Email:</div>
+                      <div class="text-gray-600 dark:text-gray-200">
                         {{ recipientToDelete?.email }}
                       </div>
                     </div>
@@ -764,7 +764,7 @@
                 <div class="mt-6 flex justify-end gap-3">
                   <button
                     type="button"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 transition-colors dark:text-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                     @click="closeDeleteRecipientModal"
                   >
                     Zrušit

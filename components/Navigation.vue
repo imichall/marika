@@ -1,13 +1,8 @@
 <template>
   <!-- Frontend Navigation -->
-  <nav
-    v-if="!isAdminRoute"
-    class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800"
-  >
+  <nav v-if="!isAdminRoute" class="fixed top-0 w-full bg-white z-50 shadow-sm border-b border-red-800">
     <div class="bg-black">
-      <div
-        class="container mx-auto px-4 py-2 flex justify-between items-center"
-      >
+      <div class="container mx-auto px-4 py-2 flex justify-between items-center">
         <!-- Social Icons -->
         <div class="flex items-center space-x-4">
           <a
@@ -54,7 +49,7 @@
         <!-- Login a Admin Buttons -->
         <div class="flex items-center gap-4">
           <NuxtLink
-            v-if="user"
+            v-if="canAccessAdmin"
             to="/admin"
             class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
@@ -73,8 +68,8 @@
               />
             </svg>
           </NuxtLink>
-          <button
-            @click="openLoginModal"
+          <NuxtLink
+            :to="memberLink"
             class="inline-flex items-center gap-2 bg-transparent text-white group transition-colors duration-200"
           >
             Členská sekce
@@ -91,38 +86,29 @@
                 d="M14 5l7 7m0 0l-7 7m7-7H3"
               />
             </svg>
-          </button>
+          </NuxtLink>
+          <span
+            v-if="currentUserEmail"
+            class="hidden sm:inline-flex items-center gap-2 text-sm text-white/80"
+          >
+            <Icon name="mdi:account-circle" class="text-lg" />
+            {{ currentUserEmail }}
+          </span>
         </div>
       </div>
     </div>
-
-    <!-- Mobilní menu trigger -->
-    <button
-      @click="toggleMenu"
-      class="md:hidden fixed top-10 right-4 z-50 flex flex-col gap-3 p-2"
-      :class="{ hidden: isMenuOpen }"
-    >
-      <span
-        class="w-16 h-1.5 bg-black transition-all duration-300 rounded-sm"
-      ></span>
-      <span
-        class="w-8 h-1.5 self-end bg-black transition-all duration-300 rounded-sm"
-      ></span>
-    </button>
-
-    <!-- Desktop menu -->
-    <div class="container mx-auto px-4 py-2">
-      <div class="flex justify-between items-center">
-        <div class="logo flex items-center">
+    <div class="bg-white">
+      <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center">
           <NuxtLink to="/">
             <img
               src="/images/svg/marika-singers-logo.svg"
-              alt="Logo"
+              alt="Marika Singers"
               class="w-[68px] min-w-[68px] h-auto"
             />
           </NuxtLink>
         </div>
-        <div class="hidden md:flex space-x-6">
+        <div class="hidden md:flex items-center space-x-6">
           <button
             v-for="item in visibleMenuItems"
             :key="item.id"
@@ -165,79 +151,6 @@
       </div>
     </Transition>
   </nav>
-
-  <!-- Login Modal -->
-  <Teleport to="body">
-    <div
-      v-if="showLoginModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl w-96">
-        <h2 class="text-xl font-bold mb-4">Přihlášení do privátní sekce</h2>
-        <form
-          method="post"
-          action="https://ms.marikasingers.cz/prihlaseni.aspx"
-          autocomplete="off"
-          data-lpignore="true"
-          data-form-type="other"
-          data-kwimpalastatus="dead"
-          data-kwimpalaid="1234567890"
-        >
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Uživatelské jméno:</label>
-            <input
-              type="text"
-              name="username"
-              id="username"
-              class="w-full p-2 border rounded"
-              required
-              @input="e => loginForm.username = (e.target as HTMLInputElement).value"
-              autocomplete="chrome-off"
-              data-lpignore="true"
-              data-form-type="other"
-              data-kwimpalastatus="dead"
-              data-kwimpalaid="1234567890"
-            />
-          </div>
-          <div class="mb-4">
-            <label class="block text-gray-700 mb-2">Heslo:</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              class="w-full p-2 border rounded"
-              required
-              @input="e => loginForm.password = (e.target as HTMLInputElement).value"
-              autocomplete="chrome-off"
-              data-lpignore="true"
-              data-form-type="other"
-              data-kwimpalastatus="dead"
-              data-kwimpalaid="1234567890"
-              readonly
-              onfocus="this.removeAttribute('readonly');"
-            />
-          </div>
-          <div class="flex justify-between">
-            <button
-              type="submit"
-              name="submit"
-              id="submit"
-              value="přihlásit"
-              class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-            >
-              Přihlásit
-            </button>
-            <button
-              @click="showLoginModal = false"
-              class="text-gray-600 hover:text-gray-800"
-            >
-              Zavřít
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -248,28 +161,73 @@ import {
   onMounted,
   onUnmounted,
   defineComponent,
-} from "#imports";
-import { useRouter, useRoute } from "#imports";
+} from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { useAuth } from "~/composables/useAuth";
 import { useSocialMedia } from "~/composables/useSocialMedia";
 import { useScroll } from "~/composables/useScroll";
 import type { SocialMedia, MenuItem } from "~/types";
+// @ts-ignore Nuxt runtime import
+import { useSupabaseClient, useState } from "#imports";
 
 const router = useRouter();
 const route = useRoute();
 const { user } = useAuth();
 const { socialMedia, fetchSocialMedia, onSocialMediaUpdate } = useSocialMedia();
 const isMenuOpen = ref(false);
-const showLoginModal = ref(false);
+const memberLink = computed(() =>
+  user.value ? "/clenska-sekce" : "/clenska-sekce/prihlaseni"
+);
 const { scrollToSection } = useScroll();
+const supabase = useSupabaseClient();
+const sharedUser = useState<{ email: string | null; role: string }>(
+  "current-user-role",
+  () => ({ email: null, role: "viewer" })
+);
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith("/admin");
 });
 
+const currentUserEmail = computed(() => sharedUser.value?.email ?? user.value?.email ?? "");
+const canAccessAdmin = computed(() =>
+  ["admin", "editor"].includes(sharedUser.value?.role ?? "viewer")
+);
+
+const loadUserRole = async () => {
+  if (!user.value?.email) {
+    sharedUser.value = { email: null, role: "viewer" };
+    return;
+  }
+
+  if (
+    sharedUser.value.email === user.value.email &&
+    sharedUser.value.role !== "viewer"
+  ) {
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("email", user.value.email)
+      .single();
+
+    sharedUser.value = {
+      email: user.value.email,
+      role: !error && data?.role ? data.role : "viewer",
+    };
+  } catch (err) {
+    console.error("Nepodařilo se načíst roli uživatele:", err);
+    sharedUser.value = { email: user.value.email, role: "viewer" };
+  }
+};
+
 // Initial data fetch and event listener setup
 onMounted(async () => {
   await fetchSocialMedia();
+  await loadUserRole();
   const cleanup = onSocialMediaUpdate(async () => {
     await fetchSocialMedia();
   });
@@ -342,29 +300,12 @@ watch(isMenuOpen, (newValue: boolean) => {
   }
 });
 
-const loginForm = ref({
-  username: "",
-  password: "",
-});
-
-const openLoginModal = () => {
-  // Reset form values when opening
-  loginForm.value = {
-    username: "",
-    password: "",
-  };
-  showLoginModal.value = true;
-
-  /* // Log values after 5 seconds
-  setTimeout(() => {
-    const usernameInput = document.querySelector(
-      "#username"
-    ) as HTMLInputElement;
-    const passwordInput = document.querySelector(
-      "#password"
-    ) as HTMLInputElement;
-  }, 5000); */
-};
+watch(
+  () => user.value?.email,
+  async () => {
+    await loadUserRole();
+  }
+);
 
 defineComponent({
   name: "Navigation",

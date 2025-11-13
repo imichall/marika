@@ -1,9 +1,10 @@
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { useSupabaseClient } from "#imports";
 import { slugify } from "~/utils/string.js";
 
 export interface ForumTopic {
   id: string;
+  scope: ForumScope;
   title: string;
   slug: string | null;
   content: string;
@@ -108,8 +109,11 @@ export interface ForumTag {
   created_at: string;
 }
 
-export const useForum = () => {
+export type ForumScope = "admin" | "members";
+
+export const useForum = (scope: ForumScope = "admin") => {
   const supabase = useSupabaseClient();
+  const forumScope = ref<ForumScope>(scope);
   const topics = ref<ForumTopic[]>([]);
   const topic = ref<ForumTopic | null>(null);
   const replies = ref<ForumReply[]>([]);
@@ -138,6 +142,7 @@ export const useForum = () => {
       let query = supabase
         .from("forum_topics")
         .select("*")
+        .eq("scope", forumScope.value)
         .order("is_pinned", { ascending: false })
         .order("last_activity_at", { ascending: false });
 
@@ -209,6 +214,7 @@ export const useForum = () => {
       let query = supabase
         .from("forum_topics")
         .select("*")
+        .eq("scope", forumScope.value)
         .eq("slug", slugOrId);
 
       let { data, error: err } = await query.single();
@@ -218,6 +224,7 @@ export const useForum = () => {
         const idQuery = supabase
           .from("forum_topics")
           .select("*")
+          .eq("scope", forumScope.value)
           .eq("id", slugOrId);
 
         const result = await idQuery.single();
@@ -226,6 +233,10 @@ export const useForum = () => {
       }
 
       if (err) throw err;
+
+      if (data && data.scope !== forumScope.value) {
+        throw new Error("Téma nebylo nalezeno v aktuální sekci");
+      }
 
       // Pokud téma nemá slug, vygenerujeme ho
       if (data && !data.slug) {
@@ -420,13 +431,14 @@ export const useForum = () => {
 
       // Extrahujeme tagy a odstraníme je z topicData
       const tags = topicData.tags || (topicData.tag ? [topicData.tag] : []);
-      const { tags: _, tag: __, ...topicDataWithoutTags } = topicData;
+      const { tags: _, tag: __, scope: ___, ...topicDataWithoutTags } = topicData;
 
       const { data, error: err } = await supabase
         .from("forum_topics")
         .insert([
           {
             ...topicDataWithoutTags,
+            scope: forumScope.value,
             slug,
             author_email: user.user.email,
           },

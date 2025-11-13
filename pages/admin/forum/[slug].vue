@@ -134,7 +134,7 @@
             <!-- Akční tlačítka -->
             <div class="flex flex-wrap gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
               <button
-                v-if="permissions.edit"
+                v-if="canCreateOrEditTopics"
                 @click="editTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -142,7 +142,7 @@
                 Upravit
               </button>
               <button
-                v-if="permissions.edit"
+                v-if="canCreateOrEditTopics"
                 @click="togglePinTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 text-white rounded-lg hover:from-amber-700 hover:to-amber-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -160,7 +160,7 @@
                 {{ topic.is_locked ? "Odemknout" : "Zamknout" }}
               </button>
               <button
-                v-if="isAdmin"
+                v-if="canDeleteTopics"
                 @click="deleteTopic"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -180,7 +180,7 @@
                 <span class="text-lg font-normal text-gray-500 dark:text-gray-400">({{ replies.length }})</span>
               </h2>
               <button
-                v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
+                v-if="!topic.is_locked && topic.status !== 'archived' && canCreateOrEditTopics"
                 @click="showReplyForm = !showReplyForm"
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-500 dark:from-indigo-700 dark:to-indigo-600 text-white rounded-lg hover:from-indigo-700 dark:hover:from-indigo-800 hover:to-indigo-600 dark:hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md font-medium"
               >
@@ -257,7 +257,7 @@
                     </span>
                     <div class="flex gap-1">
                       <button
-                        v-if="permissions.edit"
+                        v-if="canCreateOrEditTopics"
                         @click="editReply(reply)"
                         class="p-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                         title="Upravit"
@@ -265,7 +265,7 @@
                         <span class="material-icons-outlined text-[18px]">edit</span>
                       </button>
                       <button
-                        v-if="permissions.edit && !reply.is_best_answer"
+                        v-if="canCreateOrEditTopics && !reply.is_best_answer"
                         @click="setBestAnswer(reply.id)"
                         class="p-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200"
                         title="Označit jako nejlepší odpověď"
@@ -311,7 +311,7 @@
                 </div>
                 <div class="flex items-center gap-3 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 justify-between">
                   <button
-                    v-if="!topic.is_locked && topic.status !== 'archived' && permissions.create"
+                    v-if="!topic.is_locked && topic.status !== 'archived' && canCreateOrEditTopics"
                     @click="replyToReply(reply)"
                     class="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                   >
@@ -381,37 +381,28 @@
           </div>
         </div>
 
-        <!-- Historie zhlédnutí -->
-        <div class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
-          <div class="p-6 lg:p-8">
-            <h2 class="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-              Historie zhlédnutí
-            </h2>
-
-            <div v-if="views.length > 0" class="space-y-3">
-              <div
-                v-for="view in views"
-                :key="view.id"
-                class="flex justify-between items-center py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center">
-                    <span class="material-icons-outlined text-white text-[16px]">visibility</span>
-                  </div>
-                  <span class="font-medium text-gray-900 dark:text-white">{{ view.viewed_by_name }}</span>
-                </div>
-                <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                  {{ formatDate(view.viewed_at) }}
-                </span>
-              </div>
+        <!-- Historie zhlédnutí - kompaktní verze -->
+        <button
+          @click="showViewsHistorySidebar = true"
+          class="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 p-6 w-full flex items-center justify-between group cursor-pointer"
+        >
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+              <span class="material-icons-outlined text-white text-[24px]">visibility</span>
             </div>
-
-            <div v-else class="text-center py-12">
-              <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">visibility_off</span>
-              <p class="text-gray-500 dark:text-gray-400 text-lg">Zatím žádné zhlédnutí</p>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                Historie zhlédnutí
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Celkem {{ views.length }} {{ views.length === 1 ? 'zhlédnutí' : views.length < 5 ? 'zhlédnutí' : 'zhlédnutí' }}
+              </p>
             </div>
           </div>
-        </div>
+          <span class="material-icons-outlined text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+            chevron_right
+          </span>
+        </button>
       </div>
 
       <!-- Error - zobrazíme pouze pokud načítání je dokončeno, téma neexistuje a došlo k chybě -->
@@ -519,6 +510,124 @@
                 <div v-else class="text-center py-12">
                   <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">history</span>
                   <p class="text-gray-500 dark:text-gray-400 text-lg">Žádná historie úprav</p>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Sidebar pro historii zhlédnutí -->
+    <Teleport to="body">
+      <Transition name="sidebar-overlay">
+        <div
+          v-if="showViewsHistorySidebar"
+          class="fixed inset-0 z-50 overflow-hidden"
+        >
+          <!-- Overlay -->
+          <div
+            class="fixed inset-0 bg-black bg-opacity-50"
+            @click="showViewsHistorySidebar = false"
+          ></div>
+
+          <!-- Sidebar -->
+          <Transition name="sidebar">
+            <div
+              v-if="showViewsHistorySidebar"
+              class="fixed right-0 top-0 h-full w-full max-w-2xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto z-50 border-l border-gray-200 dark:border-gray-800"
+            >
+              <div class="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex justify-between items-center z-10">
+                <div>
+                  <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Historie zhlédnutí</h2>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Celkem {{ filteredViews.length }} {{ filteredViews.length === 1 ? 'záznam' : filteredViews.length < 5 ? 'záznamy' : 'záznamů' }}
+                  </p>
+                </div>
+                <button
+                  @click="showViewsHistorySidebar = false"
+                  class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                >
+                  <span class="material-icons-outlined text-[24px]">close</span>
+                </button>
+              </div>
+
+              <div class="p-6 lg:p-8">
+                <!-- Vyhledávání -->
+                <div class="mb-6">
+                  <div class="relative">
+                    <input
+                      v-model="viewsSearchQuery"
+                      type="text"
+                      placeholder="Hledat uživatele..."
+                      class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 transition-shadow"
+                    />
+                    <span class="material-icons-outlined absolute left-3 top-3.5 text-gray-400 dark:text-gray-500 text-[20px]">
+                      search
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Seznam zhlédnutí -->
+                <div v-if="paginatedViews.length > 0" class="space-y-3">
+                  <div
+                    v-for="view in paginatedViews"
+                    :key="view.id"
+                    class="flex justify-between items-center py-4 px-5 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 shadow-sm hover:shadow-md"
+                  >
+                    <div class="flex items-center gap-4">
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <span class="material-icons-outlined text-white text-[18px]">visibility</span>
+                      </div>
+                      <span class="font-semibold text-gray-900 dark:text-white">{{ view.viewed_by_name }}</span>
+                    </div>
+                    <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                      {{ formatDate(view.viewed_at) }}
+                    </span>
+                  </div>
+                </div>
+
+                <div v-else class="text-center py-12">
+                  <span class="material-icons-outlined text-5xl text-gray-300 dark:text-gray-600 mb-3 block">search_off</span>
+                  <p class="text-gray-500 dark:text-gray-400 text-lg">Žádné výsledky</p>
+                </div>
+
+                <!-- Stránkování -->
+                <div v-if="filteredViews.length > viewsPerPage" class="mt-8 flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-6">
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    Zobrazuji {{ viewsPageStart + 1 }} - {{ Math.min(viewsPageEnd, filteredViews.length) }} z {{ filteredViews.length }}
+                  </div>
+                  <div class="flex gap-2">
+                    <button
+                      @click="viewsCurrentPage--"
+                      :disabled="viewsCurrentPage === 1"
+                      class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                    >
+                      <span class="material-icons-outlined text-[20px]">chevron_left</span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                      <button
+                        v-for="page in visibleViewsPages"
+                        :key="page"
+                        @click="viewsCurrentPage = page"
+                        :class="[
+                          'px-4 py-2 rounded-lg transition-colors font-medium',
+                          viewsCurrentPage === page
+                            ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                            : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        ]"
+                      >
+                        {{ page }}
+                      </button>
+                    </div>
+                    <button
+                      @click="viewsCurrentPage++"
+                      :disabled="viewsCurrentPage === totalViewsPages"
+                      class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                    >
+                      <span class="material-icons-outlined text-[20px]">chevron_right</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -739,7 +848,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed, Teleport, Transition } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed, Teleport, Transition } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "~/composables/useToast";
 import { useForum } from "~/composables/useForum";
@@ -801,7 +910,7 @@ const {
   fetchTags,
   createCategory,
   createTag,
-} = useForum();
+} = useForum('admin');
 
 // Ref pro sledování, zda došlo k chybě při načítání tématu
 const topicNotFound = ref(false);
@@ -814,6 +923,10 @@ const replyForm = ref({
 const editingReply = ref<any>(null);
 const showEditModal = ref(false);
 const showHistorySidebar = ref(false);
+const showViewsHistorySidebar = ref(false);
+const viewsSearchQuery = ref("");
+const viewsCurrentPage = ref(1);
+const viewsPerPage = 20;
 const editForm = ref({
   title: "",
   content: "",
@@ -828,12 +941,65 @@ const replyToDelete = ref<any>(null);
 const permissions = ref({
   view: false,
   create: false,
-  edit: false,
   delete: false,
+  manageCategories: false,
+  manageTags: false,
 });
 
 // Admin status
 const isAdmin = ref(false);
+
+const canCreateOrEditTopics = computed(() => isAdmin.value || permissions.value.create);
+const canDeleteTopics = computed(() => isAdmin.value || permissions.value.delete);
+const canManageCategories = computed(() => isAdmin.value || permissions.value.manageCategories);
+const canManageTags = computed(() => isAdmin.value || permissions.value.manageTags);
+
+// Computed properties pro historii zhlédnutí
+const filteredViews = computed(() => {
+  if (!viewsSearchQuery.value.trim()) {
+    return views.value;
+  }
+  const query = viewsSearchQuery.value.toLowerCase();
+  return views.value.filter((view: any) =>
+    view.viewed_by_name.toLowerCase().includes(query)
+  );
+});
+
+const totalViewsPages = computed(() =>
+  Math.ceil(filteredViews.value.length / viewsPerPage)
+);
+
+const viewsPageStart = computed(() =>
+  (viewsCurrentPage.value - 1) * viewsPerPage
+);
+
+const viewsPageEnd = computed(() =>
+  viewsPageStart.value + viewsPerPage
+);
+
+const paginatedViews = computed(() =>
+  filteredViews.value.slice(viewsPageStart.value, viewsPageEnd.value)
+);
+
+const visibleViewsPages = computed(() => {
+  const total = totalViewsPages.value;
+  const current = viewsCurrentPage.value;
+  const delta = 2;
+  const range: number[] = [];
+
+  for (let i = 1; i <= total; i++) {
+    if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
+      range.push(i);
+    }
+  }
+
+  return range;
+});
+
+// Reset stránky při změně vyhledávání
+watch(viewsSearchQuery, () => {
+  viewsCurrentPage.value = 1;
+});
 
 // Computed properties pro počty liků a disliků
 const topicLikeCount = ref(0);
@@ -1164,14 +1330,21 @@ const loadPermissions = async () => {
 
     isAdmin.value = userRole?.role === "admin";
 
-    const actions: Array<"view" | "create" | "edit" | "delete"> = ["view", "create", "edit", "delete"];
-    for (const action of actions) {
+    const checks = [
+      { key: "view", section: "forum_view", action: "view" },
+      { key: "create", section: "forum_create", action: "create" },
+      { key: "delete", section: "forum_delete", action: "delete" },
+      { key: "manageCategories", section: "forum_categories", action: "manage" },
+      { key: "manageTags", section: "forum_tags", action: "manage" },
+    ];
+
+    for (const check of checks) {
       const { data: hasPermission } = await supabase.rpc("check_permission", {
         p_email: user.data.user.email,
-        p_section: "forum",
-        p_action: action,
+        p_section: check.section,
+        p_action: check.action,
       });
-      permissions.value[action] = hasPermission;
+      permissions.value[check.key] = !!hasPermission;
     }
   } catch (err) {
     console.error("Error loading permissions:", err);
@@ -1273,6 +1446,23 @@ onMounted(async () => {
   await fetchTags();
   await loadTopicData(slug);
   await loadPermissions();
+
+  // Event listener pro zavření sidebaru ESC klávesou
+  const handleEscKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      if (showViewsHistorySidebar.value) {
+        showViewsHistorySidebar.value = false;
+      } else if (showHistorySidebar.value) {
+        showHistorySidebar.value = false;
+      }
+    }
+  };
+  window.addEventListener('keydown', handleEscKey);
+
+  // Cleanup při unmount
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleEscKey);
+  });
 });
 
 // Sledování změny parametru slug v route

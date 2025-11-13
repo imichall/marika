@@ -8,7 +8,7 @@
       <button
         v-if="permissions.create"
         @click="showAddModal = true"
-        class="bg-violet-600 dark:bg-violet-700 text-white px-4 py-2 rounded-md hover:bg-violet-700 dark:hover:bg-violet-800"
+        class="flex items-center gap-2 bg-violet-600 dark:bg-violet-700 text-white px-4 py-2 rounded-md hover:bg-violet-700 dark:hover:bg-violet-800"
       >
         <span class="material-icons-outlined mr-2">add</span>
         Přidat referenci
