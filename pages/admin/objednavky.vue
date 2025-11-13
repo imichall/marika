@@ -664,9 +664,11 @@
       :permissions="{
         complete: permissions.complete,
         cancel: permissions.cancel,
+        delete: permissions.delete,
       }"
       @close="closeOrderDetail"
       @update-status="handleStatusUpdate"
+      @delete="handleDeleteFromModal"
     />
 
     <!-- Delete Confirmation Modal -->
@@ -930,7 +932,7 @@ import { useConcerts } from "~/composables/useConcerts";
 import { useToast } from "~/composables/useToast";
 
 // Inicializace composables
-const { orders, getAllOrders, updateOrderStatus } = useTicketOrders();
+const { orders, getAllOrders, updateOrderStatus, deleteOrder: deleteOrderFromComposable } = useTicketOrders();
 const { concerts, fetchConcerts } = useConcerts();
 const toast = useToast();
 const route = useRoute();
@@ -1481,6 +1483,12 @@ const handleStatusUpdate = async (
   }
 };
 
+// Funkce pro smazání objednávky z modálu
+const handleDeleteFromModal = (order: Order) => {
+  closeOrderDetail();
+  confirmDeleteOrder(order);
+};
+
 // Funkce pro úpravu objednávky
 const editOrder = (order: Order) => {
   // Prozatím otevřeme detail objednávky - později lze rozšířit o editaci
@@ -1506,12 +1514,8 @@ const deleteOrder = async () => {
   if (!orderToDelete.value) return;
 
   try {
-    const { error } = await supabase
-      .from("ticket_orders")
-      .delete()
-      .eq("id", orderToDelete.value.id);
-
-    if (error) throw error;
+    // Použijeme funkci z composable, která provede soft delete (UPDATE is_active = false)
+    await deleteOrderFromComposable(orderToDelete.value.id);
 
     // Aktualizujeme seznam objednávek
     await getAllOrders();
