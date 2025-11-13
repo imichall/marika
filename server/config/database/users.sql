@@ -308,7 +308,7 @@ begin
         -- Reference - plná správa
         or (p.section = 'testimonials' and p.action in ('view', 'create', 'edit', 'delete'))
         -- Objednávky - rozšířená oprávnění
-        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel'))
+        or (p.section = 'orders' and p.action in ('view', 'edit', 'complete', 'cancel', 'delete'))
         -- Sociální sítě - základní správa
         or (p.section = 'social_media' and p.action in ('view', 'edit'))
         -- Kontakty - plná správa
@@ -398,6 +398,7 @@ insert into permissions (section, action, description) values
   ('orders', 'edit', 'Správa objednávek'),
   ('orders', 'complete', 'Označení objednávky jako dokončené'),
   ('orders', 'cancel', 'Zrušení objednávky'),
+  ('orders', 'delete', 'Mazání objednávek'),
   ('social_media', 'view', 'Zobrazení sociálních sítí'),
   ('social_media', 'edit', 'Správa sociálních sítí'),
   ('contacts', 'view', 'Zobrazení kontaktů'),

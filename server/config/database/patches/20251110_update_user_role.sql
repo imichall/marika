@@ -49,7 +49,7 @@ BEGIN
         (p.section = 'concerts' AND p.action IN ('view', 'create', 'edit', 'delete')) OR
         (p.section = 'gallery' AND p.action IN ('view', 'create', 'edit', 'delete')) OR
         (p.section = 'testimonials' AND p.action IN ('view', 'create', 'edit', 'delete')) OR
-        (p.section = 'orders' AND p.action IN ('view', 'edit', 'complete', 'cancel')) OR
+        (p.section = 'orders' AND p.action IN ('view', 'edit', 'complete', 'cancel', 'delete')) OR
         (p.section = 'social_media' AND p.action IN ('view', 'edit')) OR
         (p.section = 'contacts' AND p.action IN ('view', 'create', 'edit', 'delete')) OR
         (p.section = 'choir_groups' AND p.action IN ('view', 'create', 'edit', 'delete')) OR
