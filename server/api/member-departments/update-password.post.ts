@@ -13,18 +13,36 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
-    // Kontrola, zda je uživatel admin
+    // Kontrola oprávnění - admin nebo editor s oprávněním member_departments.edit
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
-      .select('role')
+      .select('id, role')
       .eq('email', user.email || '')
       .single()
 
-    if (roleError || roleData?.role !== 'admin') {
+    if (roleError || !roleData) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'Pouze administrátoři mohou měnit hesla oddílů'
+        statusMessage: 'Nemáte oprávnění měnit hesla oddílů'
       })
+    }
+
+    // Admin má vždy oprávnění
+    if (roleData.role !== 'admin') {
+      // Pro editory kontrolujeme oprávnění member_departments.edit
+      const { data: permissionCheck } = await supabase
+        .rpc('check_permission', {
+          p_email: user.email || '',
+          p_section: 'member_departments',
+          p_action: 'edit'
+        })
+
+      if (!permissionCheck) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: 'Nemáte oprávnění měnit hesla oddílů'
+        })
+      }
     }
 
     const body = await readBody(event)
@@ -70,9 +88,27 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
+    // Uložení nehasheovaného hesla do dočasné tabulky (24 hodin)
+    const { error: tempPasswordError } = await supabase
+      .from('department_passwords_temp')
+      .upsert({
+        department_id: departmentId,
+        password: newPassword,
+        created_by_email: user.email || '',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hodin
+      } as any, {
+        onConflict: 'department_id'
+      })
+
+    if (tempPasswordError) {
+      console.error('Error saving temp password:', tempPasswordError)
+      // Necháme to projít, protože hlavní operace proběhla úspěšně
+    }
+
     return {
       success: true,
-      message: 'Heslo oddílu bylo úspěšně změněno'
+      message: 'Heslo oddílu bylo úspěšně změněno',
+      password: newPassword // Vracíme heslo pro zobrazení (pouze pro oprávněné uživatele)
     }
   } catch (error: any) {
     console.error('Error in update department password endpoint:', error)

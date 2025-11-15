@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center mb-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Správa uživatelů</h1>
       <button
-        v-if="mainTab === 'admin' && permissions.create"
+        v-if="mainTab === 'admin' && currentUserRole === 'admin' && permissions.create"
         @click="openCreateModal"
         class="inline-flex items-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors"
       >
@@ -36,6 +36,7 @@
       <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex space-x-8">
           <button
+            v-if="currentUserRole === 'admin'"
             @click="mainTab = 'admin'"
             :class="[
               mainTab === 'admin'
@@ -64,7 +65,7 @@
     </div>
 
     <!-- Admin Users Tab -->
-    <div v-if="mainTab === 'admin'">
+    <div v-if="mainTab === 'admin' && currentUserRole === 'admin'">
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center py-12">
       <div
@@ -319,6 +320,73 @@
               <span>{{ dept.member_count || 0 }} členů</span>
             </div>
 
+            <!-- Zobrazení hesla oddílu -->
+            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="material-icons-outlined text-[18px] text-gray-400 dark:text-gray-500">lock</span>
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Heslo oddílu:</span>
+                </div>
+                <button
+                  v-if="!visiblePasswords[dept.id] && (memberPermissions.password_view || getDepartmentPasswordSync(dept.id))"
+                  @click="showDepartmentPassword(dept.id)"
+                  class="text-xs px-2 py-1 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  :disabled="loadingPasswords[dept.id]"
+                >
+                  <span v-if="loadingPasswords[dept.id]" class="material-icons-outlined text-[16px] animate-spin">refresh</span>
+                  <span v-else class="material-icons-outlined text-[16px]">visibility</span>
+                  {{ loadingPasswords[dept.id] ? 'Načítání...' : 'Zobrazit' }}
+                </button>
+                <button
+                  v-else-if="visiblePasswords[dept.id] && (memberPermissions.password_view || getDepartmentPasswordSync(dept.id))"
+                  @click="hideDepartmentPassword(dept.id)"
+                  class="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-1"
+                >
+                  <span class="material-icons-outlined text-[16px]">visibility_off</span>
+                  Skrýt
+                </button>
+              </div>
+              <div v-if="visiblePasswords[dept.id]" class="mt-2">
+                <div class="relative">
+                  <code class="block px-3 py-2 pr-12 bg-white dark:bg-gray-900 border-2 border-violet-200 dark:border-violet-800 rounded text-sm font-mono text-gray-900 dark:text-white break-all">
+                    {{ getDepartmentPasswordSync(dept.id) || 'Neznámé heslo' }}
+                  </code>
+                  <button
+                    @click="copyDepartmentPassword(dept.id)"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded transition-colors"
+                    :title="copiedPasswordId === dept.id ? 'Zkopírováno!' : 'Zkopírovat heslo'"
+                  >
+                    <span v-if="copiedPasswordId === dept.id" class="material-icons-outlined text-[18px] text-green-600 dark:text-green-400">check</span>
+                    <span v-else class="material-icons-outlined text-[18px]">content_copy</span>
+                  </button>
+                </div>
+
+                <!-- Progress bar s countdownem -->
+                <div class="mt-3">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                      <span class="material-icons-outlined text-xs">timer</span>
+                      Heslo se automaticky skryje za {{ passwordCountdowns[dept.id] || 0 }}s
+                    </span>
+                    <span class="text-xs font-medium text-violet-600 dark:text-violet-400">
+                      {{ passwordCountdowns[dept.id] || 0 }}/10s
+                    </span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div
+                      class="h-2 bg-gradient-to-r from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 rounded-full transition-all duration-1000 ease-linear"
+                      :style="{ width: `${((passwordCountdowns[dept.id] || 0) / 10) * 100}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div v-else-if="!memberPermissions.password_view && !getDepartmentPasswordSync(dept.id)" class="mt-2">
+                <p class="text-xs text-gray-500 dark:text-gray-400 italic">
+                  Nemáte oprávnění pro zobrazení hesla oddílu.
+                </p>
+              </div>
+            </div>
+
             <div class="flex gap-2">
               <button
                 @click="editDepartment(dept)"
@@ -399,6 +467,7 @@
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
+                      v-if="memberPermissions.edit"
                       @click="editMember(member)"
                       class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mr-3"
                       title="Upravit"
@@ -406,12 +475,14 @@
                       <span class="material-icons-outlined text-[20px]">edit</span>
                     </button>
                     <button
+                      v-if="memberPermissions.delete"
                       @click="deleteMember(member)"
                       class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                       title="Smazat"
                     >
                       <span class="material-icons-outlined text-[20px]">delete</span>
                     </button>
+                    <span v-if="!memberPermissions.edit && !memberPermissions.delete" class="text-gray-400 dark:text-gray-600 text-sm">-</span>
                   </td>
                 </tr>
               </tbody>
@@ -1595,6 +1666,86 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Modal: Potvrzení zobrazení hesla -->
+    <TransitionRoot appear :show="showPasswordConfirmDialog" as="template">
+      <Dialog as="div" @close="showPasswordConfirmDialog = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-violet-100 dark:bg-violet-900/30 rounded-full">
+                  <span class="material-icons-outlined text-violet-600 dark:text-violet-400 text-3xl">lock</span>
+                </div>
+
+                <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                  {{ pendingPasswordDepartmentId ? 'Zobrazit heslo oddílu?' : 'Heslo není k dispozici' }}
+                </DialogTitle>
+
+                <div class="text-center mb-6">
+                  <p v-if="pendingPasswordDepartmentId && pendingPasswordDepartment" class="text-gray-600 dark:text-gray-400">
+                    Opravdu chcete zobrazit heslo oddílu <strong class="text-gray-900 dark:text-white">{{ pendingPasswordDepartment.display_name }}</strong>?
+                    <br />
+                    <span class="text-sm text-gray-500 dark:text-gray-500 mt-2 block">
+                      Heslo se automaticky skryje za 10 sekund.
+                    </span>
+                  </p>
+                  <p v-else-if="pendingPasswordDepartmentId" class="text-gray-600 dark:text-gray-400">
+                    Opravdu chcete zobrazit heslo tohoto oddílu?
+                    <br />
+                    <span class="text-sm text-gray-500 dark:text-gray-500 mt-2 block">
+                      Heslo se automaticky skryje za 10 sekund.
+                    </span>
+                  </p>
+                  <p v-else class="text-gray-600 dark:text-gray-400">
+                    Heslo není k dispozici. Heslo lze zobrazit pouze po jeho vytvoření nebo změně v této relaci.
+                  </p>
+                </div>
+
+                <div class="flex gap-3">
+                  <button
+                    type="button"
+                    @click="showPasswordConfirmDialog = false; pendingPasswordDepartmentId = null"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {{ pendingPasswordDepartmentId ? 'Zrušit' : 'Zavřít' }}
+                  </button>
+                  <button
+                    v-if="pendingPasswordDepartmentId"
+                    type="button"
+                    @click="confirmShowPassword"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <span class="material-icons-outlined text-[18px]">visibility</span>
+                    Zobrazit heslo
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -1604,7 +1755,7 @@ definePageMeta({
   middleware: ["auth", "permission"],
 });
 
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
@@ -1644,8 +1795,9 @@ const {
 } = useMemberManagement()
 
 // Tab state
-const mainTab = ref<'admin' | 'members'>('admin')
+const mainTab = ref<'admin' | 'members'>('members') // Default na 'members', protože editori nevidí 'admin'
 const memberTab = ref<'departments' | 'users' | 'logs'>('departments')
+const currentUserRole = ref<'admin' | 'editor' | 'viewer' | null>(null)
 
 const showEditModal = ref(false);
 const showCreateModal = ref(false);
@@ -1678,6 +1830,7 @@ const memberPermissions = ref({
   create: false,
   edit: false,
   delete: false,
+  password_view: false, // Oprávnění pro zobrazení hesla oddílů
 })
 
 const selectedDepartmentFilter = ref('')
@@ -1687,6 +1840,16 @@ const showMemberModal = ref(false)
 const editingDepartment = ref<MemberDepartment | null>(null)
 const editingMember = ref<MemberUser | null>(null)
 const newPassword = ref('')
+
+// Zobrazení hesel oddílů
+const visiblePasswords = ref<Record<string, boolean>>({})
+const passwordTimers = ref<Record<string, NodeJS.Timeout>>({})
+const passwordCountdowns = ref<Record<string, number>>({})
+const passwordCountdownIntervals = ref<Record<string, NodeJS.Timeout>>({})
+const showPasswordConfirmDialog = ref(false)
+const pendingPasswordDepartmentId = ref<string | null>(null)
+const copiedPasswordId = ref<string | null>(null)
+const copyPasswordTimer = ref<NodeJS.Timeout | null>(null)
 
 // Login logs
 const loginLogs = ref<any[]>([])
@@ -1739,12 +1902,38 @@ const filteredMembers = computed(() => {
   return members.value.filter(m => m.department_id === selectedDepartmentFilter.value)
 })
 
+const pendingPasswordDepartment = computed(() => {
+  if (!pendingPasswordDepartmentId.value) return null
+  return departments.value.find(d => d.id === pendingPasswordDepartmentId.value) || null
+})
+
 // Načtení oprávnění
 const loadPermissions = async () => {
   try {
     const user = await supabase.auth.getUser();
     if (!user.data?.user?.email) {
       throw new Error("Uživatel není přihlášen");
+    }
+
+    // Načtení role aktuálního uživatele
+    const { data: userRole, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('email', user.data.user.email)
+      .single()
+
+    if (!roleError && userRole) {
+      currentUserRole.value = userRole.role as 'admin' | 'editor' | 'viewer'
+
+      // Pokud je admin, můžeme nastavit tab na 'admin', jinak zůstane na 'members'
+      if (currentUserRole.value === 'admin' && mainTab.value === 'members') {
+        // Admin může vidět obě záložky, necháme ho na 'members' pokud tam už je
+        // nebo můžeme nastavit na 'admin' pokud chceme
+        // mainTab.value = 'admin' // Odkomentujte, pokud chcete, aby admin začínal na 'admin' tabu
+      } else if (currentUserRole.value !== 'admin' && mainTab.value === 'admin') {
+        // Editor/viewer nemůže vidět 'admin' tab, přesměrujeme na 'members'
+        mainTab.value = 'members'
+      }
     }
 
     // Kontrola oprávnění pro každou akci - admin users
@@ -1777,6 +1966,14 @@ const loadPermissions = async () => {
     actions.forEach((action, index) => {
       (memberPermissions.value as any)[action] = memberResults[index].data;
     });
+
+    // Kontrola oprávnění pro zobrazení hesla oddílů
+    const { data: passwordViewPermission } = await supabase.rpc("check_permission", {
+      p_email: user.data.user.email,
+      p_section: "member_departments",
+      p_action: "password_view",
+    });
+    memberPermissions.value.password_view = passwordViewPermission || false;
   } catch (err) {
     console.error("Error loading permissions:", err);
     throw new Error("Nepodařilo se načíst oprávnění");
@@ -1785,6 +1982,11 @@ const loadPermissions = async () => {
 
 // Načtení uživatelů
 const fetchUsers = async () => {
+  // Volat pouze pro adminy
+  if (currentUserRole.value !== 'admin') {
+    return;
+  }
+
   try {
     loading.value = true;
     error.value = null;
@@ -1997,7 +2199,22 @@ const handleDepartmentSubmit = async () => {
         permissions: departmentForm.value.permissions
       })
     } else {
-      await createDepartment(departmentForm.value)
+      const response = await createDepartment(departmentForm.value) as { success: boolean, department: any, password?: string }
+
+      // Uložení hesla do cache a sessionStorage pro pozdější zobrazení
+      if (response.password && response.department?.id && typeof window !== 'undefined') {
+        const deptId = response.department.id
+        departmentPasswordsCache.value[deptId] = response.password
+        sessionStorage.setItem(`department_password_${deptId}`, response.password)
+        console.log('✅ Heslo uloženo do cache a sessionStorage při vytvoření:', { deptId, passwordLength: response.password.length })
+        toast.success('Oddíl byl vytvořen. Heslo můžete zobrazit pomocí tlačítka "Zobrazit"')
+      } else {
+        console.warn('⚠️ Heslo nebylo v odpovědi API při vytvoření:', response)
+        toast.warning('Oddíl byl vytvořen, ale heslo nelze zobrazit')
+      }
+
+      // Obnovení seznamu oddílů, aby se UI aktualizovalo
+      await fetchDepartments()
     }
     closeDepartmentModal()
   } catch (err) {
@@ -2012,13 +2229,273 @@ const changePassword = (dept: MemberDepartment) => {
 }
 
 const handlePasswordChange = async () => {
-  if (!editingDepartment.value) return
+  if (!editingDepartment.value) {
+    console.error('❌ editingDepartment.value je null')
+    return
+  }
+
+  const deptId = editingDepartment.value.id
+  console.log('🔐 Změna hesla pro oddíl:', { deptId, hasPassword: !!newPassword.value })
+
   try {
-    await updateDepartmentPassword(editingDepartment.value.id, newPassword.value)
+    const response = await updateDepartmentPassword(deptId, newPassword.value) as { success: boolean, message: string, password?: string }
+
+    console.log('📥 Odpověď API:', {
+      success: response.success,
+      hasPassword: !!response.password,
+      passwordLength: response.password?.length,
+      response
+    })
+
+    // Uložení hesla do cache a sessionStorage pro pozdější zobrazení
+    if (response.password && typeof window !== 'undefined') {
+      departmentPasswordsCache.value[deptId] = response.password
+      const storageKey = `department_password_${deptId}`
+      sessionStorage.setItem(storageKey, response.password)
+      console.log('✅ Heslo uloženo do cache a sessionStorage:', { deptId, storageKey, passwordLength: response.password.length })
+      toast.success('Heslo bylo úspěšně změněno a můžete ho zobrazit pomocí tlačítka "Zobrazit"')
+    } else {
+      console.warn('⚠️ Heslo nebylo v odpovědi API:', { response, hasPassword: !!response.password })
+      toast.warning('Heslo bylo změněno, ale nelze ho zobrazit (není v odpovědi)')
+    }
+
+    // Obnovení seznamu oddílů, aby se UI aktualizovalo
+    console.log('🔄 Obnovování seznamu oddílů...')
+    await fetchDepartments()
+    console.log('✅ Seznam oddílů obnoven')
+
     showPasswordModal.value = false
     editingDepartment.value = null
+    newPassword.value = ''
+  } catch (err: any) {
+    console.error('❌ Chyba při změně hesla:', err)
+    console.error('❌ Detaily chyby:', {
+      message: err.message,
+      statusCode: err.statusCode,
+      data: err.data
+    })
+    toast.error(err.data?.message || err.message || 'Nepodařilo se změnit heslo')
+  }
+}
+
+// Funkce pro zobrazení hesla oddílu
+const showDepartmentPassword = async (deptId: string) => {
+  // Nejdřív zkontrolujeme, zda máme heslo v cache nebo sessionStorage
+  let password = getDepartmentPasswordSync(deptId)
+
+  // Pokud nemáme heslo, zkusíme ho načíst z API
+  if (!password) {
+    if (!memberPermissions.value.password_view) {
+      // Pokud nemá oprávnění, zobrazíme zprávu
+      pendingPasswordDepartmentId.value = null
+      showPasswordConfirmDialog.value = true
+      return
+    }
+
+    // Načteme heslo z API
+    password = await getDepartmentPassword(deptId)
+
+    if (!password) {
+      // Heslo není dostupné
+      pendingPasswordDepartmentId.value = null
+      showPasswordConfirmDialog.value = true
+      return
+    }
+  }
+
+  // Pokud máme heslo (z cache, sessionStorage nebo API), zobrazíme ho
+  pendingPasswordDepartmentId.value = deptId
+  showPasswordConfirmDialog.value = true
+}
+
+// Funkce pro potvrzení zobrazení hesla
+const confirmShowPassword = async () => {
+  if (!pendingPasswordDepartmentId.value) {
+    // Pokud není ID, znamená to, že heslo není dostupné - pouze zavřeme dialog
+    showPasswordConfirmDialog.value = false
+    return
+  }
+
+  // Uložení ID oddílu do lokální proměnné před resetem
+  const deptId = pendingPasswordDepartmentId.value
+
+  // Zavření dialogu PŘED resetem, aby se zabránilo probliknutí
+  showPasswordConfirmDialog.value = false
+
+  // Počkáme na dokončení animace zavření dialogu (Headless UI používá 200ms)
+  await nextTick()
+  await new Promise(resolve => setTimeout(resolve, 250))
+
+  // Reset až po zavření dialogu
+  pendingPasswordDepartmentId.value = null
+
+  // Zajistíme, že máme heslo v cache (načteme z API pokud není)
+  if (!departmentPasswordsCache.value[deptId]) {
+    const password = await getDepartmentPassword(deptId)
+    if (!password) {
+      toast.error('Nepodařilo se načíst heslo')
+      return
+    }
+  }
+
+  // Zobrazení hesla
+  visiblePasswords.value[deptId] = true
+
+  // Vymazání předchozích timerů, pokud existují
+  if (passwordTimers.value[deptId]) {
+    clearTimeout(passwordTimers.value[deptId])
+  }
+  if (passwordCountdownIntervals.value[deptId]) {
+    clearInterval(passwordCountdownIntervals.value[deptId])
+  }
+
+  // Nastavení countdownu na 10 sekund
+  passwordCountdowns.value[deptId] = 10
+
+  // Countdown interval - aktualizace každou sekundu
+  passwordCountdownIntervals.value[deptId] = setInterval(() => {
+    if (passwordCountdowns.value[deptId] > 0) {
+      passwordCountdowns.value[deptId]--
+    } else {
+      clearInterval(passwordCountdownIntervals.value[deptId])
+      delete passwordCountdownIntervals.value[deptId]
+    }
+  }, 1000)
+
+  // Automatické skrytí po 10 sekundách
+  passwordTimers.value[deptId] = setTimeout(() => {
+    visiblePasswords.value[deptId] = false
+    delete passwordTimers.value[deptId]
+    if (passwordCountdownIntervals.value[deptId]) {
+      clearInterval(passwordCountdownIntervals.value[deptId])
+      delete passwordCountdownIntervals.value[deptId]
+    }
+    delete passwordCountdowns.value[deptId]
+  }, 10000)
+}
+
+// Cache pro hesla načtená z API
+const departmentPasswordsCache = ref<Record<string, string>>({})
+const loadingPasswords = ref<Record<string, boolean>>({})
+
+// Funkce pro získání hesla oddílu z API nebo cache
+const getDepartmentPassword = async (deptId: string): Promise<string | null> => {
+  // Nejdřív zkontrolujeme cache
+  if (departmentPasswordsCache.value[deptId]) {
+    return departmentPasswordsCache.value[deptId]
+  }
+
+  // Pak zkontrolujeme sessionStorage (pro hesla právě vytvořená/změněná)
+  if (typeof window !== 'undefined') {
+    const sessionPassword = sessionStorage.getItem(`department_password_${deptId}`)
+    if (sessionPassword) {
+      departmentPasswordsCache.value[deptId] = sessionPassword
+      return sessionPassword
+    }
+  }
+
+  // Pokud nemáme heslo v cache ani sessionStorage, načteme z API
+  if (loadingPasswords.value[deptId]) {
+    return null // Už se načítá
+  }
+
+  try {
+    loadingPasswords.value[deptId] = true
+
+    const response = await $fetch(`/api/member-departments/get-password?departmentId=${deptId}`) as { success: boolean, password?: string }
+
+    if (response.success && response.password) {
+      departmentPasswordsCache.value[deptId] = response.password
+      return response.password
+    }
+
+    return null
+  } catch (err: any) {
+    console.log('Heslo není dostupné z API:', err.statusCode || err.message)
+    return null
+  } finally {
+    loadingPasswords.value[deptId] = false
+  }
+}
+
+// Synchronní verze pro použití v template (vrací z cache nebo sessionStorage)
+const getDepartmentPasswordSync = (deptId: string): string | null => {
+  // Zkontrolujeme cache
+  if (departmentPasswordsCache.value[deptId]) {
+    return departmentPasswordsCache.value[deptId]
+  }
+
+  // Zkontrolujeme sessionStorage
+  if (typeof window !== 'undefined') {
+    return sessionStorage.getItem(`department_password_${deptId}`)
+  }
+
+  return null
+}
+
+// Funkce pro skrytí hesla
+const hideDepartmentPassword = (deptId: string) => {
+  visiblePasswords.value[deptId] = false
+  if (passwordTimers.value[deptId]) {
+    clearTimeout(passwordTimers.value[deptId])
+    delete passwordTimers.value[deptId]
+  }
+  if (passwordCountdownIntervals.value[deptId]) {
+    clearInterval(passwordCountdownIntervals.value[deptId])
+    delete passwordCountdownIntervals.value[deptId]
+  }
+  delete passwordCountdowns.value[deptId]
+}
+
+// Funkce pro kopírování hesla oddílu
+const copyDepartmentPassword = async (deptId: string) => {
+  try {
+    // Zajistíme, že máme heslo v cache
+    let password = getDepartmentPasswordSync(deptId)
+
+    if (!password) {
+      // Zkusíme načíst z API
+      password = await getDepartmentPassword(deptId)
+    }
+
+    if (!password) {
+      toast.error('Heslo není k dispozici pro kopírování')
+      return
+    }
+
+    // Kopírování do clipboardu
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(password)
+    } else {
+      // Fallback pro starší prohlížeče
+      const textArea = document.createElement('textarea')
+      textArea.value = password
+      textArea.style.position = 'fixed'
+      textArea.style.opacity = '0'
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+    }
+
+    // Zobrazení potvrzení
+    copiedPasswordId.value = deptId
+
+    // Vymazání předchozího timeru
+    if (copyPasswordTimer.value) {
+      clearTimeout(copyPasswordTimer.value)
+    }
+
+    // Reset indikátoru po 2 sekundách
+    copyPasswordTimer.value = setTimeout(() => {
+      copiedPasswordId.value = null
+      copyPasswordTimer.value = null
+    }, 2000)
+
+    toast.success('Heslo bylo zkopírováno do schránky')
   } catch (err) {
-    console.error('Error changing password:', err)
+    console.error('Chyba při kopírování hesla:', err)
+    toast.error('Nepodařilo se zkopírovat heslo')
   }
 }
 
@@ -2218,9 +2695,13 @@ onMounted(async () => {
   try {
     loading.value = true;
     await loadPermissions();
-    await fetchUsers();
 
-    // Load member section data
+    // Načteme admin uživatele pouze pokud je uživatel admin
+    if (currentUserRole.value === 'admin') {
+      await fetchUsers();
+    }
+
+    // Load member section data (pro všechny oprávněné uživatele)
     await fetchDepartments()
     await fetchMembers()
     await fetchLoginLogs()
@@ -2230,6 +2711,32 @@ onMounted(async () => {
     toast.error(error.value);
   } finally {
     loading.value = false;
+  }
+});
+
+// Cleanup timerů při unmount
+onBeforeUnmount(() => {
+  // Vyčistit timeout timery
+  Object.values(passwordTimers.value).forEach(timer => {
+    if (timer) {
+      clearTimeout(timer)
+    }
+  })
+  passwordTimers.value = {}
+
+  // Vyčistit countdown intervaly
+  Object.values(passwordCountdownIntervals.value).forEach(interval => {
+    if (interval) {
+      clearInterval(interval)
+    }
+  })
+  passwordCountdownIntervals.value = {}
+  passwordCountdowns.value = {}
+
+  // Vyčistit copy timer
+  if (copyPasswordTimer.value) {
+    clearTimeout(copyPasswordTimer.value)
+    copyPasswordTimer.value = null
   }
 });
 </script>

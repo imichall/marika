@@ -110,24 +110,22 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
-      const { data: newMember, error: createError } = await supabase
-        .from('member_users')
-        .insert({
-          ...data,
-          is_active: data.is_active ?? true
-        })
-        .select()
-        .single()
+      const response = await $fetch('/api/member-users/create', {
+        method: 'POST',
+        body: data
+      }) as { success: boolean, member: MemberUser }
 
-      if (createError) throw createError
+      if (!response.success || !response.member) {
+        throw new Error('Nepodařilo se vytvořit člena')
+      }
 
       toast.success('Člen byl úspěšně přidán')
       await fetchMembers()
 
-      return newMember
+      return response.member
     } catch (err: any) {
       console.error('Error creating member:', err)
-      const errorMsg = err.message || 'Nepodařilo se přidat člena'
+      const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se přidat člena'
       error.value = errorMsg
       toast.error(errorMsg)
       throw err
@@ -142,19 +140,24 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
-      const { error: updateError } = await supabase
-        .from('member_users')
-        .update(data)
-        .eq('id', id)
+      const response = await $fetch('/api/member-users/update', {
+        method: 'POST',
+        body: {
+          id,
+          ...data
+        }
+      }) as { success: boolean, member: MemberUser }
 
-      if (updateError) throw updateError
+      if (!response.success) {
+        throw new Error('Nepodařilo se aktualizovat člena')
+      }
 
       const successMsg = 'Člen byl úspěšně aktualizován'
       toast.success(successMsg)
       await fetchMembers()
     } catch (err: any) {
       console.error('Error updating member:', err)
-      const errorMsg = err.message || 'Nepodařilo se aktualizovat člena'
+      const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se aktualizovat člena'
       error.value = errorMsg
       toast.error(errorMsg)
       throw err
@@ -169,18 +172,20 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
-      const { error: deleteError } = await supabase
-        .from('member_users')
-        .delete()
-        .eq('id', id)
+      const response = await $fetch('/api/member-users/delete', {
+        method: 'POST',
+        body: { id }
+      }) as { success: boolean, message: string }
 
-      if (deleteError) throw deleteError
+      if (!response.success) {
+        throw new Error('Nepodařilo se smazat člena')
+      }
 
       toast.success('Člen byl úspěšně smazán')
       await fetchMembers()
     } catch (err: any) {
       console.error('Error deleting member:', err)
-      const errorMsg = err.message || 'Nepodařilo se smazat člena'
+      const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se smazat člena'
       error.value = errorMsg
       toast.error(errorMsg)
       throw err

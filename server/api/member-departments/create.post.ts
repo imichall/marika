@@ -13,18 +13,36 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
-    // Kontrola, zda je uživatel admin
+    // Kontrola oprávnění - admin nebo editor s oprávněním member_departments.create
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
-      .select('role')
+      .select('id, role')
       .eq('email', user.email || '')
       .single()
 
-    if (roleError || roleData?.role !== 'admin') {
+    if (roleError || !roleData) {
       throw createError({
         statusCode: 403,
-        statusMessage: 'Pouze administrátoři mohou vytvářet oddíly'
+        statusMessage: 'Nemáte oprávnění vytvářet oddíly'
       })
+    }
+
+    // Admin má vždy oprávnění
+    if (roleData.role !== 'admin') {
+      // Pro editory kontrolujeme oprávnění member_departments.create
+      const { data: permissionCheck } = await supabase
+        .rpc('check_permission', {
+          p_email: user.email || '',
+          p_section: 'member_departments',
+          p_action: 'create'
+        })
+
+      if (!permissionCheck) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: 'Nemáte oprávnění vytvářet oddíly'
+        })
+      }
     }
 
     const body = await readBody(event)
@@ -78,9 +96,25 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
+    // Uložení nehasheovaného hesla do dočasné tabulky (24 hodin)
+    const { error: tempPasswordError } = await supabase
+      .from('department_passwords_temp')
+      .insert({
+        department_id: department.id,
+        password: password,
+        created_by_email: user.email || '',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hodin
+      } as any)
+
+    if (tempPasswordError) {
+      console.error('Error saving temp password:', tempPasswordError)
+      // Necháme to projít, protože hlavní operace proběhla úspěšně
+    }
+
     return {
       success: true,
-      department
+      department,
+      password: password // Vracíme heslo pro zobrazení (pouze pro oprávněné uživatele)
     }
   } catch (error: any) {
     console.error('Error in create department endpoint:', error)

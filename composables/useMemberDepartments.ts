@@ -87,7 +87,14 @@ export const useMemberDepartments = () => {
       const response = await $fetch('/api/member-departments/create', {
         method: 'POST',
         body: data
-      })
+      }) as { success: boolean, department: any, password?: string }
+
+      // Uložení hesla do sessionStorage pro pozdější zobrazení
+      if (response.password && response.department?.id) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`department_password_${response.department.id}`, response.password)
+        }
+      }
 
       toast.success('Oddíl byl úspěšně vytvořen')
       await fetchDepartments()
@@ -139,7 +146,14 @@ export const useMemberDepartments = () => {
       const response = await $fetch('/api/member-departments/update-password', {
         method: 'POST',
         body: { departmentId: id, newPassword }
-      })
+      }) as { success: boolean, message: string, password?: string }
+
+      // Uložení hesla do sessionStorage pro pozdější zobrazení
+      if (response.password) {
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem(`department_password_${id}`, response.password)
+        }
+      }
 
       toast.success('Heslo oddílu bylo úspěšně změněno')
       return response
