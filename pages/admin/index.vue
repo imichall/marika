@@ -172,33 +172,55 @@
                 Zobrazit vše
               </button>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-3">
               <div
                 v-for="activity in recentActivity"
                 :key="activity.id"
                 @click="openActivityDetail(activity)"
-                class="flex items-start p-3 lg:p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 cursor-pointer"
+                :class="[
+                  'flex items-start p-3 lg:p-4 rounded-lg transition-all duration-200 cursor-pointer border-2',
+                  activity.type === 'order'
+                    ? 'bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30 hover:bg-red-100/60 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-800/50'
+                    : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-indigo-200 dark:hover:border-indigo-700'
+                ]"
               >
-                <span :class="[activity.iconBg, 'p-2 rounded-lg mr-3 lg:mr-4']">
+                <span :class="[activity.iconBg, 'p-2.5 rounded-lg mr-3 lg:mr-4 flex-shrink-0']">
                   <span
-                    class="material-icons-outlined"
+                    class="material-icons-outlined text-xl"
                     :class="activity.iconColor"
                   >
                     {{ activity.icon }}
                   </span>
                 </span>
-                <div>
-                  <p class="font-medium text-gray-900 dark:text-white">{{ activity.title }}</p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ activity.description }}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1 min-w-0">
+                      <p class="font-semibold text-gray-900 dark:text-white text-sm">{{ activity.title }}</p>
+                      <p class="text-sm text-gray-700 dark:text-gray-300 mt-0.5 line-clamp-2">
+                        {{ activity.description }}
+                      </p>
+                      <p v-if="activity.subtitle" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {{ activity.subtitle }}
+                      </p>
+                    </div>
+                    <span
+                      v-if="activity.type === 'order'"
+                      class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium rounded-full whitespace-nowrap flex-shrink-0"
+                    >
+                      Objednávka
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-2 flex items-center gap-1">
+                    <span class="material-icons-outlined text-xs">schedule</span>
+                    {{ activity.time }}
                   </p>
-                  <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ activity.time }}</p>
                 </div>
               </div>
               <div
                 v-if="recentActivity.length === 0"
                 class="text-center text-gray-500 dark:text-gray-400 py-8"
               >
+                <span class="material-icons-outlined text-4xl mb-2 block text-gray-300 dark:text-gray-600">history</span>
                 Žádná nedávná aktivita
               </div>
             </div>
@@ -639,7 +661,7 @@ const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient();
 
-const { concerts } = useConcerts();
+const { concerts, fetchConcerts } = useConcerts();
 const { testimonials } = useTestimonials();
 const galleryImages = useGallery()?.galleryImages || [];
 const { socialMedia } = useSocialMedia();
@@ -801,6 +823,7 @@ const loadPermissions = async () => {
 onMounted(async () => {
   await Promise.all([
     getAllOrders(),
+    fetchConcerts(),
     fetchGitHubInfo(),
     fetchAllMessages(),
   ]);
@@ -930,45 +953,57 @@ const quickActions = computed(() =>
 const recentActivity = computed(() => {
   const activities = [];
 
-  // Přidáme poslední objednávku
-  const lastOrder = orders.value?.[0];
-  if (lastOrder) {
-    activities.push({
-      id: `order-${lastOrder.id}`,
-      title: "Nová objednávka vstupenek",
-      description: `${lastOrder.concert?.title || "Koncert"} - ${
-        lastOrder.ticket_count
-      } ${lastOrder.ticket_count === 1 ? "vstupenka" : "vstupenky"}`,
-      time: new Date(lastOrder.created_at).toLocaleString("cs-CZ"),
-      icon: "receipt",
-      iconBg: "bg-yellow-50",
-      iconColor: "text-yellow-600",
-      link: `/admin/objednavky/${lastOrder.id}`,
-      type: "order",
-      data: lastOrder,
-    });
-  }
+  // Přidáme pouze čekající objednávky (pending)
+  orders.value?.filter(order => order.payment_status === 'pending').forEach((order) => {
+    const concert = concerts.value?.find(c => c.id === order.concert_id);
+    const concertTitle = concert?.title || "Neznámý koncert";
+    const concertDate = concert?.date
+      ? new Date(concert.date).toLocaleDateString("cs-CZ", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        })
+      : "";
+    const concertLocation = concert?.location || "";
 
-  // Přidáme poslední zprávu
-  const lastMessage = messages.value?.[0];
-  if (lastMessage) {
     activities.push({
-      id: `message-${lastMessage.id}`,
+      id: `order-${order.id}`,
+      title: "Čekající objednávka",
+      description: `${concertTitle}${concertDate ? ` - ${concertDate}` : ""}${concertLocation ? ` (${concertLocation})` : ""}`,
+      subtitle: `${order.ticket_count} ${order.ticket_count === 1 ? "vstupenka" : order.ticket_count < 5 ? "vstupenky" : "vstupenek"} • ${order.customer_name || order.email}`,
+      time: new Date(order.created_at).toLocaleString("cs-CZ"),
+      icon: "confirmation_number",
+      iconBg: "bg-red-50 dark:bg-red-900/20",
+      iconColor: "text-red-600 dark:text-red-400",
+      link: `/admin/objednavky/${order.id}`,
+      type: "order",
+      date: new Date(order.created_at),
+      data: order,
+    });
+  });
+
+  // Přidáme všechny zprávy
+  messages.value?.forEach((message) => {
+    activities.push({
+      id: `message-${message.id}`,
       title: "Nová zpráva",
       description:
-        lastMessage.message.substring(0, 100) +
-        (lastMessage.message.length > 100 ? "..." : ""),
-      time: new Date(lastMessage.created_at).toLocaleString("cs-CZ"),
+        message.message.substring(0, 100) +
+        (message.message.length > 100 ? "..." : ""),
+      subtitle: `${message.name} • ${message.email}`,
+      time: new Date(message.created_at).toLocaleString("cs-CZ"),
       icon: "mail",
-      iconBg: "bg-indigo-50",
-      iconColor: "text-indigo-600",
-      link: `/admin/zpravy/${lastMessage.id}`,
+      iconBg: "bg-indigo-50 dark:bg-indigo-900/20",
+      iconColor: "text-indigo-600 dark:text-indigo-400",
+      link: `/admin/zpravy/${message.id}`,
       type: "message",
-      data: lastMessage,
+      date: new Date(message.created_at),
+      data: message,
     });
-  }
+  });
 
-  return activities;
+  // Seřadíme podle data sestupně (nejnovější první) a vrátíme pouze 5 nejnovějších
+  return activities.sort((a, b) => b.date - a.date).slice(0, 5);
 });
 
 // Přidáme ref pro zobrazení modalu s kompletní aktivitou
@@ -988,18 +1023,28 @@ const closeAllActivities = () => {
 const allActivities = computed(() => {
   const activities = [];
 
-  // Přidáme všechny objednávky
-  orders.value?.forEach((order) => {
+  // Přidáme pouze čekající objednávky (pending)
+  orders.value?.filter(order => order.payment_status === 'pending').forEach((order) => {
+    const concert = concerts.value?.find(c => c.id === order.concert_id);
+    const concertTitle = concert?.title || "Neznámý koncert";
+    const concertDate = concert?.date
+      ? new Date(concert.date).toLocaleDateString("cs-CZ", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        })
+      : "";
+    const concertLocation = concert?.location || "";
+
     activities.push({
       id: `order-${order.id}`,
-      title: "Objednávka vstupenek",
-      description: `${order.concert?.title || "Koncert"} - ${
-        order.ticket_count
-      } ${order.ticket_count === 1 ? "vstupenka" : "vstupenky"}`,
+      title: "Čekající objednávka",
+      description: `${concertTitle}${concertDate ? ` - ${concertDate}` : ""}${concertLocation ? ` (${concertLocation})` : ""}`,
+      subtitle: `${order.ticket_count} ${order.ticket_count === 1 ? "vstupenka" : order.ticket_count < 5 ? "vstupenky" : "vstupenek"} • ${order.customer_name || order.email}`,
       time: new Date(order.created_at).toLocaleString("cs-CZ"),
-      icon: "receipt",
-      iconBg: "bg-yellow-50",
-      iconColor: "text-yellow-600",
+      icon: "confirmation_number",
+      iconBg: "bg-red-50 dark:bg-red-900/20",
+      iconColor: "text-red-600 dark:text-red-400",
       link: `/admin/objednavky/${order.id}`,
       type: "order",
       date: new Date(order.created_at),
@@ -1011,14 +1056,15 @@ const allActivities = computed(() => {
   messages.value?.forEach((message) => {
     activities.push({
       id: `message-${message.id}`,
-      title: "Zpráva",
+      title: "Nová zpráva",
       description:
         message.message.substring(0, 100) +
         (message.message.length > 100 ? "..." : ""),
+      subtitle: `${message.name} • ${message.email}`,
       time: new Date(message.created_at).toLocaleString("cs-CZ"),
       icon: "mail",
-      iconBg: "bg-indigo-50",
-      iconColor: "text-indigo-600",
+      iconBg: "bg-indigo-50 dark:bg-indigo-900/20",
+      iconColor: "text-indigo-600 dark:text-indigo-400",
       link: `/admin/zpravy/${message.id}`,
       type: "message",
       date: new Date(message.created_at),

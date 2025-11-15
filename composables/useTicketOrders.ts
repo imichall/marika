@@ -87,22 +87,14 @@ export const useTicketOrders = () => {
       loading.value = true;
       const { data, error: err } = await supabase
         .from('ticket_orders')
-        .select(`
-          *,
-          concerts (
-            title
-          )
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (err) throw err;
 
       if (data) {
-        orders.value = data.map((order: TicketOrder) => ({
-          ...order,
-          concert_name: order.concerts?.title || 'Neznámý koncert'
-        }));
+        orders.value = data;
       }
       return data;
     } catch (err) {
