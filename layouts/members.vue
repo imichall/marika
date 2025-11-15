@@ -32,10 +32,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: ['auth', 'members']
-})
-
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 // @ts-ignore Nuxt runtime import
 import { useRouter, useRoute, useColorMode, useState, useSupabaseClient } from '#imports'
@@ -106,10 +102,37 @@ const currentTitle = computed(() => {
 })
 
 const ensureAuthenticated = async () => {
+  // Kontrola přihlášení přes oddíl
+  if (process.client) {
+    const memberDepartment = localStorage.getItem('memberDepartment')
+    const memberUser = localStorage.getItem('memberUser')
+
+    if (memberDepartment && memberUser) {
+      try {
+        const dept = JSON.parse(memberDepartment)
+        const member = JSON.parse(memberUser)
+        sidebarUser.value = {
+          email: `${member.full_name} (${dept.display_name})`,
+          role: 'member'
+        }
+        return
+      } catch (err) {
+        console.error('Chyba při parsování localStorage:', err)
+        // Pokud se nepodaří parsovat, smaž a přesměruj
+        localStorage.removeItem('memberDepartment')
+        localStorage.removeItem('memberUser')
+      }
+    }
+  }
+
+  // Kontrola běžného email přihlášení
   await checkUser()
   if (!user.value?.email) {
     sidebarUser.value = { email: null, role: 'viewer' }
-    router.push(`/clenska-sekce/prihlaseni?redirect=${encodeURIComponent(route.fullPath)}`)
+    // Přesměruj na přihlášení pouze pokud nejsme už na přihlašovací stránce
+    if (route.path !== '/clenska-sekce/prihlaseni') {
+      router.push(`/clenska-sekce/prihlaseni?redirect=${encodeURIComponent(route.fullPath)}`)
+    }
     return
   }
 
@@ -136,6 +159,11 @@ const ensureAuthenticated = async () => {
 
 const handleLogout = async () => {
   await logout()
+  // Smaž i department přihlášení a info o členovi
+  if (process.client) {
+    localStorage.removeItem('memberDepartment')
+    localStorage.removeItem('memberUser')
+  }
   sidebarUser.value = { email: null, role: 'viewer' }
   router.push('/clenska-sekce/prihlaseni')
 }

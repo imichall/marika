@@ -5,11 +5,38 @@
         <Icon name="mdi:account-music" class="text-5xl text-red-600 mx-auto" />
         <h1 class="text-3xl font-semibold text-slate-900">Členská sekce</h1>
         <p class="text-slate-600 text-sm">
-          Přihlaste se prosím pomocí údajů, které jste obdrželi. Účet je společný pro administraci i členskou sekci.
+          Přihlaste se pomocé e-mailu nebo hesla k vašemu oddílu
         </p>
       </div>
 
-      <form class="space-y-4" @submit.prevent="handleLogin">
+      <!-- Tabs pro výběr typu přihlášení -->
+      <div class="flex border-b border-slate-200">
+        <button
+          @click="loginType = 'email'"
+          :class="[
+            'flex-1 py-2 text-sm font-medium transition-colors',
+            loginType === 'email'
+              ? 'text-red-600 border-b-2 border-red-600'
+              : 'text-slate-500 hover:text-slate-700'
+          ]"
+        >
+          E-mail
+        </button>
+        <button
+          @click="loginType = 'department'"
+          :class="[
+            'flex-1 py-2 text-sm font-medium transition-colors',
+            loginType === 'department'
+              ? 'text-red-600 border-b-2 border-red-600'
+              : 'text-slate-500 hover:text-slate-700'
+          ]"
+        >
+          Oddíl
+        </button>
+      </div>
+
+      <!-- Email přihlášení -->
+      <form v-if="loginType === 'email'" class="space-y-4" @submit.prevent="handleEmailLogin">
         <div class="space-y-2">
           <label for="email" class="text-sm font-medium text-slate-700">E-mail</label>
           <input
@@ -50,6 +77,66 @@
         </button>
       </form>
 
+      <!-- Oddíl přihlášení -->
+      <form v-else class="space-y-4" @submit.prevent="handleDepartmentLogin">
+        <div class="space-y-2">
+          <label for="department" class="text-sm font-medium text-slate-700">Oddíl</label>
+          <select
+            id="department"
+            v-model="departmentName"
+            required
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+          >
+            <option value="">Vyberte oddíl</option>
+            <option value="alt">Alt</option>
+            <option value="bas">Bas</option>
+            <option value="hoste">Hosté</option>
+            <option value="hudebnici">Hudebníci</option>
+            <option value="podpora">Podpora</option>
+            <option value="sopran">Soprán</option>
+            <option value="vedeni">Vedení</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label for="member-email" class="text-sm font-medium text-slate-700">Váš e-mail</label>
+          <input
+            id="member-email"
+            v-model="memberEmail"
+            type="email"
+            required
+            autocomplete="email"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            placeholder="např. jana.novakova@example.com"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label for="dept-password" class="text-sm font-medium text-slate-700">Heslo oddílu</label>
+          <input
+            id="dept-password"
+            v-model="departmentPassword"
+            type="password"
+            required
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            placeholder="Zadejte heslo vašeho oddílu"
+          />
+        </div>
+
+        <p v-if="error" class="text-sm text-red-600">
+          {{ error }}
+        </p>
+
+        <button
+          type="submit"
+          class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white font-semibold hover:bg-red-700 transition-colors disabled:opacity-60"
+          :disabled="loading"
+        >
+          <Icon name="mdi:login" class="text-lg" />
+          {{ loading ? 'Přihlašuji...' : 'Přihlásit se' }}
+        </button>
+      </form>
+
       <div class="text-center text-sm text-slate-500">
         Potřebujete pomoc? Napište na
         <a href="mailto:info@marikasingers.cz" class="font-medium text-red-600 hover:underline">info@marikasingers.cz</a>
@@ -59,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from '#imports'
 import { useAuth } from '~/composables/useAuth'
 import { useToast } from '~/composables/useToast'
@@ -73,8 +160,12 @@ const router = useRouter()
 const { login, user, checkUser } = useAuth()
 const toast = useToast()
 
+const loginType = ref<'email' | 'department'>('department')
 const email = ref('')
 const password = ref('')
+const departmentName = ref('')
+const memberEmail = ref('')
+const departmentPassword = ref('')
 const loading = ref(false)
 const error = ref('')
 
@@ -83,7 +174,7 @@ const redirectTo = (path?: string | null) => {
   router.push(target)
 }
 
-const handleLogin = async () => {
+const handleEmailLogin = async () => {
   error.value = ''
   loading.value = true
   try {
@@ -102,13 +193,58 @@ const handleLogin = async () => {
   }
 }
 
-if (process.client) {
-  watchEffect(async () => {
+const handleDepartmentLogin = async () => {
+  error.value = ''
+  loading.value = true
+  try {
+    const response = await $fetch('/api/member-auth/login', {
+      method: 'POST',
+      body: {
+        departmentName: departmentName.value,
+        memberEmail: memberEmail.value,
+        password: departmentPassword.value
+      }
+    })
+
+    if (response.success) {
+      // Debug: Zobraz, co přišlo z API
+      console.log('Login response from API:', response)
+
+      // Uložíme informaci o oddílu + členovi do localStorage
+      if (process.client) {
+        const loginData = {
+          department: response.department,
+          member: response.member // Info o konkrétním členovi
+        }
+        localStorage.setItem('memberDepartment', JSON.stringify(loginData.department))
+        localStorage.setItem('memberUser', JSON.stringify(loginData.member))
+
+        // Debug: Ověř, co se uložilo
+        console.log('Stored in localStorage:', loginData)
+      }
+
+      const memberName = response.member?.full_name || memberEmail.value
+      toast.success(`Vítejte, ${memberName}!`)
+      redirectTo(route.query.redirect as string | undefined)
+    } else {
+      error.value = 'Neplatný oddíl, email nebo heslo'
+    }
+  } catch (err: any) {
+    console.error('Chyba při přihlášení oddílu:', err)
+    error.value = err.data?.statusMessage || 'Přihlášení se nezdařilo'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Kontrola při načtení stránky - pokud je už přihlášen, přesměruj
+onMounted(async () => {
+  if (process.client) {
     await checkUser()
-    if (user.value) {
+    if (user.value || localStorage.getItem('memberDepartment')) {
       redirectTo(route.query.redirect as string | undefined)
     }
-  })
-}
+  }
+})
 </script>
 

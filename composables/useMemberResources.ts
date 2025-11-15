@@ -52,6 +52,33 @@ export const useMemberResources = () => {
 
   const fetchPermissions = async () => {
     try {
+      // NEJPRVE zkontroluj oddílová oprávnění (pokud je uživatel přihlášen přes oddíl)
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            const dept = JSON.parse(memberDepartment)
+            const deptPermissions = dept.permissions || {}
+
+            // Mapování oddílových permissions na member resources permissions
+            const next: MemberResourcePermissions = {
+              view: deptPermissions.member_resources_view === true,
+              create: deptPermissions.member_resources_upload === true,
+              edit: deptPermissions.member_resources_upload === true,
+              delete: deptPermissions.member_resources_upload === true
+            }
+
+            console.log('📄 Using department permissions for member resources:', next)
+            permissions.value = next
+            return next
+          } catch (err) {
+            console.error('Chyba při parsování oddílových oprávnění:', err)
+            // Pokračuj na běžnou autentizaci
+          }
+        }
+      }
+
+      // Pokud není přihlášen přes oddíl, použij běžný systém (admin/editor/viewer)
       const { data: user } = await supabase.auth.getUser()
       const email = user.user?.email ?? ''
 
@@ -81,6 +108,8 @@ export const useMemberResources = () => {
       checks.forEach(([action, value]) => {
         next[action] = value
       })
+
+      console.log('👤 Using user permissions for member resources:', next)
       permissions.value = next
       return next
     } catch (err) {

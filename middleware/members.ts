@@ -14,7 +14,88 @@ const routePermissions: Record<string, RequiredPermission> = {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  // Přihlašovací stránka není chráněná
+  if (to.path === '/clenska-sekce/prihlaseni') {
+    return
+  }
+
   const supabase = useSupabaseClient()
+
+  // Kontrola, zda je přihlášen přes oddíl
+  if (process.client) {
+    const memberDepartment = localStorage.getItem('memberDepartment')
+    if (memberDepartment) {
+      try {
+        const dept = JSON.parse(memberDepartment)
+
+        // Výchozí permissions pokud nejsou nastaveny
+        const defaultPermissions = {
+          repertoire_view: true,
+          repertoire_edit: false,
+          member_directory_view: true,
+          members_area_view: true,
+          member_resources_view: true,
+          member_resources_upload: false
+        }
+
+        const permissions = dept.permissions || defaultPermissions
+
+        // Kontrola oprávnění podle cesty
+        const permissionMap: Record<string, string> = {
+          '/clenska-sekce': 'members_area_view',
+          '/clenska-sekce/repertoar': 'repertoire_view',
+          '/clenska-sekce/clenove': 'member_directory_view',
+          '/clenska-sekce/zpravy': 'members_area_view',
+          '/clenska-sekce/ke-stazeni': 'member_resources_view'
+        }
+
+        let requiredPermission = permissionMap[to.path]
+        if (!requiredPermission && to.path.startsWith('/clenska-sekce/zpravy/')) {
+          requiredPermission = 'members_area_view'
+        }
+
+        // Pokud je vyžadováno oprávnění, zkontroluj, zda ho oddíl má
+        if (requiredPermission) {
+          const hasPermission = permissions[requiredPermission as keyof typeof permissions]
+
+          // Debug log pro ladění (zobrazí se i při SSR)
+          if (process.client) {
+            console.log('🔍 Department permissions check:', {
+              path: to.path,
+              requiredPermission,
+              hasPermission,
+              hasPermissionType: typeof hasPermission,
+              allPermissions: permissions,
+              willAllow: hasPermission === true
+            })
+          }
+
+          if (hasPermission !== true) {
+            if (process.client) {
+              console.error('❌ Access denied! Permission check failed:', {
+                requiredPermission,
+                hasPermission,
+                expected: true
+              })
+            }
+            return navigateTo('/clenska-sekce/neni-opravneni')
+          }
+
+          if (process.client) {
+            console.log('✅ Access granted!')
+          }
+        }
+
+        // Uživatel má potřebné oprávnění
+        return
+      } catch (err) {
+        console.error('Chyba při parsování memberDepartment:', err)
+        // Pokud se nepodaří parsovat, pokračuj na běžnou autentizaci
+      }
+    }
+  }
+
+  // Pokud není přihlášen přes oddíl, zkontrolujeme běžnou auth
   const { data } = await supabase.auth.getUser()
   const email = data.user?.email
 
