@@ -443,12 +443,18 @@
                 <tr v-for="member in filteredMembers" :key="member.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center gap-3">
-                      <img
-                        v-if="member.avatar_url"
-                        :src="member.avatar_url"
-                        :alt="member.full_name"
-                        class="w-8 h-8 rounded-full object-cover ring-2 ring-white dark:ring-gray-800"
-                      />
+                      <template v-if="member.avatar_url">
+                        <img
+                          :src="member.avatar_url"
+                          :alt="member.full_name"
+                          class="w-8 h-8 rounded-full object-cover ring-2 ring-white dark:ring-gray-800"
+                        />
+                      </template>
+                      <template v-else>
+                        <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center ring-2 ring-white dark:ring-gray-800">
+                          <span class="material-icons-outlined text-[18px] text-gray-500 dark:text-gray-300">person</span>
+                        </div>
+                      </template>
                       <div class="text-sm font-medium text-gray-900 dark:text-white">{{ member.full_name }}</div>
                     </div>
                   </td>
@@ -545,8 +551,11 @@
                         :alt="log.member_user.full_name"
                         class="w-8 h-8 rounded-full object-cover"
                       />
-                      <div v-else class="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                        <Icon name="mdi:account" class="text-violet-600 dark:text-violet-400 text-lg" />
+                      <div
+                        v-else
+                        class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                      >
+                        <span class="material-icons-outlined text-[18px] text-gray-500 dark:text-gray-300">person</span>
                       </div>
                       <div>
                         <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -1346,10 +1355,18 @@
 
                 <form @submit.prevent="handleMemberSubmit" class="space-y-6">
                   <!-- Avatar Upload -->
-                  <div class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 p-6 rounded-xl border-2 border-violet-100 dark:border-gray-700">
+                  <div
+                    class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 p-6 rounded-xl border-2 border-violet-100 dark:border-gray-700"
+                    :class="{ 'border-dashed ring-2 ring-violet-300 dark:ring-violet-700': isDragOverAvatar }"
+                    @dragover.prevent="onAvatarDragOver"
+                    @dragenter.prevent="onAvatarDragOver"
+                    @dragleave.prevent="onAvatarDragLeave"
+                    @drop.prevent="onAvatarDrop"
+                  >
                     <label class="flex items-center text-sm font-semibold text-gray-900 dark:text-white mb-4">
                       <span class="material-icons-outlined text-[20px] mr-2 text-violet-600 dark:text-violet-400">photo_camera</span>
                       Profilová fotografie (volitelná)
+                      <span class="ml-2 text-xs text-gray-500 dark:text-gray-400">(přetáhněte sem obrázek nebo klikněte pro výběr)</span>
                     </label>
                     <div class="flex items-center gap-6">
                       <div class="relative">
@@ -1899,6 +1916,33 @@ const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const avatarFile = ref<File | null>(null)
 const uploadingAvatar = ref(false)
+
+// Drag & drop avatar
+const isDragOverAvatar = ref(false)
+const onAvatarDragOver = (e: DragEvent) => {
+  e.preventDefault()
+  isDragOverAvatar.value = true
+}
+const onAvatarDragLeave = (e: DragEvent) => {
+  e.preventDefault()
+  isDragOverAvatar.value = false
+}
+const onAvatarDrop = (e: DragEvent) => {
+  e.preventDefault()
+  isDragOverAvatar.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    toast.error('Prosím, nahrajte obrázek (JPG/PNG).')
+    return
+  }
+  avatarFile.value = file
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    avatarPreview.value = ev.target?.result as string
+  }
+  reader.readAsDataURL(file)
+}
 
 // Delete confirmation state
 const showDeleteModal = ref(false)
