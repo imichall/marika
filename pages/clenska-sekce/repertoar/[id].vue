@@ -105,59 +105,67 @@
           <p>Zatím nejsou k dispozici žádné notové materiály.</p>
         </div>
 
-        <div v-else class="grid gap-4">
-          <div
-            v-for="file in item.files"
+        <div v-else class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <button
+            v-for="(file, idx) in item.files"
             :key="file.id"
-            class="flex items-center justify-between rounded-lg border border-slate-200 p-4 dark:border-slate-700 dark:bg-slate-900/60"
+            type="button"
+            class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
+            :class="getOverlapClass(item.files, idx)"
+            @click="handleFileClick(file)"
           >
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 mb-1">
-                <Icon name="mdi:file-document" class="text-red-600 flex-shrink-0" />
-                <p class="font-medium text-slate-900 dark:text-white truncate">{{ file.file_name }}</p>
+            <Icon
+              :name="isPdf(file) ? 'mdi:file-pdf-box' : (isAudio(file) ? 'mdi:music-note' : 'mdi:file')"
+              class="text-2xl"
+              :class="isPdf(file) ? 'text-red-600' : (isAudio(file) ? 'text-emerald-600' : 'text-slate-500')"
+            />
+            <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
+              {{ file.file_name }}
+            </span>
+          </button>
+          <button
+            v-if="item.youtube_link"
+            type="button"
+            class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
+            @click="openYoutube(item.youtube_link)"
+            title="Ukázka z YouTube"
+          >
+            <Icon name="mdi:youtube" class="text-2xl text-slate-600" />
+            <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
+              YouTube
+            </span>
+          </button>
+          <Transition name="fade">
+            <div v-if="activeInlineAudio" class="col-span-full">
+              <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 flex items-center gap-3">
+                <audio :src="activeInlineAudio" controls class="flex-1" />
+                <button
+                  class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                  @click="activeInlineAudio = null"
+                  title="Zavřít přehrávač"
+                >
+                  <Icon name="mdi:close" class="text-base" />
+                </button>
               </div>
-              <p v-if="file.voice_part" class="text-xs text-slate-500 dark:text-slate-400">
-                Hlas: {{ file.voice_part }}
-              </p>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                Přidáno: {{ new Date(file.created_at).toLocaleDateString('cs-CZ') }}
-              </p>
             </div>
-            <div class="flex items-center gap-2 ml-4">
-              <button
-                @click="downloadFile(file)"
-                class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                title="Stáhnout"
-              >
-                <Icon name="mdi:download" class="text-lg" />
-              </button>
-              <button
-                v-if="permissions.edit || permissions.delete"
-                @click="confirmRemoveFile(file)"
-                class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-300 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
-                title="Smazat"
-              >
-                <Icon name="mdi:delete" class="text-lg" />
-              </button>
-            </div>
-          </div>
+          </Transition>
         </div>
       </section>
 
-      <!-- YouTube ukázka embed -->
+      <!-- YouTube ukázka embed (nahrazeno dialogem) -->
       <section v-if="item.youtube_link" class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800">
-        <h2 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-          <Icon name="mdi:youtube" class="text-red-600" />
-          Ukázka
-        </h2>
-        <div class="aspect-video rounded-lg overflow-hidden bg-slate-900">
-          <iframe
-            :src="getYouTubeEmbedUrl(item.youtube_link)"
-            class="w-full h-full"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          />
+        <div class="flex items-center justify-between">
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <Icon name="mdi:youtube" class="text-red-600" />
+            Ukázka
+          </h2>
+          <button
+            class="inline-flex items-center justify-center px-3 py-2 rounded-md border border-slate-200 text-slate-700 hover:text-red-600 hover:border-red-300 dark:border-slate-700 dark:text-slate-300 dark:hover:text-red-300"
+            @click="openYoutube(item.youtube_link)"
+            title="Přehrát ukázku"
+          >
+            <Icon name="mdi:play" class="text-base" />
+          </button>
         </div>
       </section>
     </div>
@@ -204,6 +212,40 @@
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             placeholder="https://www.youtube.com/watch?v=..."
           />
+        </div>
+        <div class="space-y-2" v-if="item?.files && item.files.length">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Přiložené soubory</label>
+          <div class="grid gap-2">
+            <div
+              v-for="file in item.files"
+              :key="file.id"
+              class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <Icon :name="isPdf(file) ? 'mdi:file-pdf-box' : (isAudio(file) ? 'mdi:music-note' : 'mdi:file')" :class="isPdf(file) ? 'text-red-600' : (isAudio(file) ? 'text-emerald-600' : 'text-slate-500')" class="text-base flex-shrink-0" />
+                <p class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{{ file.file_name }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                  @click="downloadFile(file)"
+                  title="Stáhnout"
+                >
+                  <Icon name="mdi:download" class="text-lg" />
+                </button>
+                <button
+                  v-if="permissions.edit || permissions.delete"
+                  type="button"
+                  class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-300 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                  @click="confirmRemoveFile(file)"
+                  title="Smazat"
+                >
+                  <Icon name="mdi:delete" class="text-lg" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="flex justify-end gap-3 pt-4">
@@ -283,6 +325,58 @@
         </div>
       </div>
     </Modal>
+
+    <!-- PDF viewer dialog -->
+    <TransitionRoot v-if="pdfDialog.open" as="template" :show="pdfDialog.open">
+      <Dialog as="div" class="relative z-50" @close="pdfDialog.open = false">
+        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+          <div class="fixed inset-0 bg-black/40" />
+        </TransitionChild>
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+              <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                  <DialogTitle class="text-base font-semibold text-slate-900 dark:text-white truncate">{{ pdfDialog.name }}</DialogTitle>
+                  <button class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" @click="pdfDialog.open = false">
+                    <Icon name="mdi:close" />
+                  </button>
+                </div>
+                <div class="aspect-[3/2] bg-slate-50 dark:bg-slate-800">
+                  <iframe :src="pdfDialog.url" class="w-full h-full" />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- YouTube viewer dialog -->
+    <TransitionRoot v-if="youtubeDialog.open" as="template" :show="youtubeDialog.open">
+      <Dialog as="div" class="relative z-50" @close="youtubeDialog.open = false">
+        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+          <div class="fixed inset-0 bg-black/40" />
+        </TransitionChild>
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+              <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-black shadow-xl transition-all">
+                <div class="aspect-video">
+                  <iframe
+                    :src="youtubeDialog.url"
+                    class="w-full h-full"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -292,6 +386,7 @@ import { useSupabaseClient } from '#imports'
 import Modal from '~/components/Modal.vue'
 import { useToast } from '~/composables/useToast'
 import { useRepertoire, type RepertoireFile, type RepertoireItem } from '~/composables/useRepertoire'
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 
 definePageMeta({
   layout: 'members'
@@ -328,23 +423,68 @@ const form = reactive({
   youtube_link: ''
 })
 
-const getYouTubeEmbedUrl = (url: string) => {
-  if (!url) return ''
+const supabase = useSupabaseClient()
+const expandedAudio = ref<Record<string, boolean>>({})
+const fileUrlCache = ref<Record<string, string>>({})
+const pdfDialog = reactive({ open: false, url: '', name: '' })
+const youtubeDialog = reactive({ open: false, url: '' })
+const activeInlineAudio = ref<string | null>(null)
 
-  // Extract video ID from various YouTube URL formats
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-    /youtube\.com\/watch\?.*v=([^&\n?#]+)/
-  ]
+const isPdf = (file: any) => (file.content_type?.includes('pdf') || String(file.file_name).toLowerCase().endsWith('.pdf'))
+const isAudio = (file: any) => (file.content_type?.includes('audio') || String(file.file_name).toLowerCase().endsWith('.mp3'))
 
-  for (const pattern of patterns) {
-    const match = url.match(pattern)
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`
+const BUCKET_ID = 'repertoire'
+const getFileUrl = async (file: any): Promise<string> => {
+  if (fileUrlCache.value[file.id]) return fileUrlCache.value[file.id]
+  try {
+    const { data } = await supabase.storage.from(BUCKET_ID).createSignedUrl(file.storage_path, 3600)
+    if (data?.signedUrl) {
+      fileUrlCache.value[file.id] = data.signedUrl
+      return data.signedUrl
     }
-  }
+  } catch (e) {}
+  const { data: pub } = supabase.storage.from(BUCKET_ID).getPublicUrl(file.storage_path)
+  const publicUrl = pub.publicUrl
+  fileUrlCache.value[file.id] = publicUrl
+  return publicUrl
+}
 
-  return url
+const getOverlapClass = (files: any[], idx: number) => {
+  const cur = files[idx]
+  const prev = files[idx - 1]
+  if (!cur || !prev) return ''
+  return isPdf(cur) && isPdf(prev) ? '-ml-3' : ''
+}
+
+const handleFileClick = async (file: any) => {
+  if (isAudio(file)) {
+    const url = await getFileUrl(file)
+    activeInlineAudio.value = activeInlineAudio.value === url ? null : url
+  } else if (isPdf(file)) {
+    const url = await getFileUrl(file)
+    pdfDialog.name = file.file_name
+    pdfDialog.url = url
+    pdfDialog.open = true
+  } else {
+    activeInlineAudio.value = null
+  }
+}
+
+const getYouTubeEmbedUrl = (url: string) => {
+  try {
+    const u = new URL(url)
+    let id = ''
+    if (u.hostname.includes('youtu.be')) id = u.pathname.slice(1)
+    if (u.searchParams.get('v')) id = u.searchParams.get('v') as string
+    return `https://www.youtube.com/embed/${id}`
+  } catch {
+    return url
+  }
+}
+
+const openYoutube = (link: string) => {
+  youtubeDialog.url = getYouTubeEmbedUrl(link)
+  youtubeDialog.open = true
 }
 
 const loadItem = async () => {

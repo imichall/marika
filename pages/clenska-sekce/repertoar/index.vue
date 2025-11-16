@@ -38,10 +38,10 @@
                 id="selectAll"
                 type="checkbox"
                 class="rounded border-slate-300 text-red-600 focus:ring-red-500"
-                :checked="allVisibleSelected"
+                :checked="allResponsiveSelected"
                 @change="toggleSelectAll"
               />
-              Vybrat vše
+              Vybrat vše (na stránce)
             </label>
           </div>
         </div>
@@ -59,14 +59,65 @@
             </button>
           </div>
 
-          <div class="relative w-full md:max-w-sm">
-            <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
-            <input
-              v-model="searchQuery"
-              type="search"
-              class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-              placeholder="Hledat dle názvu nebo autora..."
-            />
+          <div class="flex flex-col gap-3">
+            <!-- Row 1: centered search -->
+            <div class="w-full flex justify-center">
+              <div class="relative w-full max-w-xl">
+                <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+                <input
+                  v-model="searchQuery"
+                  type="search"
+                  class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                  placeholder="Hledat dle názvu nebo autora..."
+                />
+              </div>
+            </div>
+
+            <!-- Row 2: controls (sorting, character, page-size) -->
+            <div class="flex flex-wrap items-center justify-center gap-3 md:justify-between">
+              <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 dark:bg-slate-900 dark:border-slate-700">
+                <span class="text-xs font-medium text-slate-500">Řazení</span>
+                <select
+                  v-model="sortKey"
+                  class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                >
+                  <option value="title">Abecedně (název)</option>
+                  <option value="created_at">Datum vytvoření</option>
+                  <option value="updated_at">Poslední úprava</option>
+                </select>
+                <select
+                  v-model="sortDir"
+                  class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                >
+                  <option value="asc">Vzestupně</option>
+                  <option value="desc">Sestupně</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 dark:bg-slate-900 dark:border-slate-700">
+                <span class="text-xs font-medium text-slate-500">Charakter</span>
+                <select
+                  v-model="selectedCharacter"
+                  class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                >
+                  <option value="vse">Vše</option>
+                  <option v-for="c in characters" :key="c" :value="c">{{ c }}</option>
+                </select>
+              </div>
+
+              <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 dark:bg-slate-900 dark:border-slate-700">
+                <span class="text-xs font-medium text-slate-500">Na stránce</span>
+                <select
+                  v-model.number="pageSize"
+                  class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+                >
+                  <option :value="10">10</option>
+                  <option :value="20">20</option>
+                  <option :value="50">50</option>
+                  <option :value="100">100</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -97,102 +148,155 @@
                   Žádné skladby odpovídající vyhledávání.
                 </td>
               </tr>
-              <tr
-                v-for="item in filteredItems"
-                :key="item.id"
-                :class="selectedIds.has(item.id) ? 'bg-red-50/50' : ''"
-              >
-                <td class="px-4 py-3 align-top">
-                  <input
-                    type="checkbox"
-                    class="rounded border-slate-300 text-red-600 focus:ring-red-500"
-                    :checked="selectedIds.has(item.id)"
-                    @change.stop="toggleSelection(item.id)"
-                    @click.stop
-                  />
-                </td>
-                <td class="px-4 py-3 align-top">
-                  <NuxtLink
-                    :to="`/clenska-sekce/repertoar/${item.slug || item.id}`"
-                    class="hover:underline block"
-                    @click.stop
-                  >
-                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
-                  </NuxtLink>
-                  <p v-if="item.description" class="text-xs text-slate-500 mt-1 dark:text-slate-300/80">{{ item.description }}</p>
-                  <p v-if="item.character" class="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                    <span class="font-medium">Charakter:</span> {{ item.character }}
-                  </p>
-                  <a v-if="item.youtube_link" :href="item.youtube_link" target="_blank" rel="noopener noreferrer" class="text-xs text-red-600 dark:text-red-400 mt-1 hover:underline inline-flex items-center gap-1">
-                    <Icon name="mdi:youtube" class="text-sm" />
-                    Ukázka na YouTube
-                  </a>
-                </td>
-                <td class="px-4 py-3 align-top text-sm text-slate-700 dark:text-slate-200">
-                  <p class="text-sm text-slate-700 dark:text-slate-200">{{ item.authors || '—' }}</p>
-                </td>
-                <td class="px-4 py-3 align-top">
-                  <div class="flex flex-col gap-2">
-                    <div
-                      v-for="file in item.files"
-                      :key="file.id"
-                      class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/60"
+              <template v-for="item in pagedItems" :key="item.id">
+                <tr
+                  :class="selectedIds.has(item.id) ? 'bg-red-50/50' : ''"
+                >
+                  <td class="px-4 py-3 align-top">
+                    <input
+                      type="checkbox"
+                      class="rounded border-slate-300 text-red-600 focus:ring-red-500"
+                      :checked="selectedIds.has(item.id)"
+                      @change.stop="toggleSelection(item.id)"
+                      @click.stop
+                    />
+                  </td>
+                  <td class="px-4 py-3 align-top">
+                    <NuxtLink
+                      :to="`/clenska-sekce/repertoar/${item.slug || item.id}`"
+                      class="hover:underline block"
+                      @click.stop
                     >
-                      <div>
-                        <p class="font-medium text-slate-800 dark:text-slate-100">{{ file.file_name }}</p>
-                        <p v-if="file.voice_part" class="text-xs text-slate-500 dark:text-slate-300">hlas: {{ file.voice_part }}</p>
-                      </div>
-                      <div class="flex items-center gap-2">
-                        <button
-                          class="inline-flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
-                          @click="downloadFile(file)"
-                          title="Stáhnout"
-                        >
-                          <Icon name="mdi:download" class="text-lg" />
-                        </button>
-                        <button
-                          v-if="permissions.edit || permissions.delete"
-                          class="inline-flex items-center justify-center text-slate-500 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-300"
-                          @click="confirmRemoveFile(file)"
-                          title="Smazat"
-                        >
-                          <Icon name="mdi:delete" class="text-lg" />
-                        </button>
-                      </div>
+                      <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
+                    </NuxtLink>
+                    <p v-if="item.description" class="text-xs text-slate-500 mt-1 dark:text-slate-300/80">{{ item.description }}</p>
+                    <p v-if="item.character" class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                      <span class="font-medium">Charakter:</span> {{ item.character }}
+                    </p>
+                  </td>
+                  <td class="px-4 py-3 align-top text-sm text-slate-700 dark:text-slate-200">
+                    <p class="text-sm text-slate-700 dark:text-slate-200">{{ item.authors || '—' }}</p>
+                  </td>
+                  <td class="px-4 py-3 align-top">
+                    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                      <button
+                        v-for="(file, idx) in item.files"
+                        :key="file.id"
+                        type="button"
+                        class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
+                        :class="getOverlapClass(item.files, idx)"
+                        @click="handleFileClick(file, item)"
+                      >
+                        <Icon
+                          :name="isPdf(file) ? 'mdi:file-pdf-box' : (isAudio(file) ? 'mdi:music-note' : 'mdi:file')"
+                          class="text-2xl"
+                          :class="isPdf(file) ? 'text-red-600' : (isAudio(file) ? 'text-emerald-600' : 'text-slate-500')"
+                        />
+                        <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
+                          {{ file.file_name }}
+                        </span>
+                      </button>
+                      <button
+                        v-if="item.youtube_link"
+                        type="button"
+                        class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
+                        @click="openYoutube(item.youtube_link)"
+                        title="Ukázka z YouTube"
+                      >
+                        <Icon name="mdi:youtube" class="text-2xl text-slate-600" />
+                        <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
+                          YouTube
+                        </span>
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    v-if="permissions.edit"
-                    class="mt-3 inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-xs font-medium text-slate-500 hover:border-red-400 hover:text-red-600 transition-colors"
-                    @click="startUploadFor(item)"
-                  >
-                    <Icon name="mdi:plus" class="text-base" />
-                    Přidat další soubory
-                  </button>
-                </td>
-                <td class="px-4 py-3 align-top text-right">
-                  <div class="inline-flex items-center gap-2">
-                    <button
-                      class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                      @click="openEditModal(item)"
-                      :disabled="!permissions.edit"
-                    >
-                      <Icon name="mdi:pencil" class="text-sm" />
-                      Upravit
-                    </button>
-                    <button
-                      class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
-                      @click="openDeleteModal(item)"
-                      :disabled="!permissions.delete"
-                    >
-                      <Icon name="mdi:trash-can" class="text-sm" />
-                      Smazat
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                  <td class="px-4 py-3 align-top text-right">
+                    <div class="inline-flex items-center gap-2">
+                      <button
+                        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        @click="openEditModal(item)"
+                        :disabled="!permissions.edit"
+                      >
+                        <Icon name="mdi:pencil" class="text-sm" />
+                        Upravit
+                      </button>
+                      <button
+                        class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
+                        @click="openDeleteModal(item)"
+                        :disabled="!permissions.delete"
+                      >
+                        <Icon name="mdi:trash-can" class="text-sm" />
+                        Smazat
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-if="expandedRow[item.id]">
+                  <td class="px-4 py-2"></td>
+                  <td class="px-4 py-2"></td>
+                  <td class="px-4 py-2" colspan="2">
+                    <div class="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 flex items-center gap-3">
+                      <audio :src="rowAudioUrl[item.id]" controls class="flex-1" />
+                      <button
+                        class="inline-flex items-center justify-center px-2.5 py-1.5 rounded-md border border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                        @click="expandedRow[item.id] = false"
+                        title="Zavřít přehrávač"
+                      >
+                        <Icon name="mdi:close" class="text-base" />
+                      </button>
+                    </div>
+                  </td>
+                  <td class="px-4 py-2"></td>
+                </tr>
+              </template>
             </tbody>
           </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-slate-200 dark:border-slate-700">
+          <div class="text-sm text-slate-600 dark:text-slate-300">
+            Zobrazuji
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ Math.min((page - 1) * pageSize + 1, filteredItems.length) }}</span>
+            –
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ Math.min(page * pageSize, filteredItems.length) }}</span>
+            z
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ filteredItems.length }}</span>
+            položek
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              :disabled="page === 1"
+              @click="page = 1"
+              title="První stránka"
+            >
+              <Icon name="mdi:page-first" class="text-base" />
+            </button>
+            <button
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              :disabled="page === 1"
+              @click="page = Math.max(1, page - 1)"
+              title="Předchozí"
+            >
+              <Icon name="mdi:chevron-left" class="text-base" />
+            </button>
+            <div class="px-2 text-sm font-medium text-slate-700 dark:text-slate-200">{{ page }} / {{ totalPages }}</div>
+            <button
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              :disabled="page >= totalPages"
+              @click="page = Math.min(totalPages, page + 1)"
+              title="Další"
+            >
+              <Icon name="mdi:chevron-right" class="text-base" />
+            </button>
+            <button
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+              :disabled="page >= totalPages"
+              @click="page = totalPages"
+              title="Poslední stránka"
+            >
+              <Icon name="mdi:page-last" class="text-base" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -346,6 +450,40 @@
             placeholder="https://www.youtube.com/watch?v=..."
           />
         </div>
+        <div v-if="permissions.view && editingItem?.files?.length" class="space-y-2">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Přiložené soubory</label>
+          <div class="grid gap-2">
+            <div
+              v-for="file in editingItem.files"
+              :key="file.id"
+              class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60"
+            >
+              <div class="flex items-center gap-2 min-w-0">
+                <Icon :name="isPdf(file) ? 'mdi:file-pdf-box' : (isAudio(file) ? 'mdi:music-note' : 'mdi:file')" :class="isPdf(file) ? 'text-red-600' : (isAudio(file) ? 'text-emerald-600' : 'text-slate-500')" class="text-base flex-shrink-0" />
+                <p class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">{{ file.file_name }}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                  @click="downloadFile(file)"
+                  title="Stáhnout"
+                >
+                  <Icon name="mdi:download" class="text-lg" />
+                </button>
+                <button
+                  v-if="permissions.edit || permissions.delete"
+                  type="button"
+                  class="inline-flex items-center justify-center p-2 text-slate-500 hover:text-red-600 dark:text-slate-300 dark:hover:text-red-300 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                  @click="confirmRemoveFile(file)"
+                  title="Smazat"
+                >
+                  <Icon name="mdi:delete" class="text-lg" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="space-y-3">
           <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Přidat nové soubory</label>
@@ -468,7 +606,7 @@
     </Modal>
 
     <!-- Dialog: potvrzení smazání repertoáru -->
-    <TransitionRoot as="template" :show="showDeleteModal">
+    <TransitionRoot v-if="showDeleteModal" as="template" :show="showDeleteModal">
       <Dialog as="div" class="relative z-50" @close="showDeleteModal = false">
         <TransitionChild
           as="template"
@@ -531,11 +669,63 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- PDF viewer dialog -->
+    <TransitionRoot v-if="pdfDialog.open" as="template" :show="pdfDialog.open">
+      <Dialog as="div" class="relative z-50" @close="pdfDialog.open = false">
+        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+          <div class="fixed inset-0 bg-black/40" />
+        </TransitionChild>
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+              <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                  <DialogTitle class="text-base font-semibold text-slate-900 dark:text-white truncate">{{ pdfDialog.name }}</DialogTitle>
+                  <button class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800" @click="pdfDialog.open = false">
+                    <Icon name="mdi:close" />
+                  </button>
+                </div>
+                <div class="aspect-[3/2] bg-slate-50 dark:bg-slate-800">
+                  <iframe :src="pdfDialog.url" class="w-full h-full" />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
+    <!-- YouTube viewer dialog -->
+    <TransitionRoot v-if="youtubeDialog.open" as="template" :show="youtubeDialog.open">
+      <Dialog as="div" class="relative z-50" @close="youtubeDialog.open = false">
+        <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100" leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+          <div class="fixed inset-0 bg-black/40" />
+        </TransitionChild>
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95" enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100" leave-to="opacity-0 scale-95">
+              <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-black shadow-xl transition-all">
+                <div class="aspect-video">
+                  <iframe
+                    :src="youtubeDialog.url"
+                    class="w-full h-full"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                  />
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import {
   Dialog,
   DialogPanel,
@@ -546,6 +736,7 @@ import {
 import Modal from '~/components/Modal.vue'
 import { useToast } from '~/composables/useToast'
 import { useRepertoire, type RepertoireFile, type RepertoireItem } from '~/composables/useRepertoire'
+import { useSupabaseClient } from '#imports'
 
 definePageMeta({
   layout: 'members'
@@ -572,9 +763,29 @@ const {
 const toast = useToast()
 const router = useRouter()
 
+const analyzeSearch = ref('')
 const searchQuery = ref('')
 const selectedLetter = ref('Vše')
 const selectedIds = ref<Set<string>>(new Set())
+const sortKey = ref<'d' | 'title' | 'created_at' | 'updated_at'>('title')
+const sortDir = ref<'asc' | 'desc'>('asc')
+const page = ref(1)
+const pageSize = ref<number>(20)
+
+const characters = computed(() => {
+  const set = new Set<string>()
+  items.value.forEach((i) => {
+    if (i.character && String(i.character).trim().length) set.add(String(i.character))
+  })
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'cs'))
+})
+
+const selectedCharacter = ref<'vse' | string>('vse')
+
+watch(analyzeSearch, (v) => {
+  searchQuery.value = v
+  page.value = 1
+})
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -603,31 +814,74 @@ const normalize = (value: string) =>
         .toLowerCase()
     : ''
 
-const filteredItems = computed(() => {
+const _filtered = computed(() => {
   const query = normalize(searchQuery.value)
   const letter = selectedLetter.value
+  const char = selectedCharacter.value
 
-  return items.value.filter((item) => {
-    const haystack = `${item.title ?? ''} ${item.authors ?? ''}`
+  const arr = items.value.filter((item) => {
+    // fulltext: zahrň i character
+    const haystack = `${item.title ?? ''} ${item.authors ?? ''} ${item.character ?? ''}`
     const matchesQuery = query ? normalize(haystack).includes(query) : true
-
     if (!matchesQuery) return false
 
-    if (letter === 'Vše') return true
-
-    const firstChar = normalize(item.title ?? '').charAt(0)
-    if (!firstChar) return letter === '#'
-
-    if (letter === '#') {
-      return !/[a-z]/i.test(firstChar)
+    // character filter
+    if (char !== 'vse') {
+      const ic = normalize(item.character ?? '')
+      if (ic !== normalize(char)) return false
     }
 
+    if (letter === 'Vše') return true
+    const firstChar = normalize(item.title ?? '').charAt(0)
+    if (!firstChar) return letter === '#'
+    if (letter === '#') return !/[a-z]/i.test(firstChar)
     return firstChar === letter.toLowerCase()
   })
+
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  const key = sortKey.value === 'd' ? 'title' : sortKey.value
+
+  const sorted = [...arr].sort((a, b) => {
+    if (key === 'title') {
+      const at = (a.title || '').toLowerCase()
+      const bt = (b.title || '').toLowerCase()
+      if (at < bt) return -1 * dir
+      if (at > bt) return 1 * dir
+      return 0
+    }
+    if (key === 'created_at') {
+      const av = a.created_at ? Date.parse(a.created_at) : 0
+      const bv = b.created_at ? Date.parse(b.created_at) : 0
+      return (av - bv) * dir
+    }
+    const au = a.updated_at ? Date.parse(a.updated_at) : 0
+    const bu = b.updated_at ? Date.parse(b.updated_at) : 0
+    return (au - bu) * dir
+  })
+
+  return sorted
 })
 
-const allVisibleSelected = computed(() =>
-  filteredItems.value.length > 0 && filteredItems.value.every((item) => selectedIds.value.has(item.id))
+const filteredItems = _filtered
+
+const pagedItems = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredItems.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  const total = filteredItems.value.length
+  const size = Math.max(1, pageSize.value || 1)
+  return Math.max(1, Math.ceil(total / size))
+})
+
+watch([searchQuery, selectedLetter, sortKey, sortDir, pageSize, selectedCharacter], () => {
+  page.value = 1
+})
+
+const allResponsiveSelected = computed(() =>
+  pagedItems.value.length > 0 && pagedItems.value.every((it) => selectedIds.value.has(it.id))
 )
 
 const selectedItems = computed(() => items.value.filter((item) => selectedIds.value.has(item.id)))
@@ -805,13 +1059,20 @@ const toggleSelectAll = (event: Event) => {
   const input = event.target as HTMLInputElement
   if (input.checked) {
     const selections = new Set(selectedIds.value)
-    filteredItems.value.forEach((item) => selections.add(item.id))
+    pagedItems.value.forEach((item) => selections.add(item.id))
     selectedIds.value = selections
   } else {
     const selections = new Set(selectedIds.value)
-    filteredItems.value.forEach((item) => selections.delete(item.id))
+    pagedItems.value.forEach((item) => selections.delete(item.id))
     selectedIds.value = selections
   }
+}
+
+const prevPage = () => {
+  if (page.value > 1) page.value -= 1
+}
+const nextPage = () => {
+  if (page.value < totalPages.value) page.value = totalPages.value
 }
 
 const exportSelected = async () => {
@@ -825,6 +1086,80 @@ const exportSelected = async () => {
   } catch (err: any) {
     toast.error(err.message ?? 'Export se nepodařil')
   }
+}
+
+const supabase = useSupabaseClient()
+const expandedAudio = ref<Record<string, boolean>>({})
+const expandedRow = ref<Record<string, boolean>>({})
+const fileUrlCache = ref<Record<string, string>>({})
+const rowAudioUrl = ref<Record<string, string>>({})
+const pdfDialog = reactive({ open: false, url: '', name: '' })
+const youtubeDialog = reactive({ open: false, url: '' })
+
+const isPdf = (file: RepertoireFile) => (file.content_type?.includes('pdf') || file.file_name.toLowerCase().endsWith('.pdf'))
+const isAudio = (file: RepertoireFile) => (file.content_type?.includes('audio') || file.file_name.toLowerCase().endsWith('.mp3'))
+
+const BUCKET_ID = 'repertoire'
+
+const getFileUrl = async (file: RepertoireFile): Promise<string> => {
+  if (fileUrlCache.value[file.id]) return fileUrlCache.value[file.id]
+  try {
+    const { data } = await supabase.storage.from(BUCKET_ID).createSignedUrl(file.storage_path, 3600)
+    if (data?.signedUrl) {
+      fileUrlCache.value[file.id] = data.signedUrl
+      return data.signedUrl
+    }
+  } catch (e) {
+    // ignore and try public url fallback
+  }
+  const { data: pub } = supabase.storage.from(BUCKET_ID).getPublicUrl(file.storage_path)
+  const publicUrl = pub.publicUrl
+  fileUrlCache.value[file.id] = publicUrl
+  return publicUrl
+}
+
+const getOverlapClass = (files: RepertoireFile[], idx: number) => {
+  const cur = files[idx]
+  const prev = files[idx - 1]
+  if (!cur || !prev) return ''
+  return isPdf(cur) && isPdf(prev) ? '-ml-3' : ''
+}
+
+const handleFileClick = async (file: RepertoireFile, parent: RepertoireItem) => {
+  if (isAudio(file)) {
+    const url = await getFileUrl(file)
+    if (expandedRow.value[parent.id] && rowAudioUrl.value[parent.id] === url) {
+      expandedRow.value[parent.id] = false
+      return
+    }
+    expandedRow.value[parent.id] = true
+    rowAudioUrl.value[parent.id] = url
+    return
+  }
+  if (isPdf(file)) {
+    const url = await getFileUrl(file)
+    pdfDialog.name = file.file_name
+    pdfDialog.url = url
+    pdfDialog.open = true
+    return
+  }
+}
+
+const getYouTubeEmbedUrl = (url: string) => {
+  try {
+    const u = new URL(url)
+    let id = ''
+    if (u.hostname.includes('youtu.be')) id = u.pathname.slice(1)
+    if (u.searchParams.get('v')) id = u.searchParams.get('v') as string
+    return `https://www.youtube.com/embed/${id}`
+  } catch {
+    return url
+  }
+}
+
+const openYoutube = (link: string) => {
+  youtubeDialog.url = getYouTubeEmbedUrl(link)
+  youtubeDialog.open = true
 }
 
 onMounted(async () => {

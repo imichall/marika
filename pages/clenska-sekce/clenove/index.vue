@@ -84,7 +84,7 @@
               class="hover:bg-slate-50 transition-colors dark:hover:bg-slate-800/60"
             >
               <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
+                <NuxtLink :to="`/clenska-sekce/clenove/${member.id}`" class="flex items-center gap-3 hover:underline">
                   <img
                     v-if="member.avatar_url"
                     :src="member.avatar_url"
@@ -107,7 +107,7 @@
                       {{ member.is_active ? 'Aktivní' : 'Neaktivní' }}
                     </p>
                   </div>
-                </div>
+                </NuxtLink>
               </td>
               <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                 <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300">
@@ -141,7 +141,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-// @ts-ignore Nuxt runtime import
 import { useRouter } from '#imports'
 import { useToast } from '~/composables/useToast'
 import { useMemberManagement } from '~/composables/useMemberManagement'
@@ -211,4 +210,5 @@ onMounted(async () => {
   }
 })
 </script>
+
 
