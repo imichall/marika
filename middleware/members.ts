@@ -38,7 +38,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
           member_resources_upload: false
         }
 
-        const permissions = dept.permissions || defaultPermissions
+        // Zajistíme, že permissions jsou vždy objekt s boolean hodnotami
+        let permissions = dept.permissions || defaultPermissions
+
+        // Pokud permissions není objekt nebo je null/undefined, použijeme default
+        if (!permissions || typeof permissions !== 'object') {
+          permissions = defaultPermissions
+        }
+
+        // Zajistíme, že všechny permission hodnoty jsou booleany
+        const normalizedPermissions: Record<string, boolean> = {
+          repertoire_view: permissions.repertoire_view === true,
+          repertoire_edit: permissions.repertoire_edit === true,
+          member_directory_view: permissions.member_directory_view === true,
+          members_area_view: permissions.members_area_view === true,
+          member_resources_view: permissions.member_resources_view === true,
+          member_resources_upload: permissions.member_resources_upload === true
+        }
+
+        permissions = normalizedPermissions
 
         // Kontrola oprávnění podle cesty
         const permissionMap: Record<string, string> = {

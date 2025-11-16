@@ -146,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from '#imports'
 import { useAuth } from '~/composables/useAuth'
 import { useToast } from '~/composables/useToast'
@@ -204,7 +204,7 @@ const handleDepartmentLogin = async () => {
         memberEmail: memberEmail.value,
         password: departmentPassword.value
       }
-    })
+    }) as { success: boolean; department?: any; member?: any }
 
     if (response.success) {
       // Debug: Zobraz, co přišlo z API
@@ -212,8 +212,21 @@ const handleDepartmentLogin = async () => {
 
       // Uložíme informaci o oddílu + členovi do localStorage
       if (process.client) {
+        // Zajistíme, že department má permissions
+        const departmentWithPermissions = {
+          ...response.department,
+          permissions: response.department.permissions || {
+            repertoire_view: true,
+            repertoire_edit: false,
+            member_directory_view: true,
+            members_area_view: true,
+            member_resources_view: true,
+            member_resources_upload: false
+          }
+        }
+
         const loginData = {
-          department: response.department,
+          department: departmentWithPermissions,
           member: response.member // Info o konkrétním členovi
         }
         localStorage.setItem('memberDepartment', JSON.stringify(loginData.department))
@@ -221,10 +234,16 @@ const handleDepartmentLogin = async () => {
 
         // Debug: Ověř, co se uložilo
         console.log('Stored in localStorage:', loginData)
+
+        // Počkáme krátkou chvíli, aby se localStorage stihl uložit
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
 
       const memberName = response.member?.full_name || memberEmail.value
       toast.success(`Vítejte, ${memberName}!`)
+
+      // Použijeme nextTick pro zajištění, že localStorage je uložený
+      await nextTick()
       redirectTo(route.query.redirect as string | undefined)
     } else {
       error.value = 'Neplatný oddíl, email nebo heslo'

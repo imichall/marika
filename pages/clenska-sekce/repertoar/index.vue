@@ -68,7 +68,7 @@
                   v-model="searchQuery"
                   type="search"
                   class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-                  placeholder="Hledat dle názvu nebo autora..."
+                  placeholder="Hledat dle názvu, autora, charakteru nebo popisu..."
                 />
               </div>
             </div>
@@ -133,18 +133,18 @@
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Název skladby</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Autor / Autoři</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Noty</th>
-                <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
+                <th v-if="permissions.edit || permissions.delete" class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Akce</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-slate-200 dark:bg-slate-900 dark:divide-slate-800">
               <tr v-if="loading">
-                <td colspan="5" class="px-4 py-10 text-center text-slate-500">
+                <td :colspan="permissions.edit || permissions.delete ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
                   <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
                   Načítám repertoár...
                 </td>
               </tr>
               <tr v-else-if="!filteredItems.length">
-                <td colspan="5" class="px-4 py-10 text-center text-slate-500">
+                <td :colspan="permissions.edit || permissions.delete ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
                   Žádné skladby odpovídající vyhledávání.
                 </td>
               </tr>
@@ -209,20 +209,20 @@
                       </button>
                     </div>
                   </td>
-                  <td class="px-4 py-3 align-top text-right">
+                  <td v-if="permissions.edit || permissions.delete" class="px-4 py-3 align-top text-right">
                     <div class="inline-flex items-center gap-2">
                       <button
+                        v-if="permissions.edit"
                         class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                         @click="openEditModal(item)"
-                        :disabled="!permissions.edit"
                       >
                         <Icon name="mdi:pencil" class="text-sm" />
                         Upravit
                       </button>
                       <button
-                        class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
+                        v-if="permissions.delete"
+                        class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
                         @click="openDeleteModal(item)"
-                        :disabled="!permissions.delete"
                       >
                         <Icon name="mdi:trash-can" class="text-sm" />
                         Smazat
