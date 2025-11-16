@@ -47,7 +47,8 @@ const sidebarUser = useState<{ email: string | null; role: string }>('current-us
 const colorMode = useColorMode()
 const previousTheme = ref(colorMode.preference || 'light')
 const membersTheme = useState<'light' | 'dark'>('members-theme', () => 'light')
-const storageKey = computed(() => `members-theme-${sidebarUser.value.email ?? 'guest'}`)
+const themeStorageKey = 'clenska-sekce-theme'
+const sidebarStorageKey = 'clenska-sekce-sidebar-collapsed'
 
 const applyTheme = (theme: 'light' | 'dark') => {
   if (membersTheme.value !== theme) {
@@ -57,13 +58,13 @@ const applyTheme = (theme: 'light' | 'dark') => {
     colorMode.preference = theme
   }
   if (process.client) {
-    localStorage.setItem(storageKey.value, theme)
+    localStorage.setItem(themeStorageKey, theme)
   }
 }
 
 const syncThemeWithStorage = () => {
   if (!process.client) return
-  const stored = localStorage.getItem(storageKey.value)
+  const stored = localStorage.getItem(themeStorageKey)
   if (stored === 'dark' || stored === 'light') {
     applyTheme(stored)
   } else {
@@ -84,6 +85,25 @@ const wrapperClasses = computed(() => [
 ])
 
 const sidebarCollapsed = ref(false)
+
+const syncSidebarWithStorage = () => {
+  if (!process.client) return
+  const stored = localStorage.getItem(sidebarStorageKey)
+  if (stored === 'true' || stored === 'false') {
+    sidebarCollapsed.value = stored === 'true'
+  }
+}
+
+const saveSidebarState = (collapsed: boolean) => {
+  if (process.client) {
+    localStorage.setItem(sidebarStorageKey, String(collapsed))
+  }
+}
+
+// Watch sidebar state and save to localStorage
+watch(sidebarCollapsed, (newValue) => {
+  saveSidebarState(newValue)
+})
 
 const navigationLinks = computed(() => [
   { label: 'Přehled', icon: 'mdi:view-dashboard', to: '/clenska-sekce' },
@@ -172,6 +192,7 @@ if (process.client) {
   onMounted(async () => {
     previousTheme.value = colorMode.preference || 'light'
     syncThemeWithStorage()
+    syncSidebarWithStorage()
     await ensureAuthenticated()
   })
 
