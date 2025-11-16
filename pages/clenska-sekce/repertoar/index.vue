@@ -107,12 +107,26 @@
                     type="checkbox"
                     class="rounded border-slate-300 text-red-600 focus:ring-red-500"
                     :checked="selectedIds.has(item.id)"
-                    @change="toggleSelection(item.id)"
+                    @change.stop="toggleSelection(item.id)"
+                    @click.stop
                   />
                 </td>
                 <td class="px-4 py-3 align-top">
-                  <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
+                  <NuxtLink
+                    :to="`/clenska-sekce/repertoar/${item.slug || item.id}`"
+                    class="hover:underline block"
+                    @click.stop
+                  >
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ item.title }}</p>
+                  </NuxtLink>
                   <p v-if="item.description" class="text-xs text-slate-500 mt-1 dark:text-slate-300/80">{{ item.description }}</p>
+                  <p v-if="item.character" class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    <span class="font-medium">Charakter:</span> {{ item.character }}
+                  </p>
+                  <a v-if="item.youtube_link" :href="item.youtube_link" target="_blank" rel="noopener noreferrer" class="text-xs text-red-600 dark:text-red-400 mt-1 hover:underline inline-flex items-center gap-1">
+                    <Icon name="mdi:youtube" class="text-sm" />
+                    Ukázka na YouTube
+                  </a>
                 </td>
                 <td class="px-4 py-3 align-top text-sm text-slate-700 dark:text-slate-200">
                   <p class="text-sm text-slate-700 dark:text-slate-200">{{ item.authors || '—' }}</p>
@@ -168,7 +182,7 @@
                     </button>
                     <button
                       class="inline-flex items-center gap-2 rounded-lg border border-red-100 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/20"
-                      @click="confirmDelete(item)"
+                      @click="openDeleteModal(item)"
                       :disabled="!permissions.delete"
                     >
                       <Icon name="mdi:trash-can" class="text-sm" />
@@ -208,6 +222,23 @@
             v-model="form.description"
             rows="3"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+          />
+        </div>
+        <div class="space-y-2" v-if="permissions.edit">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Charakter</label>
+          <input
+            v-model="form.character"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            placeholder="např. Soprán, Alt, Tenor, Bas"
+          />
+        </div>
+        <div class="space-y-2" v-if="permissions.edit">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Ukázka (YouTube link)</label>
+          <input
+            v-model="form.youtube_link"
+            type="url"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            placeholder="https://www.youtube.com/watch?v=..."
           />
         </div>
 
@@ -296,6 +327,23 @@
             v-model="form.description"
             rows="3"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+          />
+        </div>
+        <div class="space-y-2" v-if="permissions.edit">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Charakter</label>
+          <input
+            v-model="form.character"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            placeholder="např. Soprán, Alt, Tenor, Bas"
+          />
+        </div>
+        <div class="space-y-2" v-if="permissions.edit">
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Ukázka (YouTube link)</label>
+          <input
+            v-model="form.youtube_link"
+            type="url"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            placeholder="https://www.youtube.com/watch?v=..."
           />
         </div>
 
@@ -418,11 +466,83 @@
         </div>
       </div>
     </Modal>
+
+    <!-- Dialog: potvrzení smazání repertoáru -->
+    <TransitionRoot as="template" :show="showDeleteModal">
+      <Dialog as="div" class="relative z-50" @close="showDeleteModal = false">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                  <Icon name="mdi:alert" class="text-red-600 dark:text-red-400 text-2xl" />
+                </div>
+
+                <DialogTitle class="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                  Smazat skladbu?
+                </DialogTitle>
+
+                <p class="text-gray-600 dark:text-gray-400 text-center mb-6">
+                  Opravdu chcete smazat skladbu <strong class="text-gray-900 dark:text-white">{{ itemToDelete?.title }}</strong> včetně všech notových materiálů?
+                  <br />
+                  Tuto akci nelze vrátit zpět.
+                </p>
+
+                <div class="flex gap-3">
+                  <button
+                    type="button"
+                    @click="showDeleteModal = false"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    @click="confirmDelete"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                    :disabled="loading"
+                  >
+                    {{ loading ? 'Mazání...' : 'Smazat' }}
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  TransitionRoot,
+  TransitionChild,
+} from '@headlessui/vue'
 import Modal from '~/components/Modal.vue'
 import { useToast } from '~/composables/useToast'
 import { useRepertoire, type RepertoireFile, type RepertoireItem } from '~/composables/useRepertoire'
@@ -459,16 +579,20 @@ const selectedIds = ref<Set<string>>(new Set())
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showUploadModal = ref(false)
+const showDeleteModal = ref(false)
 
 const editingItem = ref<RepertoireItem | null>(null)
 const uploadTarget = ref<RepertoireItem | null>(null)
+const itemToDelete = ref<RepertoireItem | null>(null)
 
 const pendingUploads = ref<Array<{ file: File; voicePart: string }>>([])
 
 const form = reactive({
   title: '',
   authors: '',
-  description: ''
+  description: '',
+  character: '',
+  youtube_link: ''
 })
 
 const normalize = (value: string) =>
@@ -512,6 +636,8 @@ const resetForm = () => {
   form.title = ''
   form.authors = ''
   form.description = ''
+  form.character = ''
+  form.youtube_link = ''
   pendingUploads.value = []
 }
 
@@ -529,6 +655,8 @@ const openEditModal = (item: RepertoireItem) => {
   form.title = item.title
   form.authors = item.authors ?? ''
   form.description = item.description ?? ''
+  form.character = item.character ?? ''
+  form.youtube_link = item.youtube_link ?? ''
   pendingUploads.value = []
   showEditModal.value = true
 }
@@ -564,7 +692,9 @@ const submitCreate = async () => {
       {
         title: form.title,
         authors: form.authors,
-        description: form.description
+        description: form.description,
+        character: form.character || undefined,
+        youtube_link: form.youtube_link || undefined
       },
       pendingUploads.value
     )
@@ -583,7 +713,9 @@ const submitEdit = async () => {
     await updateItem(editingItem.value.id, {
       title: form.title,
       authors: form.authors,
-      description: form.description
+      description: form.description,
+      character: form.character || undefined,
+      youtube_link: form.youtube_link || undefined
     })
 
     if (pendingUploads.value.length) {
@@ -599,18 +731,23 @@ const submitEdit = async () => {
   }
 }
 
-const confirmDelete = async (item: RepertoireItem) => {
+const openDeleteModal = (item: RepertoireItem) => {
   if (!permissions.value.delete) {
     toast.error('Nemáte oprávnění mazat skladby')
     return
   }
-  if (!confirm(`Opravdu chcete smazat skladbu „${item.title}“ včetně not?`)) {
-    return
-  }
+  itemToDelete.value = item
+  showDeleteModal.value = true
+}
+
+const confirmDelete = async () => {
+  if (!itemToDelete.value) return
   try {
-    await deleteItem(item.id)
-    selectedIds.value.delete(item.id)
+    await deleteItem(itemToDelete.value.id)
+    selectedIds.value.delete(itemToDelete.value.id)
     toast.success('Skladba byla odstraněna')
+    showDeleteModal.value = false
+    itemToDelete.value = null
   } catch (err: any) {
     toast.error(err.message ?? 'Smazání se nezdařilo')
   }

@@ -442,7 +442,15 @@
               <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                 <tr v-for="member in filteredMembers" :key="member.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ member.full_name }}</div>
+                    <div class="flex items-center gap-3">
+                      <img
+                        v-if="member.avatar_url"
+                        :src="member.avatar_url"
+                        :alt="member.full_name"
+                        class="w-8 h-8 rounded-full object-cover ring-2 ring-white dark:ring-gray-800"
+                      />
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">{{ member.full_name }}</div>
+                    </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
