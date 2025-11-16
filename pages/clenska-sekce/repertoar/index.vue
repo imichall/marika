@@ -178,18 +178,17 @@
                     <p class="text-sm text-slate-700 dark:text-slate-200">{{ item.authors || '—' }}</p>
                   </td>
                   <td class="px-4 py-3 align-top">
-                    <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div class="grid grid-cols-3 gap-3">
                       <button
                         v-for="(file, idx) in item.files"
                         :key="file.id"
                         type="button"
-                        class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
-                        :class="getOverlapClass(item.files, idx)"
+                        class="group relative flex items-center justify-center w-12 h-12 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow-md transition transform hover:scale-105 hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-600 z-0 hover:z-10"
                         @click="handleFileClick(file, item)"
                       >
                         <Icon
                           :name="isPdf(file) ? 'mdi:file-pdf-box' : (isAudio(file) ? 'mdi:music-note' : 'mdi:file')"
-                          class="text-2xl"
+                          class="text-xl"
                           :class="isPdf(file) ? 'text-red-600' : (isAudio(file) ? 'text-emerald-600' : 'text-slate-500')"
                         />
                         <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
@@ -199,11 +198,11 @@
                       <button
                         v-if="item.youtube_link"
                         type="button"
-                        class="group relative flex items-center justify-center w-14 h-14 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow transition transform hover:scale-105 hover:ring-2 hover:ring-slate-300 z-0 hover:z-10"
+                        class="group relative flex items-center justify-center w-12 h-12 rounded-xl border border-slate-200 bg-white dark:bg-slate-900 dark:border-slate-700 shadow-sm hover:shadow-md transition transform hover:scale-105 hover:ring-2 hover:ring-violet-300 dark:hover:ring-violet-600 z-0 hover:z-10"
                         @click="openYoutube(item.youtube_link)"
                         title="Ukázka z YouTube"
                       >
-                        <Icon name="mdi:youtube" class="text-2xl text-slate-600" />
+                        <Icon name="mdi:youtube" class="text-xl text-red-600" />
                         <span class="pointer-events-none absolute -top-2 translate-y-[-100%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/90 text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity shadow">
                           YouTube
                         </span>
@@ -1122,7 +1121,7 @@ const getOverlapClass = (files: RepertoireFile[], idx: number) => {
   const cur = files[idx]
   const prev = files[idx - 1]
   if (!cur || !prev) return ''
-  return isPdf(cur) && isPdf(prev) ? '-ml-3' : ''
+  return isPdf(cur) && isPdf(prev) ? '-ml-2' : ''
 }
 
 const handleFileClick = async (file: RepertoireFile, parent: RepertoireItem) => {
