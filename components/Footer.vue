@@ -207,12 +207,12 @@
           </NuxtLink>
         </div>
         <div class="flex items-center justify-center gap-2 text-center text-gray-300 text-xs mt-2">
-          Verze aplikace Marika
+          Verze aplikace Marikasingers
           <NuxtLink
             to="/changelog"
             class="text-rose-200 underline decoration-rose-400/40 transition hover:decoration-rose-200 hover:text-white"
           >
-            <span v-if="currentVersion" class="ml-1 font-medium">v {{ currentVersion }}</span>
+            <span v-if="currentVersion" class="ml-1 font-medium">{{ currentVersion }}</span>
           </NuxtLink>
         </div>
         <div class="flex items-center justify-center gap-2 text-gray-400 text-xs my-5">
