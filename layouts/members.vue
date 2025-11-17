@@ -32,10 +32,6 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({
-  middleware: ['auth', 'members']
-})
-
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 // @ts-ignore Nuxt runtime import
 import { useRouter, useRoute, useColorMode, useState, useSupabaseClient } from '#imports'
@@ -51,7 +47,8 @@ const sidebarUser = useState<{ email: string | null; role: string }>('current-us
 const colorMode = useColorMode()
 const previousTheme = ref(colorMode.preference || 'light')
 const membersTheme = useState<'light' | 'dark'>('members-theme', () => 'light')
-const storageKey = computed(() => `members-theme-${sidebarUser.value.email ?? 'guest'}`)
+const themeStorageKey = 'clenska-sekce-theme'
+const sidebarStorageKey = 'clenska-sekce-sidebar-collapsed'
 
 const applyTheme = (theme: 'light' | 'dark') => {
   if (membersTheme.value !== theme) {
@@ -61,13 +58,13 @@ const applyTheme = (theme: 'light' | 'dark') => {
     colorMode.preference = theme
   }
   if (process.client) {
-    localStorage.setItem(storageKey.value, theme)
+    localStorage.setItem(themeStorageKey, theme)
   }
 }
 
 const syncThemeWithStorage = () => {
   if (!process.client) return
-  const stored = localStorage.getItem(storageKey.value)
+  const stored = localStorage.getItem(themeStorageKey)
   if (stored === 'dark' || stored === 'light') {
     applyTheme(stored)
   } else {
@@ -89,6 +86,25 @@ const wrapperClasses = computed(() => [
 
 const sidebarCollapsed = ref(false)
 
+const syncSidebarWithStorage = () => {
+  if (!process.client) return
+  const stored = localStorage.getItem(sidebarStorageKey)
+  if (stored === 'true' || stored === 'false') {
+    sidebarCollapsed.value = stored === 'true'
+  }
+}
+
+const saveSidebarState = (collapsed: boolean) => {
+  if (process.client) {
+    localStorage.setItem(sidebarStorageKey, String(collapsed))
+  }
+}
+
+// Watch sidebar state and save to localStorage
+watch(sidebarCollapsed, (newValue) => {
+  saveSidebarState(newValue)
+})
+
 const navigationLinks = computed(() => [
   { label: 'Přehled', icon: 'mdi:view-dashboard', to: '/clenska-sekce' },
   { label: 'Repertoár', icon: 'mdi:music-note-plus', to: '/clenska-sekce/repertoar' },
@@ -106,10 +122,37 @@ const currentTitle = computed(() => {
 })
 
 const ensureAuthenticated = async () => {
+  // Kontrola přihlášení přes oddíl
+  if (process.client) {
+    const memberDepartment = localStorage.getItem('memberDepartment')
+    const memberUser = localStorage.getItem('memberUser')
+
+    if (memberDepartment && memberUser) {
+      try {
+        const dept = JSON.parse(memberDepartment)
+        const member = JSON.parse(memberUser)
+        sidebarUser.value = {
+          email: `${member.full_name} (${dept.display_name})`,
+          role: 'member'
+        }
+        return
+      } catch (err) {
+        console.error('Chyba při parsování localStorage:', err)
+        // Pokud se nepodaří parsovat, smaž a přesměruj
+        localStorage.removeItem('memberDepartment')
+        localStorage.removeItem('memberUser')
+      }
+    }
+  }
+
+  // Kontrola běžného email přihlášení
   await checkUser()
   if (!user.value?.email) {
     sidebarUser.value = { email: null, role: 'viewer' }
-    router.push(`/clenska-sekce/prihlaseni?redirect=${encodeURIComponent(route.fullPath)}`)
+    // Přesměruj na přihlášení pouze pokud nejsme už na přihlašovací stránce
+    if (route.path !== '/clenska-sekce/prihlaseni') {
+      router.push(`/clenska-sekce/prihlaseni?redirect=${encodeURIComponent(route.fullPath)}`)
+    }
     return
   }
 
@@ -136,6 +179,11 @@ const ensureAuthenticated = async () => {
 
 const handleLogout = async () => {
   await logout()
+  // Smaž i department přihlášení a info o členovi
+  if (process.client) {
+    localStorage.removeItem('memberDepartment')
+    localStorage.removeItem('memberUser')
+  }
   sidebarUser.value = { email: null, role: 'viewer' }
   router.push('/clenska-sekce/prihlaseni')
 }
@@ -144,6 +192,7 @@ if (process.client) {
   onMounted(async () => {
     previousTheme.value = colorMode.preference || 'light'
     syncThemeWithStorage()
+    syncSidebarWithStorage()
     await ensureAuthenticated()
   })
 

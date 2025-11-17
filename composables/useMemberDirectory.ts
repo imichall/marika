@@ -50,6 +50,34 @@ export const useMemberDirectory = () => {
 
   const fetchPermissions = async () => {
     try {
+      // NEJPRVE zkontroluj oddílová oprávnění (pokud je uživatel přihlášen přes oddíl)
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            const dept = JSON.parse(memberDepartment)
+            const deptPermissions = dept.permissions || {}
+
+            // Mapování oddílových permissions na member directory permissions
+            // Pro seznam členů oddíl může pouze zobrazit, ne editovat
+            const next: MemberDirectoryPermissions = {
+              view: deptPermissions.member_directory_view === true,
+              create: false,
+              edit: false,
+              delete: false
+            }
+
+            console.log('👥 Using department permissions for member directory:', next)
+            permissions.value = next
+            return next
+          } catch (err) {
+            console.error('Chyba při parsování oddílových oprávnění:', err)
+            // Pokračuj na běžnou autentizaci
+          }
+        }
+      }
+
+      // Pokud není přihlášen přes oddíl, použij běžný systém (admin/editor/viewer)
       const { data: user } = await supabase.auth.getUser()
       const email = user.user?.email ?? ''
 
@@ -78,6 +106,8 @@ export const useMemberDirectory = () => {
       results.forEach(([action, allowed]) => {
         next[action] = allowed
       })
+
+      console.log('👤 Using user permissions for member directory:', next)
       permissions.value = next
       return next
     } catch (err) {

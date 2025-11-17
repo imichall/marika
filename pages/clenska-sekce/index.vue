@@ -11,6 +11,43 @@
       </p>
     </section>
 
+    <!-- Statistika -->
+    <section
+      v-if="!statsLoading"
+      class="bg-white border border-slate-100 rounded-2xl shadow-sm p-6 dark:bg-slate-900/80 dark:border-slate-800"
+    >
+      <h3 class="text-lg font-semibold text-slate-900 mb-4 dark:text-white">
+        Přehled obsahu
+      </h3>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <Icon name="mdi:music" class="text-3xl text-red-600 mb-2" />
+          <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.totalSongs }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 text-center mt-1">Skladeb</div>
+        </div>
+        <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <Icon name="mdi:file-pdf-box" class="text-3xl text-red-600 mb-2" />
+          <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.totalPdf }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 text-center mt-1">PDF souborů</div>
+        </div>
+        <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <Icon name="mdi:music-note" class="text-3xl text-emerald-600 mb-2" />
+          <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.totalAudio }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 text-center mt-1">Audio souborů</div>
+        </div>
+        <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <Icon name="mdi:youtube" class="text-3xl text-red-600 mb-2" />
+          <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.totalYoutube }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 text-center mt-1">YouTube videí</div>
+        </div>
+        <div class="flex flex-col items-center p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+          <Icon name="mdi:account-group" class="text-3xl text-violet-600 mb-2" />
+          <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ stats.totalMembers }}</div>
+          <div class="text-xs text-slate-600 dark:text-slate-400 text-center mt-1">Členů</div>
+        </div>
+      </div>
+    </section>
+
     <section class="grid gap-6 md:grid-cols-2">
       <NuxtLink
         v-for="card in visibleCards"
@@ -68,6 +105,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useRepertoire, type RepertoireFile } from "~/composables/useRepertoire";
+import { useMemberManagement } from "~/composables/useMemberManagement";
 
 definePageMeta({
   layout: "members",
@@ -75,6 +114,38 @@ definePageMeta({
 
 const { checkPermission } = usePermissions();
 const canManagePermissions = ref(false);
+
+const { items, fetchItems } = useRepertoire();
+const { members, fetchMembers } = useMemberManagement();
+
+const statsLoading = ref(true);
+const stats = ref({
+  totalSongs: 0,
+  totalPdf: 0,
+  totalAudio: 0,
+  totalYoutube: 0,
+  totalMembers: 0,
+});
+
+const isPdf = (file: RepertoireFile) =>
+  file.content_type?.includes('pdf') || file.file_name.toLowerCase().endsWith('.pdf');
+const isAudio = (file: RepertoireFile) =>
+  file.content_type?.includes('audio') || file.file_name.toLowerCase().endsWith('.mp3');
+
+const calculateStats = () => {
+  // Statistiky repertoáru
+  stats.value.totalSongs = items.value.length;
+  stats.value.totalPdf = items.value.reduce((count, item) => {
+    return count + item.files.filter(isPdf).length;
+  }, 0);
+  stats.value.totalAudio = items.value.reduce((count, item) => {
+    return count + item.files.filter(isAudio).length;
+  }, 0);
+  stats.value.totalYoutube = items.value.filter((item) => item.youtube_link).length;
+
+  // Statistika členů
+  stats.value.totalMembers = members.value.length;
+};
 
 const cards = [
   {
@@ -125,8 +196,21 @@ const visibleCards = computed(() => {
   });
 });
 
-// Načtení oprávnění při inicializaci komponenty
+// Načtení oprávnění a dat při inicializaci komponenty
 onMounted(async () => {
   canManagePermissions.value = await checkPermission("users", "edit");
+
+  try {
+    statsLoading.value = true;
+    await Promise.all([
+      fetchItems(),
+      fetchMembers()
+    ]);
+    calculateStats();
+  } catch (error) {
+    console.error('Chyba při načítání statistik:', error);
+  } finally {
+    statsLoading.value = false;
+  }
 });
 </script>

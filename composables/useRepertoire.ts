@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 import type { PermissionMap } from '~/types'
 import { useToast } from '~/composables/useToast'
+import { slugify } from '~/utils/string'
 
 export interface RepertoireFile {
   id: string
@@ -16,8 +17,11 @@ export interface RepertoireFile {
 export interface RepertoireItem {
   id: string
   title: string
+  slug: string | null
   authors: string | null
   description: string | null
+  character: string | null
+  youtube_link: string | null
   tags: string[] | null
   created_at: string
   updated_at: string
@@ -28,6 +32,8 @@ interface CreateRepertoireInput {
   title: string
   authors?: string
   description?: string
+  character?: string
+  youtube_link?: string
   tags?: string[]
 }
 
@@ -60,6 +66,33 @@ export const useRepertoire = () => {
 
   const fetchPermissions = async () => {
     try {
+      // NEJPRVE zkontroluj oddílová oprávnění (pokud je uživatel přihlášen přes oddíl)
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            const dept = JSON.parse(memberDepartment)
+            const deptPermissions = dept.permissions || {}
+
+            // Mapování oddílových permissions na repertoire permissions
+            const nextPermissions: RepertoirePermissions = {
+              view: deptPermissions.repertoire_view === true,
+              create: deptPermissions.repertoire_edit === true,
+              edit: deptPermissions.repertoire_edit === true,
+              delete: deptPermissions.repertoire_edit === true
+            }
+
+            console.log('🎵 Using department permissions for repertoire:', nextPermissions)
+            permissions.value = nextPermissions
+            return nextPermissions
+          } catch (err) {
+            console.error('Chyba při parsování oddílových oprávnění:', err)
+            // Pokračuj na běžnou autentizaci
+          }
+        }
+      }
+
+      // Pokud není přihlášen přes oddíl, použij běžný systém (admin/editor/viewer)
       const actions: Array<keyof RepertoirePermissions> = ['view', 'create', 'edit', 'delete']
 
       const checks = await Promise.all(
@@ -90,6 +123,7 @@ export const useRepertoire = () => {
         nextPermissions[action] = value
       })
 
+      console.log('👤 Using user permissions for repertoire:', nextPermissions)
       permissions.value = nextPermissions
       return nextPermissions
     } catch (err) {
@@ -128,15 +162,33 @@ export const useRepertoire = () => {
       loading.value = true
       error.value = null
 
+      // Vygenerujeme slug z názvu
+      let slug = slugify(payload.title)
+
+      // Zkontrolujeme, zda slug už neexistuje
+      const { data: existing } = await supabase
+        .from('repertoire_items')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (existing) {
+        // Pokud slug existuje, přidáme timestamp
+        slug = `${slug}-${Date.now().toString().slice(-8)}`
+      }
+
       const { data, error: insertError } = await supabase
         .from('repertoire_items')
         .insert([
           {
             title: payload.title.trim(),
+            slug,
             authors: payload.authors?.trim() ?? null,
             description: payload.description?.trim() ?? null,
+            character: payload.character?.trim() ?? null,
+            youtube_link: payload.youtube_link?.trim() ?? null,
             tags: payload.tags?.length ? payload.tags : null
-          }
+          } as any
         ])
         .select('*, files:repertoire_files(*)')
         .single()
@@ -165,14 +217,38 @@ export const useRepertoire = () => {
       loading.value = true
       error.value = null
 
+      const updateData: any = {
+        ...(payload.title !== undefined ? { title: payload.title.trim() } : {}),
+        ...(payload.authors !== undefined ? { authors: payload.authors?.trim() ?? null } : {}),
+        ...(payload.description !== undefined ? { description: payload.description?.trim() ?? null } : {}),
+        ...(payload.character !== undefined ? { character: payload.character?.trim() ?? null } : {}),
+        ...(payload.youtube_link !== undefined ? { youtube_link: payload.youtube_link?.trim() ?? null } : {}),
+        ...(payload.tags !== undefined ? { tags: payload.tags.length ? payload.tags : null } : {})
+      }
+
+      // Pokud se mění název, aktualizujeme slug
+      if (payload.title !== undefined) {
+        let slug = slugify(payload.title)
+
+        // Zkontrolujeme, zda slug už neexistuje u jiného itemu
+        const { data: existing } = await supabase
+          .from('repertoire_items')
+          .select('id')
+          .eq('slug', slug)
+          .neq('id', id)
+          .maybeSingle()
+
+        if (existing) {
+          // Pokud slug existuje u jiného itemu, přidáme timestamp
+          slug = `${slug}-${Date.now().toString().slice(-8)}`
+        }
+
+        updateData.slug = slug
+      }
+
       const { data, error: updateError } = await supabase
         .from('repertoire_items')
-        .update({
-          ...(payload.title !== undefined ? { title: payload.title.trim() } : {}),
-          ...(payload.authors !== undefined ? { authors: payload.authors?.trim() ?? null } : {}),
-          ...(payload.description !== undefined ? { description: payload.description?.trim() ?? null } : {}),
-          ...(payload.tags !== undefined ? { tags: payload.tags.length ? payload.tags : null } : {})
-        })
+        .update(updateData)
         .eq('id', id)
         .select('*, files:repertoire_files(*)')
         .single()
