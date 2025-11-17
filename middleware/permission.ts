@@ -34,6 +34,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo('/admin/login')
   }
 
+  // Stránka s oprávněními je dostupná pouze pro adminy
+  if (to.path === '/admin/opravneni') {
+    if (userRole.role !== 'admin') {
+      console.error('Stránka s oprávněními je dostupná pouze pro adminy:', user.email, 'role:', userRole.role)
+      return navigateTo('/admin?error=nemate-opravneni')
+    }
+    // Pokud je admin, povolíme přístup
+    return
+  }
+
   // Admin má přístup všude
   if (userRole.role === 'admin') {
     return
@@ -51,7 +61,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     '/admin/skupiny': { section: 'choir_groups', action: 'view' },
     '/admin/nastaveni': { section: 'settings', action: 'view' },
     '/admin/uzivatele': { section: 'users', action: 'view' },
-    '/admin/opravneni': { section: 'users', action: 'edit' },
     '/admin/zpravy': { section: 'form_messages', action: 'view' },
     '/admin/emaily': { section: 'emails', action: 'view' },
     '/admin/emaily/nahled': { section: 'emails', action: 'view' },

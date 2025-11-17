@@ -169,7 +169,7 @@
 <script setup>
 definePageMeta({
   layout: "admin",
-  middleware: ["auth"],
+  middleware: ["auth", "permission"],
 });
 
 import { ref, onMounted, computed } from "vue";
