@@ -20,7 +20,7 @@
               : 'text-slate-500 hover:text-slate-700'
           ]"
         >
-          E-mail
+          Admin
         </button>
         <button
           @click="loginType = 'department'"
@@ -86,15 +86,16 @@
             v-model="departmentName"
             required
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+            :disabled="loadingDepartments"
           >
-            <option value="">Vyberte oddíl</option>
-            <option value="alt">Alt</option>
-            <option value="bas">Bas</option>
-            <option value="hoste">Hosté</option>
-            <option value="hudebnici">Hudebníci</option>
-            <option value="podpora">Podpora</option>
-            <option value="sopran">Soprán</option>
-            <option value="vedeni">Vedení</option>
+            <option value="">{{ loadingDepartments ? 'Načítám oddíly...' : 'Vyberte oddíl' }}</option>
+            <option
+              v-for="dept in activeDepartments"
+              :key="dept.id"
+              :value="dept.name"
+            >
+              {{ dept.display_name }}
+            </option>
           </select>
         </div>
 
@@ -146,10 +147,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
-import { useRoute, useRouter } from '#imports'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useToast } from '~/composables/useToast'
+import type { MemberDepartment } from '~/composables/useMemberDepartments'
 
 definePageMeta({
   layout: 'default'
@@ -157,6 +158,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const supabase = useSupabaseClient()
 const { login, user, checkUser } = useAuth()
 const toast = useToast()
 
@@ -168,6 +170,15 @@ const memberEmail = ref('')
 const departmentPassword = ref('')
 const loading = ref(false)
 const error = ref('')
+const departments = ref<MemberDepartment[]>([])
+const loadingDepartments = ref(false)
+
+// Aktivní oddíly (už jsou zfiltrované z databáze), seřazené podle zobrazovaného názvu
+const activeDepartments = computed(() => {
+  return [...departments.value].sort((a, b) =>
+    a.display_name.localeCompare(b.display_name, 'cs')
+  )
+})
 
 const redirectTo = (path?: string | null) => {
   const target = typeof path === 'string' && path.startsWith('/clenska-sekce') ? path : '/clenska-sekce'
@@ -181,7 +192,13 @@ const handleEmailLogin = async () => {
     const success = await login(email.value, password.value)
     if (success) {
       toast.success('Přihlášení proběhlo úspěšně')
-      redirectTo(route.query.redirect as string | undefined)
+      // Admin přihlášení přesměruje do administrace
+      const redirectPath = route.query.redirect as string | undefined
+      if (redirectPath && redirectPath.startsWith('/admin')) {
+        router.push(redirectPath)
+      } else {
+        router.push('/admin')
+      }
     } else {
       error.value = 'Neplatné přihlašovací údaje'
     }
@@ -256,12 +273,38 @@ const handleDepartmentLogin = async () => {
   }
 }
 
+// Načtení oddílů z databáze
+const fetchDepartments = async () => {
+  try {
+    loadingDepartments.value = true
+    const { data, error: fetchError } = await supabase
+      .from('member_departments')
+      .select('id, name, display_name, is_active')
+      .eq('is_active', true)
+      .order('display_name')
+
+    if (fetchError) {
+      console.error('Chyba při načítání oddílů:', fetchError)
+      return
+    }
+
+    departments.value = data || []
+  } catch (err) {
+    console.error('Chyba při načítání oddílů:', err)
+  } finally {
+    loadingDepartments.value = false
+  }
+}
+
 // Kontrola při načtení stránky - pokud je už přihlášen, přesměruj
 onMounted(async () => {
   if (process.client) {
     await checkUser()
     if (user.value || localStorage.getItem('memberDepartment')) {
       redirectTo(route.query.redirect as string | undefined)
+    } else {
+      // Načteme oddíly pouze pokud uživatel není přihlášen
+      await fetchDepartments()
     }
   }
 })
