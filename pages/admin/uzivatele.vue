@@ -1068,17 +1068,41 @@
                         Heslo oddílu <span class="text-red-500 ml-1">*</span>
                       </span>
                     </label>
-                    <input
-                      v-model="departmentForm.password"
-                      type="password"
-                      required
-                      minlength="6"
-                      class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
-                      placeholder="Minimálně 6 znaků"
-                    />
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                      Sdílené heslo pro všechny členy oddílu
-                    </p>
+                    <div class="relative">
+                      <input
+                        v-model="departmentForm.password"
+                        :type="showCreatePassword ? 'text' : 'password'"
+                        required
+                        minlength="6"
+                        class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
+                        placeholder="Minimálně 6 znaků"
+                      />
+                      <div class="absolute right-2 top-1/2 -translate-y-1/2">
+                        <button
+                          type="button"
+                          @click="showCreatePassword = !showCreatePassword"
+                          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                          :title="showCreatePassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
+                        >
+                          <span class="material-icons-outlined text-lg">
+                            {{ showCreatePassword ? 'visibility_off' : 'visibility' }}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-1.5">
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Sdílené heslo pro všechny členy oddílu
+                      </p>
+                      <button
+                        type="button"
+                        @click="departmentForm.password = generatePassword(12)"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:border-violet-300 dark:hover:border-violet-700 transition-colors shadow-sm hover:shadow"
+                      >
+                        <span class="material-icons-outlined text-[14px] leading-none">autorenew</span>
+                        Generovat heslo
+                      </button>
+                    </div>
                   </div>
 
                   <div>
@@ -1283,17 +1307,41 @@
                         Nové heslo <span class="text-red-500 ml-1">*</span>
                       </span>
                     </label>
-                    <input
-                      v-model="newPassword"
-                      type="password"
-                      required
-                      minlength="6"
-                      class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
-                      placeholder="Minimálně 6 znaků"
-                    />
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      ⚠️ Všichni členové oddílu budou muset použít nové heslo
-                    </p>
+                    <div class="relative">
+                      <input
+                        v-model="newPassword"
+                        :type="showChangePassword ? 'text' : 'password'"
+                        required
+                        minlength="6"
+                        class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
+                        placeholder="Minimálně 6 znaků"
+                      />
+                      <div class="absolute right-2 top-1/2 -translate-y-1/2">
+                        <button
+                          type="button"
+                          @click="showChangePassword = !showChangePassword"
+                          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                          :title="showChangePassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
+                        >
+                          <span class="material-icons-outlined text-lg">
+                            {{ showChangePassword ? 'visibility_off' : 'visibility' }}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        ⚠️ Všichni členové oddílu budou muset použít nové heslo
+                      </p>
+                      <button
+                        type="button"
+                        @click="newPassword = generatePassword(12)"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:border-violet-300 dark:hover:border-violet-700 transition-colors shadow-sm hover:shadow"
+                      >
+                        <span class="material-icons-outlined text-[14px] leading-none">autorenew</span>
+                        Generovat heslo
+                      </button>
+                    </div>
                   </div>
 
                   <div class="flex gap-3 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
@@ -1865,6 +1913,8 @@ const showMemberModal = ref(false)
 const editingDepartment = ref<MemberDepartment | null>(null)
 const editingMember = ref<MemberUser | null>(null)
 const newPassword = ref('')
+const showCreatePassword = ref(false)
+const showChangePassword = ref(false)
 
 // Zobrazení hesel oddílů
 const visiblePasswords = ref<Record<string, boolean>>({})
@@ -2213,6 +2263,7 @@ const openCreateDepartmentModal = () => {
       member_resources_upload: false
     }
   }
+  showCreatePassword.value = false
   showCreateDepartmentModal.value = true
 }
 
@@ -2239,6 +2290,7 @@ const editDepartment = (dept: MemberDepartment) => {
 const closeDepartmentModal = () => {
   showCreateDepartmentModal.value = false
   editingDepartment.value = null
+  showCreatePassword.value = false
 }
 
 const handleDepartmentSubmit = async () => {
@@ -2274,9 +2326,34 @@ const handleDepartmentSubmit = async () => {
   }
 }
 
+// Funkce pro generování bezpečného hesla
+const generatePassword = (length: number = 12): string => {
+  const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const lowercase = 'abcdefghijklmnopqrstuvwxyz'
+  const numbers = '0123456789'
+  const symbols = '!@#$%^&*'
+  const allChars = uppercase + lowercase + numbers + symbols
+
+  let password = ''
+  // Zajistíme, že heslo obsahuje alespoň jeden znak z každé kategorie
+  password += uppercase[Math.floor(Math.random() * uppercase.length)]
+  password += lowercase[Math.floor(Math.random() * lowercase.length)]
+  password += numbers[Math.floor(Math.random() * numbers.length)]
+  password += symbols[Math.floor(Math.random() * symbols.length)]
+
+  // Doplníme zbytek znaků náhodně
+  for (let i = password.length; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)]
+  }
+
+  // Zamícháme znaky, aby nebyly vždy na začátku
+  return password.split('').sort(() => Math.random() - 0.5).join('')
+}
+
 const changePassword = (dept: MemberDepartment) => {
   editingDepartment.value = dept
   newPassword.value = ''
+  showChangePassword.value = false
   showPasswordModal.value = true
 }
 
@@ -2319,6 +2396,7 @@ const handlePasswordChange = async () => {
     showPasswordModal.value = false
     editingDepartment.value = null
     newPassword.value = ''
+    showChangePassword.value = false
   } catch (err: any) {
     console.error('❌ Chyba při změně hesla:', err)
     console.error('❌ Detaily chyby:', {
