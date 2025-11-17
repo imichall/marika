@@ -1,5 +1,4 @@
 import { useSupabaseClient } from '#imports'
-import { Database } from '~/types/supabase'
 import { useAuth } from '~/composables/useAuth'
 
 export interface ChangelogEntry {
@@ -14,7 +13,7 @@ export interface ChangelogEntry {
 }
 
 export const useChangelog = () => {
-  const supabase = useSupabaseClient<Database>()
+  const supabase = useSupabaseClient()
   const { user } = useAuth()
   const loading = ref(false)
   const error = ref<string | null>(null)

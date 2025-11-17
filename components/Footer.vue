@@ -206,19 +206,49 @@
             Zásady ochrany soukromí
           </NuxtLink>
         </div>
+        <div class="flex items-center justify-center gap-2 text-center text-gray-300 text-xs mt-2">
+          Verze aplikace Marika
+          <NuxtLink
+            to="/changelog"
+            class="text-rose-200 underline decoration-rose-400/40 transition hover:decoration-rose-200 hover:text-white"
+          >
+            <span v-if="currentVersion" class="ml-1 font-medium">v {{ currentVersion }}</span>
+          </NuxtLink>
+        </div>
+        <div class="flex items-center justify-center gap-2 text-gray-400 text-xs my-5">
+          <span>Made by</span>
+          <a
+            href="https://mikecode.cz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 text-rose-200 hover:text-white transition-colors duration-200 group"
+          >
+            <img
+              src="/mikecode/icon-ios.svg"
+              alt="MikeCode"
+              class="h-8 w-auto opacity-80 group-hover:opacity-100 transition-opacity duration-200"
+              loading="lazy"
+              onerror="this.style.display='none'"
+            />
+            <span class="font-medium">MikeCode</span>
+          </a>
+        </div>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { onMounted } from "#imports";
+import { ref, onMounted } from "#imports";
 import { useContacts } from "~/composables/useContacts";
 import { useSettings } from "~/composables/useSettings";
+import { useChangelog } from "~/composables/useChangelog";
 import FadeUpOnScroll from "~/components/FadeUpOnScroll.vue";
 
 const { contacts, loading, error, fetchContacts } = useContacts();
 const { settings, loading: settingsLoading, fetchSettings } = useSettings();
+const { getChangelog } = useChangelog();
+const currentVersion = ref(null);
 
 const getBankAccount = (groupName) => {
   const normalizedName = groupName.replace(", z.s.", "").toLowerCase();
@@ -240,5 +270,17 @@ const formatBankAccount = (account) => {
 
 onMounted(async () => {
   await Promise.all([fetchContacts(), fetchSettings()]);
+
+  // Načtení aktuální verze z main branchu
+  try {
+    const mainEntries = await getChangelog('main');
+    if (mainEntries && mainEntries.length > 0) {
+      // Najdeme nejnovější verzi z main branchu
+      const latest = mainEntries[0];
+      currentVersion.value = latest.version || null;
+    }
+  } catch (err) {
+    console.error('Error fetching current version:', err);
+  }
 });
 </script>
