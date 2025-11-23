@@ -18,6 +18,7 @@
         :links="navigationLinks"
         :is-dark="isMembersDark"
         :on-toggle-theme="toggleMembersTheme"
+        :can-access-admin="canAccessAdmin"
       />
 
       <main class="flex-1 overflow-y-auto px-6 py-8">
@@ -109,16 +110,19 @@ const navigationLinks = computed(() => [
   { label: 'Přehled', icon: 'mdi:view-dashboard', to: '/clenska-sekce' },
   { label: 'Repertoár', icon: 'mdi:music-note-plus', to: '/clenska-sekce/repertoar' },
   { label: 'Členové', icon: 'mdi:account-group', to: '/clenska-sekce/clenove' },
-  { label: 'Zprávy', icon: 'mdi:forum', to: '/clenska-sekce/zpravy' },
   { label: 'Ke stažení', icon: 'mdi:folder-download', to: '/clenska-sekce/ke-stazeni' }
 ])
 
 const currentTitle = computed(() => {
   if (route.path.includes('/repertoar')) return 'Repertoár'
   if (route.path.includes('/clenove')) return 'Seznam členů'
-  if (route.path.includes('/zpravy')) return 'Zprávy'
   if (route.path.includes('/ke-stazeni')) return 'Dokumenty ke stažení'
   return 'Členská sekce'
+})
+
+const canAccessAdmin = computed(() => {
+  const role = sidebarUser.value.role
+  return role === 'admin' || role === 'editor'
 })
 
 const ensureAuthenticated = async () => {

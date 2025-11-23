@@ -163,13 +163,6 @@ const cards = [
     icon: "mdi:account-group",
   },
   {
-    title: "Zprávy",
-    description:
-      "Sdílejte interní oznámení, domlouvejte zkoušky a udržujte diskuzi přehledně na jednom místě.",
-    href: "/clenska-sekce/zpravy",
-    icon: "mdi:forum",
-  },
-  {
     title: "Dokumenty ke stažení",
     description:
       "Logo, stanovy, kronika a další interní dokumenty na jednom místě.",

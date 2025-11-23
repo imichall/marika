@@ -115,6 +115,7 @@
                   <option :value="20">20</option>
                   <option :value="50">50</option>
                   <option :value="100">100</option>
+                  <option :value="999999">Vše</option>
                 </select>
               </div>
             </div>
@@ -331,9 +332,13 @@
           <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Charakter</label>
           <input
             v-model="form.character"
+            list="characters-list-create"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            placeholder="např. Soprán, Alt, Tenor, Bas"
+            placeholder="Vyberte nebo napište nový (např. Soprán, Alt, Tenor, Bas)"
           />
+          <datalist id="characters-list-create">
+            <option v-for="c in characters" :key="c" :value="c" />
+          </datalist>
         </div>
         <div class="space-y-2" v-if="permissions.edit">
           <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Ukázka (YouTube link)</label>
@@ -436,9 +441,13 @@
           <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Charakter</label>
           <input
             v-model="form.character"
+            list="characters-list-edit"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            placeholder="např. Soprán, Alt, Tenor, Bas"
+            placeholder="Vyberte nebo napište nový (např. Soprán, Alt, Tenor, Bas)"
           />
+          <datalist id="characters-list-edit">
+            <option v-for="c in characters" :key="c" :value="c" />
+          </datalist>
         </div>
         <div class="space-y-2" v-if="permissions.edit">
           <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Ukázka (YouTube link)</label>
@@ -762,14 +771,53 @@ const {
 const toast = useToast()
 const router = useRouter()
 
+// Načtení nastavení z localStorage
+const getSavedSortKey = (): 'd' | 'title' | 'created_at' | 'updated_at' => {
+  if (typeof window === 'undefined') return 'title'
+  const saved = localStorage.getItem('repertoire-sort-key')
+  return (saved === 'd' || saved === 'title' || saved === 'created_at' || saved === 'updated_at') ? saved : 'title'
+}
+
+const getSavedSortDir = (): 'asc' | 'desc' => {
+  if (typeof window === 'undefined') return 'asc'
+  const saved = localStorage.getItem('repertoire-sort-dir')
+  return (saved === 'asc' || saved === 'desc') ? saved : 'asc'
+}
+
+const getSavedPageSize = (): number => {
+  if (typeof window === 'undefined') return 20
+  const saved = localStorage.getItem('repertoire-page-size')
+  const parsed = saved ? parseInt(saved, 10) : 20
+  return isNaN(parsed) ? 20 : parsed
+}
+
 const analyzeSearch = ref('')
 const searchQuery = ref('')
 const selectedLetter = ref('Vše')
 const selectedIds = ref<Set<string>>(new Set())
-const sortKey = ref<'d' | 'title' | 'created_at' | 'updated_at'>('title')
-const sortDir = ref<'asc' | 'desc'>('asc')
+const sortKey = ref<'d' | 'title' | 'created_at' | 'updated_at'>(getSavedSortKey())
+const sortDir = ref<'asc' | 'desc'>(getSavedSortDir())
 const page = ref(1)
-const pageSize = ref<number>(20)
+const pageSize = ref<number>(getSavedPageSize())
+
+// Ukládání nastavení do localStorage
+watch(sortKey, (newValue) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('repertoire-sort-key', newValue)
+  }
+})
+
+watch(sortDir, (newValue) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('repertoire-sort-dir', newValue)
+  }
+})
+
+watch(pageSize, (newValue) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('repertoire-page-size', String(newValue))
+  }
+})
 
 const characters = computed(() => {
   const set = new Set<string>()
@@ -864,12 +912,20 @@ const _filtered = computed(() => {
 const filteredItems = _filtered
 
 const pagedItems = computed(() => {
+  // Když je "Vše", zobraz všechny položky
+  if (pageSize.value >= 999999) {
+    return filteredItems.value
+  }
   const start = (page.value - 1) * pageSize.value
   const end = start + pageSize.value
   return filteredItems.value.slice(start, end)
 })
 
 const totalPages = computed(() => {
+  // Když je "Vše", je jen jedna stránka
+  if (pageSize.value >= 999999) {
+    return 1
+  }
   const total = filteredItems.value.length
   const size = Math.max(1, pageSize.value || 1)
   return Math.max(1, Math.ceil(total / size))

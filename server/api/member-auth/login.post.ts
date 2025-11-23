@@ -5,26 +5,41 @@ export default defineEventHandler(async (event: H3Event) => {
   try {
     const supabase = await serverSupabaseClient(event)
     const body = await readBody(event)
-    const { departmentName, memberEmail, password } = body
-
-    if (!departmentName || !password) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Název oddílu a heslo jsou povinné'
-      })
-    }
+    const { memberEmail, password } = body
 
     if (!memberEmail) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'E-mail člena je povinný'
+        statusMessage: 'E-mail je povinný'
       })
     }
 
-    // Ověření hesla oddílu
+    if (!password) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Heslo je povinné'
+      })
+    }
+
+    // Najdeme člena podle emailu (napříč všemi oddíly)
+    const { data: member, error: memberError } = await supabase
+      .from('member_users')
+      .select('*')
+      .eq('email', memberEmail.toLowerCase().trim())
+      .eq('is_active', true)
+      .single()
+
+    if (memberError || !member) {
+      console.error('Error fetching member:', memberError)
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Člen s tímto emailem není registrován nebo není aktivní'
+      })
+    }
+
+    // Ověření společného hesla
     const { data: verifyResult, error: verifyError } = await supabase
-      .rpc('verify_department_password', {
-        p_department_name: departmentName,
+      .rpc('verify_member_common_password', {
         p_password: password
       })
 
@@ -42,47 +57,23 @@ export default defineEventHandler(async (event: H3Event) => {
     if (!result?.success) {
       throw createError({
         statusCode: 401,
-        statusMessage: 'Neplatný oddíl nebo heslo'
+        statusMessage: 'Neplatné heslo'
       })
     }
 
-    // Získání informací o oddílu
+    // Získání informací o oddílu člena
     const { data: department, error: deptError } = await supabase
       .from('member_departments')
       .select('*')
-      .eq('id', result.department_id)
+      .eq('id', member.department_id)
+      .eq('is_active', true)
       .single()
 
-    if (deptError) {
+    if (deptError || !department) {
       console.error('Error fetching department:', deptError)
       throw createError({
         statusCode: 500,
-        statusMessage: 'Chyba při načítání informací o oddílu'
-      })
-    }
-
-    // Ověření, že člen s daným emailem existuje v tomto oddílu
-    const { data: member, error: memberError } = await supabase
-      .from('member_users')
-      .select('*')
-      .eq('department_id', result.department_id)
-      .eq('email', memberEmail.toLowerCase().trim())
-      .single()
-
-    if (memberError || !member) {
-      console.error('Error fetching member:', memberError)
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Člen s tímto emailem není v tomto oddílu registrován'
-      })
-    }
-
-    const memberData: any = member
-
-    if (!memberData.is_active) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Tento účet není aktivní'
+        statusMessage: 'Oddíl člena není aktivní nebo neexistuje'
       })
     }
 
@@ -95,8 +86,8 @@ export default defineEventHandler(async (event: H3Event) => {
     const { error: logError } = await supabase
       .from('member_login_logs')
       .insert({
-        department_id: result.department_id,
-        member_user_id: memberData.id,
+        department_id: department.id,
+        member_user_id: member.id,
         ip_address: ipAddress,
         user_agent: userAgent
       })
@@ -117,7 +108,7 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     console.log('Member login successful:', {
-      member: memberData.full_name,
+      member: member.full_name,
       department: deptData.display_name,
       permissions: finalPermissions
     })
@@ -125,17 +116,17 @@ export default defineEventHandler(async (event: H3Event) => {
     return {
       success: true,
       department: {
-        id: result.department_id,
-        name: result.department_name,
-        display_name: deptData?.display_name || result.department_name,
+        id: department.id,
+        name: department.name,
+        display_name: deptData?.display_name || department.name,
         permissions: finalPermissions
       },
       member: {
-        id: memberData.id,
-        full_name: memberData.full_name,
-        email: memberData.email,
-        avatar_url: memberData.avatar_url,
-        department_id: memberData.department_id
+        id: member.id,
+        full_name: member.full_name,
+        email: member.email,
+        avatar_url: member.avatar_url,
+        department_id: member.department_id
       }
     }
   } catch (error: any) {

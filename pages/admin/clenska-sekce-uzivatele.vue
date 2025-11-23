@@ -36,6 +36,18 @@
             Členové
           </button>
           <button
+            @click="activeTab = 'password'"
+            :class="[
+              activeTab === 'password'
+                ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors'
+            ]"
+          >
+            <span class="material-icons-outlined text-[18px] mr-2 align-middle">key</span>
+            Nastavení hesla
+          </button>
+          <button
             @click="activeTab = 'logs'"
             :class="[
               activeTab === 'logs'
@@ -54,7 +66,7 @@
     <!-- Tab: Oddíly -->
     <div v-if="activeTab === 'departments'">
       <div class="flex justify-between items-center mb-6">
-        <p class="text-gray-600 dark:text-gray-400">Správa oddílů s jejich společnými hesly</p>
+        <p class="text-gray-600 dark:text-gray-400">Správa oddílů členské sekce</p>
         <button
           v-if="permissions.create"
           @click="openCreateDepartmentModal"
@@ -213,6 +225,95 @@
           <span class="material-icons-outlined text-4xl text-gray-400 dark:text-gray-600 mb-3">person_off</span>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Žádní členové</h3>
           <p class="text-gray-500 dark:text-gray-400">V tomto oddíle zatím nejsou žádní členové.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Nastavení hesla -->
+    <div v-if="activeTab === 'password'">
+      <div class="max-w-3xl">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="material-icons-outlined">key</span>
+            Společné heslo do členské sekce
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            Toto heslo je společné pro všechny oddíly. Členové ho použijí spolu s výběrem oddílu a svým e-mailem.
+          </p>
+
+          <form @submit.prevent="handlePasswordUpdate" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Současné heslo *
+              </label>
+              <input
+                v-model="passwordForm.currentPassword"
+                type="password"
+                required
+                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900"
+                placeholder="Zadejte současné heslo"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Nové heslo *
+              </label>
+              <input
+                v-model="passwordForm.newPassword"
+                type="password"
+                required
+                minlength="6"
+                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900"
+                placeholder="Zadejte nové heslo (min. 6 znaků)"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Potvrdit nové heslo *
+              </label>
+              <input
+                v-model="passwordForm.confirmPassword"
+                type="password"
+                required
+                minlength="6"
+                class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900"
+                placeholder="Potvrďte nové heslo"
+              />
+            </div>
+
+            <div v-if="passwordError" class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
+              <p class="text-sm text-red-800 dark:text-red-200">{{ passwordError }}</p>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+              <button
+                type="submit"
+                class="px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-60 inline-flex items-center gap-2"
+                :disabled="passwordLoading"
+              >
+                <span class="material-icons-outlined text-[18px]">{{ passwordLoading ? 'sync' : 'save' }}</span>
+                {{ passwordLoading ? 'Ukládám...' : 'Změnit heslo' }}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+          <div class="flex items-start gap-3">
+            <span class="material-icons-outlined text-blue-600 dark:text-blue-400 flex-shrink-0">info</span>
+            <div class="space-y-2 text-sm text-blue-900 dark:text-blue-100">
+              <p class="font-medium">Důležité informace:</p>
+              <ul class="list-disc list-inside space-y-1 text-blue-800 dark:text-blue-200">
+                <li>Toto heslo je společné pro všechny oddíly</li>
+                <li>Členové použijí toto heslo společně s výběrem oddílu a svým e-mailem</li>
+                <li>Heslo musí mít minimálně 6 znaků</li>
+                <li>Doporučujeme použít silné heslo s kombinací písmen, čísel a speciálních znaků</li>
+                <li>Změna hesla se zaznamenává do audit logu</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -593,7 +694,7 @@ const {
 } = useMemberManagement()
 
 // State
-const activeTab = ref<'departments' | 'members' | 'logs'>('departments')
+const activeTab = ref<'departments' | 'members' | 'password' | 'logs'>('departments')
 const selectedDepartmentFilter = ref('')
 const showCreateDepartmentModal = ref(false)
 const showPasswordModal = ref(false)
@@ -601,6 +702,15 @@ const showMemberModal = ref(false)
 const editingDepartment = ref<MemberDepartment | null>(null)
 const editingMember = ref<MemberUser | null>(null)
 const newPassword = ref('')
+
+// Password form
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+const passwordLoading = ref(false)
+const passwordError = ref('')
 
 const departmentForm = ref({
   name: '',
@@ -767,6 +877,54 @@ const deleteMember = async (member: MemberUser) => {
     await deleteMemberData(member.id)
   } catch (err) {
     console.error('Error deleting member:', err)
+  }
+}
+
+// Password management
+const handlePasswordUpdate = async () => {
+  passwordError.value = ''
+
+  // Validace
+  if (passwordForm.value.newPassword.length < 6) {
+    passwordError.value = 'Nové heslo musí mít alespoň 6 znaků'
+    return
+  }
+
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = 'Nová hesla se neshodují'
+    return
+  }
+
+  if (passwordForm.value.currentPassword === passwordForm.value.newPassword) {
+    passwordError.value = 'Nové heslo musí být odlišné od současného'
+    return
+  }
+
+  passwordLoading.value = true
+
+  try {
+    const response = await $fetch('/api/member-auth/update-common-password', {
+      method: 'POST',
+      body: {
+        currentPassword: passwordForm.value.currentPassword,
+        newPassword: passwordForm.value.newPassword
+      }
+    })
+
+    if (response.success) {
+      toast.success('Heslo bylo úspěšně změněno')
+      // Reset formuláře
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+    }
+  } catch (err: any) {
+    console.error('Chyba při změně hesla:', err)
+    passwordError.value = err.data?.statusMessage || 'Nepodařilo se změnit heslo'
+  } finally {
+    passwordLoading.value = false
   }
 }
 
