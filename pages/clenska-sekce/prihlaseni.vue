@@ -80,26 +80,6 @@
       <!-- Oddíl přihlášení -->
       <form v-else class="space-y-4" @submit.prevent="handleDepartmentLogin">
         <div class="space-y-2">
-          <label for="department" class="text-sm font-medium text-slate-700">Oddíl</label>
-          <select
-            id="department"
-            v-model="departmentName"
-            required
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            :disabled="loadingDepartments"
-          >
-            <option value="">{{ loadingDepartments ? 'Načítám oddíly...' : 'Vyberte oddíl' }}</option>
-            <option
-              v-for="dept in activeDepartments"
-              :key="dept.id"
-              :value="dept.name"
-            >
-              {{ dept.display_name }}
-            </option>
-          </select>
-        </div>
-
-        <div class="space-y-2">
           <label for="member-email" class="text-sm font-medium text-slate-700">Váš e-mail</label>
           <input
             id="member-email"
@@ -113,15 +93,18 @@
         </div>
 
         <div class="space-y-2">
-          <label for="dept-password" class="text-sm font-medium text-slate-700">Heslo oddílu</label>
+          <label for="dept-password" class="text-sm font-medium text-slate-700">Společné heslo</label>
           <input
             id="dept-password"
             v-model="departmentPassword"
             type="password"
             required
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            placeholder="Zadejte heslo vašeho oddílu"
+            placeholder="Zadejte společné heslo do členské sekce"
           />
+          <p class="text-xs text-slate-500 mt-1">
+            Heslo je společné pro všechny oddíly
+          </p>
         </div>
 
         <p v-if="error" class="text-sm text-red-600">
@@ -147,10 +130,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useToast } from '~/composables/useToast'
-import type { MemberDepartment } from '~/composables/useMemberDepartments'
 
 definePageMeta({
   layout: 'default'
@@ -165,20 +147,10 @@ const toast = useToast()
 const loginType = ref<'email' | 'department'>('department')
 const email = ref('')
 const password = ref('')
-const departmentName = ref('')
 const memberEmail = ref('')
 const departmentPassword = ref('')
 const loading = ref(false)
 const error = ref('')
-const departments = ref<MemberDepartment[]>([])
-const loadingDepartments = ref(false)
-
-// Aktivní oddíly (už jsou zfiltrované z databáze), seřazené podle zobrazovaného názvu
-const activeDepartments = computed(() => {
-  return [...departments.value].sort((a, b) =>
-    a.display_name.localeCompare(b.display_name, 'cs')
-  )
-})
 
 const redirectTo = (path?: string | null) => {
   const target = typeof path === 'string' && path.startsWith('/clenska-sekce') ? path : '/clenska-sekce'
@@ -217,7 +189,6 @@ const handleDepartmentLogin = async () => {
     const response = await $fetch('/api/member-auth/login', {
       method: 'POST',
       body: {
-        departmentName: departmentName.value,
         memberEmail: memberEmail.value,
         password: departmentPassword.value
       }
@@ -263,7 +234,7 @@ const handleDepartmentLogin = async () => {
       await nextTick()
       redirectTo(route.query.redirect as string | undefined)
     } else {
-      error.value = 'Neplatný oddíl, email nebo heslo'
+      error.value = 'Neplatný email nebo heslo'
     }
   } catch (err: any) {
     console.error('Chyba při přihlášení oddílu:', err)
@@ -273,38 +244,12 @@ const handleDepartmentLogin = async () => {
   }
 }
 
-// Načtení oddílů z databáze
-const fetchDepartments = async () => {
-  try {
-    loadingDepartments.value = true
-    const { data, error: fetchError } = await supabase
-      .from('member_departments')
-      .select('id, name, display_name, is_active')
-      .eq('is_active', true)
-      .order('display_name')
-
-    if (fetchError) {
-      console.error('Chyba při načítání oddílů:', fetchError)
-      return
-    }
-
-    departments.value = data || []
-  } catch (err) {
-    console.error('Chyba při načítání oddílů:', err)
-  } finally {
-    loadingDepartments.value = false
-  }
-}
-
 // Kontrola při načtení stránky - pokud je už přihlášen, přesměruj
 onMounted(async () => {
   if (process.client) {
     await checkUser()
     if (user.value || localStorage.getItem('memberDepartment')) {
       redirectTo(route.query.redirect as string | undefined)
-    } else {
-      // Načteme oddíly pouze pokud uživatel není přihlášen
-      await fetchDepartments()
     }
   }
 })

@@ -15,40 +15,63 @@
         </div>
       </div>
 
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div class="relative flex-1 max-w-md">
-          <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
-          <input
-            v-model="searchQuery"
-            type="search"
-            class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            placeholder="Hledat podle jména, e-mailu nebo telefonu..."
-          />
-        </div>
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-slate-600">Oddíl</label>
-          <select
-            v-model="departmentFilter"
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-          >
-            <option value="vse">Všechny oddíly</option>
-            <option
-              v-for="dept in departments"
-              :key="dept.id"
-              :value="dept.id"
+      <div class="flex flex-col gap-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="relative flex-1 max-w-md">
+            <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+            <input
+              v-model="searchQuery"
+              type="search"
+              class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+              placeholder="Hledat podle jména, e-mailu nebo telefonu..."
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-sm text-slate-600 dark:text-slate-300">Oddíl</label>
+            <select
+              v-model="departmentFilter"
+              class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
             >
-              {{ dept.display_name }}
-            </option>
-          </select>
+              <option value="vse">Všechny oddíly</option>
+              <option
+                v-for="dept in departments"
+                :key="dept.id"
+                :value="dept.id"
+              >
+                {{ dept.display_name }}
+              </option>
+            </select>
+          </div>
         </div>
-        <div class="flex items-center gap-2 text-sm text-slate-500">
-          <input
-            id="active-only"
-            v-model="activeOnly"
-            type="checkbox"
-            class="rounded border-slate-300 text-red-600 focus:ring-red-500"
-          />
-          <label for="active-only">Pouze aktivní členové</label>
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-800/60 dark:border-slate-700 px-2.5 py-2">
+            <span class="text-xs font-medium text-slate-500">Řazení</span>
+            <select
+              v-model="sortKey"
+              class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            >
+              <option value="surname">Podle příjmení</option>
+              <option value="firstname">Podle jména</option>
+            </select>
+            <select
+              v-model="sortDir"
+              class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+            >
+              <option value="asc">Vzestupně</option>
+              <option value="desc">Sestupně</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2 text-sm text-slate-500">
+            <input
+              id="active-only"
+              v-model="activeOnly"
+              type="checkbox"
+              class="rounded border-slate-300 text-red-600 focus:ring-red-500"
+            />
+            <label for="active-only">Pouze aktivní členové</label>
+          </div>
         </div>
       </div>
     </section>
@@ -140,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from '#imports'
 import { useToast } from '~/composables/useToast'
 import { useMemberManagement } from '~/composables/useMemberManagement'
@@ -164,9 +187,37 @@ const {
   fetchDepartments
 } = useMemberDepartments()
 
+// Načtení nastavení řazení z localStorage
+const getSavedSortKey = (): 'surname' | 'firstname' => {
+  if (typeof window === 'undefined') return 'surname'
+  const saved = localStorage.getItem('members-sort-key')
+  return (saved === 'firstname' || saved === 'surname') ? saved : 'surname'
+}
+
+const getSavedSortDir = (): 'asc' | 'desc' => {
+  if (typeof window === 'undefined') return 'asc'
+  const saved = localStorage.getItem('members-sort-dir')
+  return (saved === 'asc' || saved === 'desc') ? saved : 'asc'
+}
+
 const searchQuery = ref('')
 const departmentFilter = ref<'vse' | string>('vse')
 const activeOnly = ref(false)
+const sortKey = ref<'surname' | 'firstname'>(getSavedSortKey())
+const sortDir = ref<'asc' | 'desc'>(getSavedSortDir())
+
+// Ukládání nastavení řazení do localStorage
+watch(sortKey, (newValue) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('members-sort-key', newValue)
+  }
+})
+
+watch(sortDir, (newValue) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('members-sort-dir', newValue)
+  }
+})
 
 const normalize = (value: string) =>
   value
@@ -176,10 +227,20 @@ const normalize = (value: string) =>
         .toLowerCase()
     : ''
 
+const getLastName = (fullName: string) => {
+  const parts = fullName.trim().split(/\s+/)
+  return parts.length > 0 ? parts[parts.length - 1] : ''
+}
+
+const getFirstName = (fullName: string) => {
+  const parts = fullName.trim().split(/\s+/)
+  return parts.length > 0 ? parts[0] : ''
+}
+
 const filteredMembers = computed(() => {
   const query = normalize(searchQuery.value)
 
-  return members.value.filter((member) => {
+  const filtered = members.value.filter((member) => {
     if (activeOnly.value && !member.is_active) return false
 
     if (departmentFilter.value !== 'vse') {
@@ -191,6 +252,28 @@ const filteredMembers = computed(() => {
     const haystack = `${member.full_name} ${member.email ?? ''} ${member.phone ?? ''} ${member.notes ?? ''}`
     return normalize(haystack).includes(query)
   })
+
+  // Řazení
+  const sorted = [...filtered].sort((a, b) => {
+    let aValue = ''
+    let bValue = ''
+
+    if (sortKey.value === 'surname') {
+      aValue = normalize(getLastName(a.full_name))
+      bValue = normalize(getLastName(b.full_name))
+    } else {
+      aValue = normalize(getFirstName(a.full_name))
+      bValue = normalize(getFirstName(b.full_name))
+    }
+
+    const dir = sortDir.value === 'asc' ? 1 : -1
+
+    if (aValue < bValue) return -1 * dir
+    if (aValue > bValue) return 1 * dir
+    return 0
+  })
+
+  return sorted
 })
 
 const getDepartmentName = (departmentId: string) => {

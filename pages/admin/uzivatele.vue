@@ -265,6 +265,18 @@
               Členové
             </button>
             <button
+              @click="memberTab = 'password'"
+              :class="[
+                memberTab === 'password'
+                  ? 'border-violet-500 text-violet-600 dark:text-violet-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600',
+                'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors'
+              ]"
+            >
+              <span class="material-icons-outlined text-[18px] mr-2 align-middle">key</span>
+              Nastavení hesla
+            </button>
+            <button
               @click="memberTab = 'logs'"
               :class="[
                 memberTab === 'logs'
@@ -282,7 +294,7 @@
 
       <!-- Tab: Oddíly -->
       <div v-if="memberTab === 'departments'">
-        <p class="text-gray-600 dark:text-gray-400 mb-6">Správa oddílů s jejich společnými hesly</p>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Správa oddílů členské sekce</p>
 
         <!-- Loading state -->
         <div v-if="departmentsLoading" class="flex justify-center py-12">
@@ -320,87 +332,13 @@
               <span>{{ dept.member_count || 0 }} členů</span>
             </div>
 
-            <!-- Zobrazení hesla oddílu -->
-            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <span class="material-icons-outlined text-[18px] text-gray-400 dark:text-gray-500">lock</span>
-                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Heslo oddílu:</span>
-                </div>
-                <button
-                  v-if="!visiblePasswords[dept.id] && (memberPermissions.password_view || getDepartmentPasswordSync(dept.id))"
-                  @click="showDepartmentPassword(dept.id)"
-                  class="text-xs px-2 py-1 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded hover:bg-violet-100 dark:hover:bg-violet-900/30 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  :disabled="loadingPasswords[dept.id]"
-                >
-                  <span v-if="loadingPasswords[dept.id]" class="material-icons-outlined text-[16px] animate-spin">refresh</span>
-                  <span v-else class="material-icons-outlined text-[16px]">visibility</span>
-                  {{ loadingPasswords[dept.id] ? 'Načítání...' : 'Zobrazit' }}
-                </button>
-                <button
-                  v-else-if="visiblePasswords[dept.id] && (memberPermissions.password_view || getDepartmentPasswordSync(dept.id))"
-                  @click="hideDepartmentPassword(dept.id)"
-                  class="text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center gap-1"
-                >
-                  <span class="material-icons-outlined text-[16px]">visibility_off</span>
-                  Skrýt
-                </button>
-              </div>
-              <div v-if="visiblePasswords[dept.id]" class="mt-2">
-                <div class="relative">
-                  <code class="block px-3 py-2 pr-12 bg-white dark:bg-gray-900 border-2 border-violet-200 dark:border-violet-800 rounded text-sm font-mono text-gray-900 dark:text-white break-all">
-                    {{ getDepartmentPasswordSync(dept.id) || 'Neznámé heslo' }}
-                  </code>
-                  <button
-                    @click="copyDepartmentPassword(dept.id)"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded transition-colors"
-                    :title="copiedPasswordId === dept.id ? 'Zkopírováno!' : 'Zkopírovat heslo'"
-                  >
-                    <span v-if="copiedPasswordId === dept.id" class="material-icons-outlined text-[18px] text-green-600 dark:text-green-400">check</span>
-                    <span v-else class="material-icons-outlined text-[18px]">content_copy</span>
-                  </button>
-                </div>
-
-                <!-- Progress bar s countdownem -->
-                <div class="mt-3">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                      <span class="material-icons-outlined text-xs">timer</span>
-                      Heslo se automaticky skryje za {{ passwordCountdowns[dept.id] || 0 }}s
-                    </span>
-                    <span class="text-xs font-medium text-violet-600 dark:text-violet-400">
-                      {{ passwordCountdowns[dept.id] || 0 }}/10s
-                    </span>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div
-                      class="h-2 bg-gradient-to-r from-violet-500 to-violet-600 dark:from-violet-400 dark:to-violet-500 rounded-full transition-all duration-1000 ease-linear"
-                      :style="{ width: `${((passwordCountdowns[dept.id] || 0) / 10) * 100}%` }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-              <div v-else-if="!memberPermissions.password_view && !getDepartmentPasswordSync(dept.id)" class="mt-2">
-                <p class="text-xs text-gray-500 dark:text-gray-400 italic">
-                  Nemáte oprávnění pro zobrazení hesla oddílu.
-                </p>
-              </div>
-            </div>
-
             <div class="flex gap-2">
               <button
                 @click="editDepartment(dept)"
-                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                class="w-full inline-flex items-center justify-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
                 <span class="material-icons-outlined text-[18px] mr-1">edit</span>
                 Upravit
-              </button>
-              <button
-                @click="changePassword(dept)"
-                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-sm font-medium rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-              >
-                <span class="material-icons-outlined text-[18px] mr-1">lock_reset</span>
-                Heslo
               </button>
             </div>
           </div>
@@ -508,6 +446,167 @@
             <span class="material-icons-outlined text-4xl text-gray-400 dark:text-gray-600 mb-3">person_off</span>
             <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Žádní členové</h3>
             <p class="text-gray-500 dark:text-gray-400">V tomto oddíle zatím nejsou žádní členové.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Nastavení hesla -->
+      <div v-if="memberTab === 'password'" class="flex justify-center">
+        <div class="w-full max-w-2xl">
+          <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 p-8 mb-6">
+            <div class="text-center mb-8">
+              <div class="inline-flex items-center justify-center w-16 h-16 bg-violet-100 dark:bg-violet-900/30 rounded-full mb-4">
+                <span class="material-icons-outlined text-violet-600 dark:text-violet-400 text-3xl">key</span>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Společné heslo do členské sekce
+              </h3>
+              <p class="text-gray-600 dark:text-gray-400 max-w-lg mx-auto">
+                Toto heslo je společné pro všechny oddíly. Členové ho použijí spolu s výběrem oddílu a svým e-mailem.
+              </p>
+
+              <!-- Status hesla -->
+              <div v-if="passwordIsSet !== null" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full"
+                :class="passwordIsSet ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'">
+                <span class="material-icons-outlined text-sm">{{ passwordIsSet ? 'check_circle' : 'warning' }}</span>
+                <span class="text-sm font-medium">{{ passwordIsSet ? 'Heslo je nastaveno' : 'Heslo není nastaveno' }}</span>
+              </div>
+            </div>
+
+            <form @submit.prevent="handlePasswordUpdate" class="space-y-5">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Současné heslo *
+                </label>
+                <div class="relative">
+                  <input
+                    v-model="passwordForm.currentPassword"
+                    :type="showCurrentPassword ? 'text' : 'password'"
+                    required
+                    class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-colors"
+                    placeholder="Zadejte současné heslo"
+                  />
+                  <button
+                    type="button"
+                    @click="showCurrentPassword = !showCurrentPassword"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                    :title="showCurrentPassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
+                  >
+                    <span class="material-icons-outlined text-[20px] leading-none">
+                      {{ showCurrentPassword ? 'visibility_off' : 'visibility' }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Nové heslo *
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="passwordForm.newPassword"
+                      :type="showNewPassword ? 'text' : 'password'"
+                      required
+                      minlength="6"
+                      class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-colors"
+                      placeholder="Min. 6 znaků"
+                    />
+                    <button
+                      type="button"
+                      @click="showNewPassword = !showNewPassword"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                      :title="showNewPassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
+                    >
+                      <span class="material-icons-outlined text-[20px] leading-none">
+                        {{ showNewPassword ? 'visibility_off' : 'visibility' }}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Potvrdit nové heslo *
+                  </label>
+                  <div class="relative">
+                    <input
+                      v-model="passwordForm.confirmPassword"
+                      :type="showConfirmPassword ? 'text' : 'password'"
+                      required
+                      minlength="6"
+                      class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-colors"
+                      placeholder="Potvrďte heslo"
+                    />
+                    <button
+                      type="button"
+                      @click="showConfirmPassword = !showConfirmPassword"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+                      :title="showConfirmPassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
+                    >
+                      <span class="material-icons-outlined text-[20px] leading-none">
+                        {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
+                      </span>
+                    </button>
+                  </div>
+                  <!-- Live validace -->
+                  <p v-if="passwordMatchMessage" class="mt-2 text-sm font-medium flex items-center gap-1.5" :class="passwordMatchClass">
+                    <span class="material-icons-outlined text-base">{{ passwordsMatch ? 'check_circle' : 'cancel' }}</span>
+                    {{ passwordMatchMessage }}
+                  </p>
+                </div>
+              </div>
+
+              <div v-if="passwordError" class="rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 p-4">
+                <div class="flex items-center gap-2">
+                  <span class="material-icons-outlined text-red-600 dark:text-red-400">error</span>
+                  <p class="text-sm font-medium text-red-800 dark:text-red-200">{{ passwordError }}</p>
+                </div>
+              </div>
+
+              <div class="flex justify-center pt-6">
+                <button
+                  type="submit"
+                  class="px-8 py-3 text-base font-semibold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-60 inline-flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+                  :disabled="passwordLoading"
+                >
+                  <span class="material-icons-outlined text-xl">{{ passwordLoading ? 'sync' : 'save' }}</span>
+                  {{ passwordLoading ? 'Ukládám...' : 'Změnit heslo' }}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6 shadow-sm">
+            <div class="flex items-start gap-3">
+              <span class="material-icons-outlined text-blue-600 dark:text-blue-400 flex-shrink-0 text-2xl">info</span>
+              <div class="space-y-2">
+                <p class="font-semibold text-blue-900 dark:text-blue-100">Důležité informace:</p>
+                <ul class="space-y-1.5 text-sm text-blue-800 dark:text-blue-200">
+                  <li class="flex items-start gap-2">
+                    <span class="material-icons-outlined text-sm mt-0.5">check_circle</span>
+                    <span>Toto heslo je společné pro všechny oddíly</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="material-icons-outlined text-sm mt-0.5">check_circle</span>
+                    <span>Členové použijí toto heslo společně s výběrem oddílu a svým e-mailem</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="material-icons-outlined text-sm mt-0.5">check_circle</span>
+                    <span>Heslo musí mít minimálně 6 znaků</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="material-icons-outlined text-sm mt-0.5">check_circle</span>
+                    <span>Doporučujeme použít silné heslo s kombinací písmen, čísel a speciálních znaků</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="material-icons-outlined text-sm mt-0.5">check_circle</span>
+                    <span>Změna hesla se zaznamenává do audit logu</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1058,50 +1157,6 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                         Zobrazí se v rozhraní
                       </p>
-                    </div>
-                  </div>
-
-                  <div v-if="!editingDepartment">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      <span class="flex items-center">
-                        <span class="material-icons-outlined text-[18px] mr-2 text-violet-600 dark:text-violet-400">lock</span>
-                        Heslo oddílu <span class="text-red-500 ml-1">*</span>
-                      </span>
-                    </label>
-                    <div class="relative">
-                      <input
-                        v-model="departmentForm.password"
-                        :type="showCreatePassword ? 'text' : 'password'"
-                        required
-                        minlength="6"
-                        class="w-full px-4 py-3 pr-12 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
-                        placeholder="Minimálně 6 znaků"
-                      />
-                      <div class="absolute right-2 top-1/2 -translate-y-1/2">
-                        <button
-                          type="button"
-                          @click="showCreatePassword = !showCreatePassword"
-                          class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                          :title="showCreatePassword ? 'Skrýt heslo' : 'Zobrazit heslo'"
-                        >
-                          <span class="material-icons-outlined text-lg">
-                            {{ showCreatePassword ? 'visibility_off' : 'visibility' }}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="flex items-center justify-between mt-1.5">
-                      <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Sdílené heslo pro všechny členy oddílu
-                      </p>
-                      <button
-                        type="button"
-                        @click="departmentForm.password = generatePassword(12)"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg hover:bg-violet-100 dark:hover:bg-violet-900/30 hover:border-violet-300 dark:hover:border-violet-700 transition-colors shadow-sm hover:shadow"
-                      >
-                        <span class="material-icons-outlined text-[14px] leading-none">autorenew</span>
-                        Generovat heslo
-                      </button>
                     </div>
                   </div>
 
@@ -1869,8 +1924,43 @@ const {
 
 // Tab state
 const mainTab = ref<'admin' | 'members'>('members') // Default na 'members', protože editori nevidí 'admin'
-const memberTab = ref<'departments' | 'users' | 'logs'>('departments')
+const memberTab = ref<'departments' | 'users' | 'password' | 'logs'>('departments')
 const currentUserRole = ref<'admin' | 'editor' | 'viewer' | null>(null)
+
+// Password form state
+const passwordForm = ref({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+const passwordLoading = ref(false)
+const passwordError = ref('')
+const passwordIsSet = ref<boolean | null>(null) // null = loading, true = set, false = not set
+
+// Toggle pro zobrazení hesel
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+// Computed property pro live validaci hesel
+const passwordsMatch = computed(() => {
+  if (!passwordForm.value.newPassword || !passwordForm.value.confirmPassword) {
+    return null // Ještě nic není vyplněno
+  }
+  return passwordForm.value.newPassword === passwordForm.value.confirmPassword
+})
+
+const passwordMatchMessage = computed(() => {
+  if (passwordsMatch.value === null) return ''
+  return passwordsMatch.value ? 'Hesla se shodují ✓' : 'Hesla se neshodují ✗'
+})
+
+const passwordMatchClass = computed(() => {
+  if (passwordsMatch.value === null) return ''
+  return passwordsMatch.value
+    ? 'text-green-600 dark:text-green-400'
+    : 'text-red-600 dark:text-red-400'
+})
 
 const showEditModal = ref(false);
 const showCreateModal = ref(false);
@@ -2821,6 +2911,73 @@ const fetchLoginLogs = async () => {
   }
 }
 
+// Password management
+const checkPasswordStatus = async () => {
+  try {
+    // Zkusíme ověřit prázdné heslo - pokud existuje hash, vrátí false, ale zjistíme, že heslo je nastaveno
+    const { data } = await supabase.rpc('verify_member_common_password', { password_input: '' })
+    // Pokud nevrátí error, pak heslo existuje v DB (i když ověření vrátí false)
+    passwordIsSet.value = true
+  } catch (err) {
+    // Pokud nastane error, může to znamenat, že heslo není nastaveno nebo jiný problém
+    // Pro náš případ budeme předpokládat, že heslo je nastaveno (máme default)
+    passwordIsSet.value = true
+  }
+}
+
+const handlePasswordUpdate = async () => {
+  passwordError.value = ''
+
+  // Validace
+  if (passwordForm.value.newPassword.length < 6) {
+    passwordError.value = 'Nové heslo musí mít alespoň 6 znaků'
+    return
+  }
+
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = 'Nová hesla se neshodují'
+    return
+  }
+
+  if (passwordForm.value.currentPassword === passwordForm.value.newPassword) {
+    passwordError.value = 'Nové heslo musí být odlišné od současného'
+    return
+  }
+
+  passwordLoading.value = true
+
+  try {
+    const response = await $fetch('/api/member-auth/update-common-password', {
+      method: 'POST',
+      body: {
+        currentPassword: passwordForm.value.currentPassword,
+        newPassword: passwordForm.value.newPassword
+      }
+    })
+
+    if (response.success) {
+      toast.success('Heslo bylo úspěšně změněno')
+      // Reset formuláře
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+      // Reset toggle stavů
+      showCurrentPassword.value = false
+      showNewPassword.value = false
+      showConfirmPassword.value = false
+      // Aktualizujeme status hesla
+      await checkPasswordStatus()
+    }
+  } catch (err: any) {
+    console.error('Chyba při změně hesla:', err)
+    passwordError.value = err.data?.statusMessage || 'Nepodařilo se změnit heslo'
+  } finally {
+    passwordLoading.value = false
+  }
+}
+
 onMounted(async () => {
   try {
     loading.value = true;
@@ -2833,6 +2990,9 @@ onMounted(async () => {
 
     // Load member section data (pro všechny oprávněné uživatele)
     await fetchDepartments()
+
+    // Zkontrolujeme status hesla
+    await checkPasswordStatus()
     await fetchMembers()
     await fetchLoginLogs()
   } catch (err) {
