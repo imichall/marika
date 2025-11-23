@@ -66,6 +66,23 @@
             </nav>
 
             <div class="px-4 py-3 border-t border-slate-200 flex flex-col gap-2 dark:border-slate-700">
+              <NuxtLink
+                v-if="canAccessAdmin"
+                to="/admin"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                @click="mobileMenuOpen = false"
+              >
+                <Icon name="mdi:shield-crown" class="text-lg" />
+                Zpět do administrace
+              </NuxtLink>
+              <NuxtLink
+                to="/"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                @click="mobileMenuOpen = false"
+              >
+                <Icon name="mdi:open-in-new" class="text-lg" />
+                Zpět na web
+              </NuxtLink>
               <button
                 class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 @click="() => { onToggleTheme(); mobileMenuOpen = false; }"
@@ -106,6 +123,7 @@ defineProps<{
   onLogout: () => void
   isDark: boolean
   onToggleTheme: () => void
+  canAccessAdmin?: boolean
 }>()
 
 const mobileMenuOpen = ref(false)

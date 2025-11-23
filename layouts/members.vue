@@ -18,6 +18,7 @@
         :links="navigationLinks"
         :is-dark="isMembersDark"
         :on-toggle-theme="toggleMembersTheme"
+        :can-access-admin="canAccessAdmin"
       />
 
       <main class="flex-1 overflow-y-auto px-6 py-8">
@@ -117,6 +118,11 @@ const currentTitle = computed(() => {
   if (route.path.includes('/clenove')) return 'Seznam členů'
   if (route.path.includes('/ke-stazeni')) return 'Dokumenty ke stažení'
   return 'Členská sekce'
+})
+
+const canAccessAdmin = computed(() => {
+  const role = sidebarUser.value.role
+  return role === 'admin' || role === 'editor'
 })
 
 const ensureAuthenticated = async () => {
