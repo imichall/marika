@@ -194,34 +194,63 @@ export const useMemberManagement = () => {
     }
   }
 
-  // Hromadný import členů
-  const bulkImportMembers = async (departmentId: string, membersData: Array<Omit<CreateMemberData, 'department_id'>>) => {
+  // Hromadný import členů z JSONu
+  const bulkImportMembers = async (departmentId: string, membersData: any[]) => {
     try {
       loading.value = true
       error.value = null
 
-      const membersToInsert = membersData.map(m => ({
-        ...m,
-        department_id: departmentId,
-        is_active: m.is_active ?? true
-      }))
+      const response = await $fetch('/api/member-users/import-bulk', {
+        method: 'POST',
+        body: {
+          department_id: departmentId,
+          members: membersData
+        }
+      }) as { success: boolean, imported: number, members: MemberUser[] }
 
-      const { error: insertError } = await supabase
-        .from('member_users')
-        .insert(membersToInsert)
+      if (!response.success) {
+        throw new Error('Nepodařilo se importovat členy')
+      }
 
-      if (insertError) throw insertError
-
-      toast.success(`Úspěšně importováno ${membersData.length} členů`)
+      toast.success(`Úspěšně importováno ${response.imported} členů`)
       await fetchMembers()
+      return response
     } catch (err: any) {
       console.error('Error bulk importing members:', err)
-      const errorMsg = err.message || 'Nepodařilo se importovat členy'
+      const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se importovat členy'
       error.value = errorMsg
       toast.error(errorMsg)
       throw err
     } finally {
       loading.value = false
+    }
+  }
+
+  // Rychlá změna statusu člena bez refreshování celé tabulky
+  const updateMemberStatus = async (id: string, isActive: boolean) => {
+    try {
+      const response = await $fetch('/api/member-users/update', {
+        method: 'POST',
+        body: {
+          id,
+          is_active: isActive
+        }
+      }) as { success: boolean, member: MemberUser }
+
+      if (!response.success) {
+        throw new Error('Nepodařilo se aktualizovat status člena')
+      }
+
+      // Aktualizuj pouze lokální stav bez refreshování celé tabulky
+      const memberIndex = members.value.findIndex(m => m.id === id)
+      if (memberIndex !== -1) {
+        members.value[memberIndex].is_active = isActive
+      }
+
+      return response.member
+    } catch (err: any) {
+      console.error('Error updating member status:', err)
+      throw err
     }
   }
 
@@ -261,6 +290,7 @@ export const useMemberManagement = () => {
     fetchMembers,
     createMember,
     updateMember,
+    updateMemberStatus,
     deleteMember,
     bulkImportMembers,
     getMemberStats

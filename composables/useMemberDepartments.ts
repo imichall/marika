@@ -26,7 +26,6 @@ export interface MemberDepartment {
 export interface CreateDepartmentData {
   name: string
   display_name: string
-  password: string
   description?: string
   permissions?: DepartmentPermissions
 }
@@ -87,14 +86,7 @@ export const useMemberDepartments = () => {
       const response = await $fetch('/api/member-departments/create', {
         method: 'POST',
         body: data
-      }) as { success: boolean, department: any, password?: string }
-
-      // Uložení hesla do sessionStorage pro pozdější zobrazení
-      if (response.password && response.department?.id) {
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem(`department_password_${response.department.id}`, response.password)
-        }
-      }
+      }) as { success: boolean, department: any }
 
       toast.success('Oddíl byl úspěšně vytvořen')
       await fetchDepartments()

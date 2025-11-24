@@ -21,14 +21,22 @@
         <span class="material-icons-outlined text-[18px] mr-2">add</span>
         Přidat oddíl
       </button>
-      <button
-        v-if="mainTab === 'members' && memberTab === 'users' && memberPermissions.create"
-        @click="openCreateMemberModal"
-        class="inline-flex items-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors"
-      >
-        <span class="material-icons-outlined text-[18px] mr-2">person_add</span>
-        Přidat člena
-      </button>
+      <div v-if="mainTab === 'members' && memberTab === 'users' && memberPermissions.create" class="flex gap-2">
+        <button
+          @click="openCreateMemberModal"
+          class="inline-flex items-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors"
+        >
+          <span class="material-icons-outlined text-[18px] mr-2">person_add</span>
+          Přidat člena
+        </button>
+        <button
+          @click="openImportModal"
+          class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          <span class="material-icons-outlined text-[18px] mr-2">upload</span>
+          Importovat členy
+        </button>
+      </div>
     </div>
 
     <!-- Main Tabs -->
@@ -406,16 +414,21 @@
                     <div class="text-sm text-gray-500 dark:text-gray-400">{{ member.phone || '—' }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span
+                    <button
+                      @click="toggleMemberStatus(member)"
+                      :disabled="membersLoading || !memberPermissions.edit"
                       :class="[
-                        'px-2 py-1 text-xs font-semibold rounded-full',
+                        'px-2 py-1 text-xs font-semibold rounded-full transition-all cursor-pointer',
+                        'hover:opacity-80 hover:scale-105',
+                        'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100',
                         member.is_active
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                       ]"
+                      :title="memberPermissions.edit ? (member.is_active ? 'Klikněte pro deaktivaci' : 'Klikněte pro aktivaci') : 'Nemáte oprávnění měnit status'"
                     >
                       {{ member.is_active ? 'Aktivní' : 'Neaktivní' }}
-                    </span>
+                    </button>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
@@ -1874,6 +1887,124 @@
         </div>
       </Dialog>
     </TransitionRoot>
+
+    <!-- Modal: Importovat členy -->
+    <TransitionRoot appear :show="showImportModal" as="template">
+      <Dialog as="div" @close="showImportModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                  Importovat členy z JSONu
+                </DialogTitle>
+
+                <form @submit.prevent="handleImportSubmit" class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Oddíl <span class="text-red-500">*</span>
+                    </label>
+                    <select
+                      v-model="importForm.department_id"
+                      required
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Vyberte oddíl</option>
+                      <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                        {{ dept.display_name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      JSON data <span class="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      v-model="importForm.jsonData"
+                      rows="15"
+                      required
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-mono text-sm"
+                      placeholder='[&#10;  {&#10;    "Jmeno": "Jana Nováková",&#10;    "E-mail": "jana@example.com",&#10;    "Telefon": "+420 123 456 789",&#10;    "Ulice": "Hlavní 123",&#10;    "Mesto": "Praha",&#10;    "PSC": "123 45",&#10;    "Cela Adresa": "Hlavní 123, 123 45 Praha",&#10;    "Datum narozeni": "12.07.1999",&#10;    "Mesto narozeni": "Praha"&#10;  }&#10;]'
+                    ></textarea>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Formát: pole objektů s českými klíči. Každý objekt musí obsahovat alespoň "Jmeno".
+                      Dostupné pole: Jmeno, E-mail, Telefon, Ulice, Mesto, PSC, Cela Adresa, Datum narozeni (formát DD.MM.YYYY), Mesto narozeni
+                    </p>
+                  </div>
+
+                  <!-- Náhled -->
+                  <div v-if="importPreview.length > 0" class="rounded-lg bg-gray-50 dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                      Náhled ({{ importPreview.length }} členů):
+                    </h4>
+                    <div class="max-h-40 overflow-y-auto space-y-1">
+                      <div
+                        v-for="(member, index) in importPreview"
+                        :key="index"
+                        class="text-xs text-gray-600 dark:text-gray-400"
+                      >
+                        {{ index + 1 }}. {{ member.full_name }}
+                        <span v-if="member.email" class="text-gray-500">({{ member.email }})</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Chyba validace -->
+                  <div v-if="importError" class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
+                    <p class="text-sm text-red-800 dark:text-red-200">{{ importError }}</p>
+                  </div>
+
+                  <div class="flex justify-end gap-3 pt-4">
+                    <button
+                      type="button"
+                      @click="closeImportModal"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Zrušit
+                    </button>
+                    <button
+                      type="button"
+                      @click="validateImportData"
+                      class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Ověřit JSON
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                      :disabled="membersLoading || importPreview.length === 0"
+                    >
+                      {{ membersLoading ? 'Importuji...' : `Importovat ${importPreview.length || 0} členů` }}
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
   </div>
 </template>
 
@@ -1919,7 +2050,9 @@ const {
   fetchMembers,
   createMember,
   updateMember: updateMemberData,
+  updateMemberStatus,
   deleteMember: deleteMemberData,
+  bulkImportMembers,
 } = useMemberManagement()
 
 // Tab state
@@ -2000,6 +2133,7 @@ const selectedDepartmentFilter = ref('')
 const showCreateDepartmentModal = ref(false)
 const showPasswordModal = ref(false)
 const showMemberModal = ref(false)
+const showImportModal = ref(false)
 const editingDepartment = ref<MemberDepartment | null>(null)
 const editingMember = ref<MemberUser | null>(null)
 const newPassword = ref('')
@@ -2056,6 +2190,14 @@ const avatarInput = ref<HTMLInputElement | null>(null)
 const avatarPreview = ref<string | null>(null)
 const avatarFile = ref<File | null>(null)
 const uploadingAvatar = ref(false)
+
+// Import form
+const importForm = ref({
+  department_id: '',
+  jsonData: '',
+})
+const importPreview = ref<Array<{ full_name: string; email?: string }>>([])
+const importError = ref('')
 
 // Drag & drop avatar
 const isDragOverAvatar = ref(false)
@@ -2393,20 +2535,7 @@ const handleDepartmentSubmit = async () => {
         permissions: departmentForm.value.permissions
       })
     } else {
-      const response = await createDepartment(departmentForm.value) as { success: boolean, department: any, password?: string }
-
-      // Uložení hesla do cache a sessionStorage pro pozdější zobrazení
-      if (response.password && response.department?.id && typeof window !== 'undefined') {
-        const deptId = response.department.id
-        departmentPasswordsCache.value[deptId] = response.password
-        sessionStorage.setItem(`department_password_${deptId}`, response.password)
-        console.log('✅ Heslo uloženo do cache a sessionStorage při vytvoření:', { deptId, passwordLength: response.password.length })
-        toast.success('Oddíl byl vytvořen. Heslo můžete zobrazit pomocí tlačítka "Zobrazit"')
-      } else {
-        console.warn('⚠️ Heslo nebylo v odpovědi API při vytvoření:', response)
-        toast.warning('Oddíl byl vytvořen, ale heslo nelze zobrazit')
-      }
-
+      await createDepartment(departmentForm.value)
       // Obnovení seznamu oddílů, aby se UI aktualizovalo
       await fetchDepartments()
     }
@@ -2882,6 +3011,126 @@ const confirmDeleteMember = async () => {
     memberToDelete.value = null
   } catch (err) {
     console.error('Error deleting member:', err)
+  }
+}
+
+// Rychlá změna statusu člena
+const toggleMemberStatus = async (member: MemberUser) => {
+  if (!memberPermissions.value.edit) {
+    toast.error('Nemáte oprávnění měnit status člena')
+    return
+  }
+
+  const newStatus = !member.is_active
+  const originalStatus = member.is_active
+
+  // Optimistická aktualizace - okamžitě změňme status v UI
+  const memberIndex = members.value.findIndex(m => m.id === member.id)
+  if (memberIndex !== -1) {
+    members.value[memberIndex].is_active = newStatus
+  }
+
+  try {
+    await updateMemberStatus(member.id, newStatus)
+    toast.success(`Člen ${member.full_name} byl ${newStatus ? 'aktivován' : 'deaktivován'}`)
+  } catch (err: any) {
+    // V případě chyby vrátíme původní status
+    if (memberIndex !== -1) {
+      members.value[memberIndex].is_active = originalStatus
+    }
+    console.error('Error toggling member status:', err)
+    toast.error(err.data?.statusMessage || err.message || 'Nepodařilo se změnit status člena')
+  }
+}
+
+// Import methods
+const openImportModal = () => {
+  importForm.value = {
+    department_id: '',
+    jsonData: '',
+  }
+  importPreview.value = []
+  importError.value = ''
+  showImportModal.value = true
+}
+
+const closeImportModal = () => {
+  showImportModal.value = false
+  importForm.value = {
+    department_id: '',
+    jsonData: '',
+  }
+  importPreview.value = []
+  importError.value = ''
+}
+
+const validateImportData = () => {
+  importError.value = ''
+  importPreview.value = []
+
+  if (!importForm.value.jsonData.trim()) {
+    importError.value = 'Prosím vložte JSON data'
+    return
+  }
+
+  try {
+    const parsed = JSON.parse(importForm.value.jsonData)
+
+    if (!Array.isArray(parsed)) {
+      importError.value = 'JSON musí být pole objektů'
+      return
+    }
+
+    if (parsed.length === 0) {
+      importError.value = 'Pole nesmí být prázdné'
+      return
+    }
+
+    // Validace každého objektu
+    parsed.forEach((member: any, index: number) => {
+      if (!member || typeof member !== 'object') {
+        throw new Error(`Položka na pozici ${index + 1} není objekt`)
+      }
+      const full_name = member.Jmeno || member.full_name || member.jmeno
+      if (!full_name || typeof full_name !== 'string' || full_name.trim() === '') {
+        throw new Error(`Položka na pozici ${index + 1} nemá vyplněné jméno (Jmeno)`)
+      }
+    })
+
+    // Vytvoření náhledu
+    importPreview.value = parsed.map((m: any) => ({
+      full_name: (m.Jmeno || m.full_name || m.jmeno || '').trim(),
+      email: (m['E-mail'] || m.email || m['e-mail'] || '').trim() || undefined
+    }))
+
+    toast.success(`JSON je platný. Připraveno k importu ${parsed.length} členů.`)
+  } catch (err: any) {
+    importError.value = err.message || 'Neplatný formát JSON'
+    importPreview.value = []
+  }
+}
+
+const handleImportSubmit = async () => {
+  if (!importForm.value.department_id) {
+    importError.value = 'Prosím vyberte oddíl'
+    return
+  }
+
+  if (importPreview.value.length === 0) {
+    importError.value = 'Prosím nejdříve ověřte JSON data'
+    return
+  }
+
+  try {
+    // Parsování JSONu znovu pro získání všech dat
+    const parsed = JSON.parse(importForm.value.jsonData)
+
+    // Odeslání surových dat - API endpoint provede mapování
+    await bulkImportMembers(importForm.value.department_id, parsed)
+    closeImportModal()
+  } catch (err: any) {
+    console.error('Error importing members:', err)
+    importError.value = err.data?.statusMessage || err.message || 'Nepodařilo se importovat členy'
   }
 }
 

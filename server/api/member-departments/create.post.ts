@@ -18,7 +18,7 @@ export default defineEventHandler(async (event: H3Event) => {
       .from('user_roles')
       .select('id, role')
       .eq('email', user.email || '')
-      .single()
+      .single() as { data: { id: string, role: string } | null, error: any }
 
     if (roleError || !roleData) {
       throw createError({
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event: H3Event) => {
           p_email: user.email || '',
           p_section: 'member_departments',
           p_action: 'create'
-        })
+        } as any) as { data: boolean | null }
 
       if (!permissionCheck) {
         throw createError({
@@ -46,26 +46,57 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     const body = await readBody(event)
-    const { name, display_name, password, description } = body
+    console.log('Received body:', JSON.stringify(body, null, 2))
 
-    if (!name || !display_name || !password) {
+    // Kontrola, že body je objekt
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Název, zobrazovaný název a heslo jsou povinné'
+        statusMessage: 'Tělo požadavku musí být objekt'
       })
     }
 
-    // Vytvoření hashe hesla pomocí databázové funkce
-    const { data: hashedPassword, error: hashError } = await supabase
-      .rpc('hash_department_password', { p_password: password }) as { data: string | null, error: any }
+    const { name, display_name, description } = body
 
-    if (hashError) {
-      console.error('Error hashing password:', hashError)
+    // Validace povinných polí
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Název (name) je povinný a musí být neprázdný řetězec'
+      })
+    }
+
+    if (!display_name || typeof display_name !== 'string' || display_name.trim() === '') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Zobrazovaný název (display_name) je povinný a musí být neprázdný řetězec'
+      })
+    }
+
+    // Získání hashe společného hesla z settings
+    const { data: settingsData, error: settingsError } = await supabase
+      .from('settings')
+      .select('member_common_password_hash')
+      .limit(1)
+      .single() as { data: { member_common_password_hash: string | null } | null, error: any }
+
+    if (settingsError || !settingsData) {
+      console.error('Error fetching settings:', settingsError)
       throw createError({
         statusCode: 500,
-        statusMessage: 'Nepodařilo se vytvořit hash hesla'
+        statusMessage: 'Nepodařilo se načíst nastavení systému'
       })
     }
+
+    if (!settingsData.member_common_password_hash) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Společné heslo není nastaveno. Prosím nastavte ho nejdříve v nastavení.'
+      })
+    }
+
+    // Použijeme hash společného hesla pro nový oddíl
+    const hashedPassword = settingsData.member_common_password_hash
 
     // Vytvoření oddílu
     const { data: department, error: insertError } = await supabase
@@ -78,12 +109,12 @@ export default defineEventHandler(async (event: H3Event) => {
         is_active: true
       } as any)
       .select()
-      .single()
+      .single() as { data: { id: string } | null, error: any }
 
-    if (insertError) {
+    if (insertError || !department) {
       console.error('Error creating department:', insertError)
 
-      if (insertError.code === '23505') { // unique violation
+      if (insertError?.code === '23505') { // unique violation
         throw createError({
           statusCode: 409,
           statusMessage: 'Oddíl s tímto názvem již existuje'
@@ -96,25 +127,9 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
-    // Uložení nehasheovaného hesla do dočasné tabulky (24 hodin)
-    const { error: tempPasswordError } = await supabase
-      .from('department_passwords_temp')
-      .insert({
-        department_id: department.id,
-        password: password,
-        created_by_email: user.email || '',
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hodin
-      } as any)
-
-    if (tempPasswordError) {
-      console.error('Error saving temp password:', tempPasswordError)
-      // Necháme to projít, protože hlavní operace proběhla úspěšně
-    }
-
     return {
       success: true,
-      department,
-      password: password // Vracíme heslo pro zobrazení (pouze pro oprávněné uživatele)
+      department
     }
   } catch (error: any) {
     console.error('Error in create department endpoint:', error)
