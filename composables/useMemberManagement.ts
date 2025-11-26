@@ -23,10 +23,16 @@ export interface MemberUser {
     name: string
     display_name: string
   }
+  departments?: Array<{
+    id: string
+    name: string
+    display_name: string
+  }>
 }
 
 export interface CreateMemberData {
-  department_id: string
+  department_id?: string // Zpětná kompatibilita
+  department_ids?: string[] // Nový formát pro více oddílů
   full_name: string
   email?: string
   phone?: string
@@ -54,7 +60,8 @@ export interface UpdateMemberData {
   notes?: string
   avatar_url?: string
   is_active?: boolean
-  department_id?: string
+  department_id?: string // Zpětná kompatibilita
+  department_ids?: string[] // Nový formát pro více oddílů
 }
 
 export const useMemberManagement = () => {
@@ -80,17 +87,39 @@ export const useMemberManagement = () => {
         .order('full_name')
 
       if (departmentId) {
-        query = query.eq('department_id', departmentId)
+        // Filtrování podle oddílu - zkontrolujeme hlavní department_id nebo member_user_departments
+        query = query.or(`department_id.eq.${departmentId},id.in.(select member_user_id from member_user_departments where department_id.eq.${departmentId})`)
       }
 
       const { data, error: fetchError } = await query
 
       if (fetchError) throw fetchError
 
-      members.value = (data || []).map((member: any) => ({
-        ...member,
-        department: member.department
+      // Načtení všech oddílů pro každého člena z pomocné tabulky
+      const membersWithDepartments = await Promise.all((data || []).map(async (member: any) => {
+        const { data: memberDepartments } = await supabase
+          .from('member_user_departments')
+          .select(`
+            department_id,
+            department:member_departments(id, name, display_name)
+          `)
+          .eq('member_user_id', member.id)
+
+        const departments = memberDepartments?.map((md: any) => md.department).filter(Boolean) || []
+
+        // Pokud nemá oddíly v pomocné tabulce, použijeme hlavní department
+        if (departments.length === 0 && member.department) {
+          departments.push(member.department)
+        }
+
+        return {
+          ...member,
+          department: member.department,
+          departments: departments
+        }
       }))
+
+      members.value = membersWithDepartments
 
       return members.value
     } catch (err: any) {

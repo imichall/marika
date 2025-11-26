@@ -342,11 +342,20 @@
 
             <div class="flex gap-2">
               <button
+                v-if="memberPermissions.edit"
                 @click="editDepartment(dept)"
-                class="w-full inline-flex items-center justify-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-medium rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
                 <span class="material-icons-outlined text-[18px] mr-1">edit</span>
                 Upravit
+              </button>
+              <button
+                v-if="memberPermissions.delete"
+                @click="deleteDepartmentHandler(dept)"
+                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+              >
+                <span class="material-icons-outlined text-[18px] mr-1">delete</span>
+                Smazat
               </button>
             </div>
           </div>
@@ -404,10 +413,17 @@
                       <div class="text-sm font-medium text-gray-900 dark:text-white">{{ member.full_name }}</div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300">
-                      {{ member.department?.display_name }}
-                    </span>
+                  <td class="px-6 py-4">
+                    <div class="flex flex-wrap gap-1.5">
+                      <span
+                        v-for="dept in getMemberDepartments(member)"
+                        :key="dept.id"
+                        class="px-2 py-1 text-xs font-semibold rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300"
+                      >
+                        {{ dept.display_name }}
+                      </span>
+                      <span v-if="getMemberDepartments(member).length === 0" class="text-gray-400 dark:text-gray-600 text-xs">—</span>
+                    </div>
                   </td>
                   <td class="px-6 py-4">
                     <div class="text-sm text-gray-900 dark:text-white">{{ member.email || '—' }}</div>
@@ -1550,19 +1566,18 @@
                       <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         <span class="flex items-center">
                           <span class="material-icons-outlined text-[18px] mr-2 text-violet-600 dark:text-violet-400">groups</span>
-                          Oddíl <span class="text-red-500 ml-1">*</span>
+                          Oddíly <span class="text-red-500 ml-1">*</span>
                         </span>
                       </label>
-                      <select
-                        v-model="memberForm.department_id"
-                        required
-                        class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
-                      >
-                        <option value="">Vyberte oddíl</option>
-                        <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                          {{ dept.display_name }}
-                        </option>
-                      </select>
+                      <MultiTagSelect
+                        v-model="memberForm.department_ids"
+                        :options="departments.map(dept => ({ value: dept.id, label: dept.display_name }))"
+                        placeholder="Vyberte oddíly..."
+                        :required="true"
+                        :get-tag-name="(id) => departments.find(d => d.id === id)?.display_name || id"
+                        :get-tag-style="() => ({ backgroundColor: '#ede9fe', color: '#7c3aed', borderColor: '#c4b5fd' })"
+                        input-class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-900 transition-all"
+                      />
                     </div>
 
                     <div>
@@ -1808,6 +1823,87 @@
       </Dialog>
     </TransitionRoot>
 
+    <!-- Modal: Potvrzení mazání oddílu -->
+    <TransitionRoot appear :show="showDeleteDepartmentModal" as="template">
+      <Dialog as="div" @close="showDeleteDepartmentModal = false" class="relative z-50">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </TransitionChild>
+
+        <div class="fixed inset-0 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl transition-all border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+                  <span class="material-icons-outlined text-red-600 dark:text-red-400 text-2xl">warning</span>
+                </div>
+
+                <DialogTitle class="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+                  Smazat oddíl?
+                </DialogTitle>
+
+                <div v-if="departmentToDelete" class="text-gray-600 dark:text-gray-400 text-center mb-6">
+                  <p class="mb-3">
+                    Opravdu chcete smazat oddíl <strong class="text-gray-900 dark:text-white">{{ departmentToDelete.display_name }}</strong>?
+                  </p>
+                  <div v-if="(departmentToDelete.member_count || 0) > 0" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-3">
+                    <div class="flex items-start gap-3">
+                      <span class="material-icons-outlined text-yellow-600 dark:text-yellow-400 text-xl mt-0.5">info</span>
+                      <div class="text-left">
+                        <p class="font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                          Pozor: Oddíl obsahuje {{ departmentToDelete.member_count }} {{ departmentToDelete.member_count === 1 ? 'člena' : 'členů' }}
+                        </p>
+                        <p class="text-sm text-yellow-700 dark:text-yellow-400">
+                          Při smazání oddílu budou smazáni i všichni členové přiřazení k tomuto oddílu. Tuto akci nelze vrátit zpět.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <p v-else class="text-sm">
+                    Tuto akci nelze vrátit zpět.
+                  </p>
+                </div>
+
+                <div class="flex gap-3">
+                  <button
+                    type="button"
+                    @click="showDeleteDepartmentModal = false"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Zrušit
+                  </button>
+                  <button
+                    type="button"
+                    @click="confirmDeleteDepartment"
+                    class="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                    :disabled="departmentsLoading"
+                  >
+                    {{ departmentsLoading ? 'Mazání...' : 'Smazat' }}
+                  </button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
+      </Dialog>
+    </TransitionRoot>
+
     <!-- Modal: Potvrzení zobrazení hesla -->
     <TransitionRoot appear :show="showPasswordConfirmDialog" as="template">
       <Dialog as="div" @close="showPasswordConfirmDialog = false" class="relative z-50">
@@ -2018,6 +2114,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useSupabaseClient } from "#imports";
 import { useToast } from "~/composables/useToast";
 import AdminBreadcrumbs from "~/components/AdminBreadcrumbs.vue";
+import MultiTagSelect from "~/components/MultiTagSelect.vue";
 import {
   TransitionRoot,
   TransitionChild,
@@ -2042,6 +2139,7 @@ const {
   createDepartment,
   updateDepartment,
   updateDepartmentPassword,
+  deleteDepartment,
 } = useMemberDepartments()
 
 const {
@@ -2172,7 +2270,7 @@ const departmentForm = ref({
 
 const memberForm = ref({
   full_name: '',
-  department_id: '',
+  department_ids: [] as string[],
   email: '',
   phone: '',
   street: '',
@@ -2229,12 +2327,30 @@ const onAvatarDrop = (e: DragEvent) => {
 // Delete confirmation state
 const showDeleteModal = ref(false)
 const memberToDelete = ref<MemberUser | null>(null)
+const showDeleteDepartmentModal = ref(false)
+const departmentToDelete = ref<MemberDepartment | null>(null)
 
 // Computed
 const filteredMembers = computed(() => {
   if (!selectedDepartmentFilter.value) return members.value
-  return members.value.filter(m => m.department_id === selectedDepartmentFilter.value)
+  return members.value.filter(m => {
+    // Zkontrolujeme hlavní department_id nebo oddíly v member_user_departments
+    return m.department_id === selectedDepartmentFilter.value ||
+           (m.departments && m.departments.some((d: any) => d.id === selectedDepartmentFilter.value))
+  })
 })
+
+// Funkce pro získání oddílů člena
+const getMemberDepartments = (member: MemberUser) => {
+  if (member.departments && member.departments.length > 0) {
+    return member.departments
+  }
+  // Fallback na starý department
+  if (member.department) {
+    return [{ id: member.department_id, name: member.department.name, display_name: member.department.display_name }]
+  }
+  return []
+}
 
 const pendingPasswordDepartment = computed(() => {
   if (!pendingPasswordDepartmentId.value) return null
@@ -2542,6 +2658,25 @@ const handleDepartmentSubmit = async () => {
     closeDepartmentModal()
   } catch (err) {
     console.error('Error saving department:', err)
+  }
+}
+
+const deleteDepartmentHandler = (dept: MemberDepartment) => {
+  departmentToDelete.value = dept
+  showDeleteDepartmentModal.value = true
+}
+
+const confirmDeleteDepartment = async () => {
+  if (!departmentToDelete.value) return
+  try {
+    await deleteDepartment(departmentToDelete.value.id)
+    showDeleteDepartmentModal.value = false
+    departmentToDelete.value = null
+    // Obnovení seznamu oddílů a členů
+    await fetchDepartments()
+    await fetchMembers()
+  } catch (err) {
+    console.error('Error deleting department:', err)
   }
 }
 
@@ -2911,7 +3046,7 @@ const openCreateMemberModal = () => {
   editingMember.value = null
   memberForm.value = {
     full_name: '',
-    department_id: '',
+    department_ids: [],
     email: '',
     phone: '',
     street: '',
@@ -2928,11 +3063,34 @@ const openCreateMemberModal = () => {
   showMemberModal.value = true
 }
 
-const editMember = (member: MemberUser) => {
+const editMember = async (member: MemberUser) => {
   editingMember.value = member
+
+  // Načtení oddílů člena z pomocné tabulky
+  let departmentIds: string[] = []
+  try {
+    const { data: memberDepartments } = await supabase
+      .from('member_user_departments')
+      .select('department_id')
+      .eq('member_user_id', member.id)
+
+    if (memberDepartments && memberDepartments.length > 0) {
+      departmentIds = memberDepartments.map((md: any) => md.department_id)
+    } else if (member.department_id) {
+      // Fallback na starý department_id pro zpětnou kompatibilitu
+      departmentIds = [member.department_id]
+    }
+  } catch (err) {
+    console.error('Error loading member departments:', err)
+    // Fallback na starý department_id
+    if (member.department_id) {
+      departmentIds = [member.department_id]
+    }
+  }
+
   memberForm.value = {
     full_name: member.full_name,
-    department_id: member.department_id,
+    department_ids: departmentIds,
     email: member.email || '',
     phone: member.phone || '',
     street: member.street || '',
@@ -2966,7 +3124,7 @@ const handleMemberSubmit = async () => {
         birth_date: memberForm.value.birth_date || null,
         birth_place: memberForm.value.birth_place,
         notes: memberForm.value.notes,
-        department_id: memberForm.value.department_id,
+        department_ids: memberForm.value.department_ids,
         is_active: memberForm.value.is_active
       }
 

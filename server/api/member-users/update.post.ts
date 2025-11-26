@@ -46,7 +46,7 @@ export default defineEventHandler(async (event: H3Event) => {
     }
 
     const body = await readBody(event)
-    const { id, full_name, email, phone, street, city, postal_code, full_address, birth_date, birth_place, notes, avatar_url, is_active, department_id } = body
+    const { id, full_name, email, phone, street, city, postal_code, full_address, birth_date, birth_place, notes, avatar_url, is_active, department_id, department_ids } = body
 
     if (!id) {
       throw createError({
@@ -69,18 +69,25 @@ export default defineEventHandler(async (event: H3Event) => {
       })
     }
 
-    // Pokud se mění oddíl, zkontrolujeme, zda existuje
-    if (department_id) {
-      const { data: department, error: deptError } = await supabase
+    // Podpora pro department_ids (pole) i department_id (zpětná kompatibilita)
+    let departmentIds: string[] | undefined = undefined
+    if (department_ids !== undefined && Array.isArray(department_ids)) {
+      departmentIds = department_ids
+    } else if (department_id !== undefined) {
+      departmentIds = [department_id]
+    }
+
+    // Pokud se mění oddíly, zkontrolujeme, zda existují
+    if (departmentIds !== undefined && departmentIds.length > 0) {
+      const { data: departments, error: deptError } = await supabase
         .from('member_departments')
         .select('id')
-        .eq('id', department_id)
-        .single()
+        .in('id', departmentIds)
 
-      if (deptError || !department) {
+      if (deptError || !departments || departments.length !== departmentIds.length) {
         throw createError({
           statusCode: 400,
-          statusMessage: 'Oddíl neexistuje'
+          statusMessage: 'Jeden nebo více oddílů neexistuje'
         })
       }
     }
@@ -99,7 +106,13 @@ export default defineEventHandler(async (event: H3Event) => {
     if (notes !== undefined) updateData.notes = notes || null
     if (avatar_url !== undefined) updateData.avatar_url = avatar_url || null
     if (is_active !== undefined) updateData.is_active = is_active
-    if (department_id !== undefined) updateData.department_id = department_id
+
+    // Pro zpětnou kompatibilitu nastavíme první oddíl jako department_id
+    if (departmentIds !== undefined && departmentIds.length > 0) {
+      updateData.department_id = departmentIds[0]
+    } else if (department_id !== undefined) {
+      updateData.department_id = department_id
+    }
 
     // Aktualizace člena
     const { data: updatedMember, error: updateError } = await supabase
@@ -117,6 +130,35 @@ export default defineEventHandler(async (event: H3Event) => {
         statusCode: 500,
         statusMessage: updateError.message || 'Nepodařilo se aktualizovat člena'
       })
+    }
+
+    // Aktualizace vztahů v pomocné tabulce, pokud byly změněny oddíly
+    if (departmentIds !== undefined) {
+      // Smazání starých vztahů
+      const { error: deleteError } = await supabase
+        .from('member_user_departments')
+        .delete()
+        .eq('member_user_id', id)
+
+      if (deleteError) {
+        console.error('Error deleting old department relations:', deleteError)
+      }
+
+      // Vytvoření nových vztahů
+      if (departmentIds.length > 0) {
+        const departmentRelations = departmentIds.map(deptId => ({
+          member_user_id: id,
+          department_id: deptId
+        }))
+
+        const { error: relationError } = await supabase
+          .from('member_user_departments')
+          .insert(departmentRelations)
+
+        if (relationError) {
+          console.error('Error creating department relations:', relationError)
+        }
+      }
     }
 
     return {

@@ -5,7 +5,7 @@
         <Icon name="mdi:account-music" class="text-5xl text-red-600 mx-auto" />
         <h1 class="text-3xl font-semibold text-slate-900">Členská sekce</h1>
         <p class="text-slate-600 text-sm">
-          Přihlaste se pomocé e-mailu nebo hesla k vašemu oddílu
+          Přihlaste se pomocé e-mailu nebo hesla k vašemu MAKS
         </p>
       </div>
 
@@ -31,7 +31,7 @@
               : 'text-slate-500 hover:text-slate-700'
           ]"
         >
-          Oddíl
+          MAKS
         </button>
       </div>
 
@@ -52,15 +52,25 @@
 
         <div class="space-y-2">
           <label for="password" class="text-sm font-medium text-slate-700">Heslo</label>
-          <input
-            id="password"
-            v-model="password"
-            type="password"
-            required
-            autocomplete="current-password"
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            placeholder="Zadejte heslo"
-          />
+          <div class="relative">
+            <input
+              id="password"
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              required
+              autocomplete="current-password"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              placeholder="Zadejte heslo"
+            />
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              tabindex="-1"
+            >
+              <Icon :name="showPassword ? 'mdi:eye-off' : 'mdi:eye'" class="text-xl" />
+            </button>
+          </div>
         </div>
 
         <p v-if="error" class="text-sm text-red-600">
@@ -93,18 +103,25 @@
         </div>
 
         <div class="space-y-2">
-          <label for="dept-password" class="text-sm font-medium text-slate-700">Společné heslo</label>
-          <input
-            id="dept-password"
-            v-model="departmentPassword"
-            type="password"
-            required
-            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-            placeholder="Zadejte společné heslo do členské sekce"
-          />
-          <p class="text-xs text-slate-500 mt-1">
-            Heslo je společné pro všechny oddíly
-          </p>
+          <label for="dept-password" class="text-sm font-medium text-slate-700">Heslo</label>
+          <div class="relative">
+            <input
+              id="dept-password"
+              v-model="departmentPassword"
+              :type="showDepartmentPassword ? 'text' : 'password'"
+              required
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 pr-10 text-slate-900 focus:border-red-500 focus:ring-2 focus:ring-red-100"
+              placeholder="Zadejte heslo"
+            />
+            <button
+              type="button"
+              @click="showDepartmentPassword = !showDepartmentPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              tabindex="-1"
+            >
+              <Icon :name="showDepartmentPassword ? 'mdi:eye-off' : 'mdi:eye'" class="text-xl" />
+            </button>
+          </div>
         </div>
 
         <p v-if="error" class="text-sm text-red-600">
@@ -151,6 +168,8 @@ const memberEmail = ref('')
 const departmentPassword = ref('')
 const loading = ref(false)
 const error = ref('')
+const showPassword = ref(false)
+const showDepartmentPassword = ref(false)
 
 const redirectTo = (path?: string | null) => {
   const target = typeof path === 'string' && path.startsWith('/clenska-sekce') ? path : '/clenska-sekce'
