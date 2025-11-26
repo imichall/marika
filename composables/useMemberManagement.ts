@@ -97,7 +97,7 @@ export const useMemberManagement = () => {
 
       // Načtení všech oddílů pro každého člena z pomocné tabulky
       const membersWithDepartments = await Promise.all((data || []).map(async (member: any) => {
-        const { data: memberDepartments } = await supabase
+        const { data: memberDepartments, error: deptError } = await supabase
           .from('member_user_departments')
           .select(`
             department_id,
@@ -105,11 +105,61 @@ export const useMemberManagement = () => {
           `)
           .eq('member_user_id', member.id)
 
-        const departments = memberDepartments?.map((md: any) => md.department).filter(Boolean) || []
+        if (deptError) {
+          console.error(`Error loading departments for member ${member.id}:`, deptError)
+        }
+
+        console.log(`Member ${member.id} (${member.full_name}) - memberDepartments:`, memberDepartments)
+
+        const departments = memberDepartments?.map((md: any) => {
+          const dept = md.department
+          if (!dept) {
+            console.warn(`Missing department data for member ${member.id}, department_id: ${md.department_id}`)
+            // Pokud nemáme department data, zkusíme načíst oddíl přímo
+            return {
+              id: md.department_id,
+              name: '',
+              display_name: md.department_id // Fallback na ID
+            }
+          }
+          return {
+            id: dept.id || md.department_id,
+            name: dept.name || '',
+            display_name: dept.display_name || dept.name || ''
+          }
+        }).filter(Boolean) || []
+
+        console.log(`Member ${member.id} (${member.full_name}) - parsed departments:`, departments)
+
+        // Pokud máme department_id ale žádné oddíly v departments, zkusíme načíst oddíl přímo
+        if (departments.length === 0 && member.department_id) {
+          try {
+            const { data: deptData } = await supabase
+              .from('member_departments')
+              .select('id, name, display_name')
+              .eq('id', member.department_id)
+              .single()
+
+            if (deptData) {
+              departments.push({
+                id: deptData.id,
+                name: deptData.name || '',
+                display_name: deptData.display_name || deptData.name || ''
+              })
+              console.log(`Loaded fallback department for member ${member.id}:`, deptData)
+            }
+          } catch (err) {
+            console.error(`Error loading fallback department for member ${member.id}:`, err)
+          }
+        }
 
         // Pokud nemá oddíly v pomocné tabulce, použijeme hlavní department
         if (departments.length === 0 && member.department) {
-          departments.push(member.department)
+          departments.push({
+            id: member.department.id || member.department_id,
+            name: member.department.name || '',
+            display_name: member.department.display_name || member.department.name || ''
+          })
         }
 
         return {
@@ -139,9 +189,47 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
+      // Získání informací o oddílu z localStorage (pokud je přihlášen přes oddíl)
+      let departmentData: any = null
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            const dept = JSON.parse(memberDepartment)
+
+            // Použijeme data z localStorage, ale zajistíme, že permissions obsahují všechna pole
+            departmentData = {
+              ...dept,
+              permissions: {
+                repertoire_view: dept.permissions?.repertoire_view ?? true,
+                repertoire_edit: dept.permissions?.repertoire_edit ?? false,
+                member_directory_view: dept.permissions?.member_directory_view ?? true,
+                members_area_view: dept.permissions?.members_area_view ?? true,
+                member_resources_view: dept.permissions?.member_resources_view ?? true,
+                member_resources_upload: dept.permissions?.member_resources_upload ?? false,
+                member_management_create: dept.permissions?.member_management_create ?? false,
+                member_management_edit: dept.permissions?.member_management_edit ?? false,
+                member_management_delete: dept.permissions?.member_management_delete ?? false
+              }
+            }
+
+            console.log('Create member - departmentData:', departmentData)
+            console.log('Create member - permissions:', departmentData?.permissions)
+            console.log('Create member - member_management_create:', departmentData?.permissions?.member_management_create)
+          } catch (e) {
+            console.error('Error parsing memberDepartment:', e)
+          }
+        } else {
+          console.log('Create member - no memberDepartment in localStorage')
+        }
+      }
+
       const response = await $fetch('/api/member-users/create', {
         method: 'POST',
-        body: data
+        body: {
+          ...data,
+          _departmentData: departmentData // Posíláme data o oddílu v body
+        }
       }) as { success: boolean, member: MemberUser }
 
       if (!response.success || !response.member) {
@@ -169,11 +257,25 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
+      // Získání informací o oddílu z localStorage (pokud je přihlášen přes oddíl)
+      let departmentData: any = null
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            departmentData = JSON.parse(memberDepartment)
+          } catch (e) {
+            console.error('Error parsing memberDepartment:', e)
+          }
+        }
+      }
+
       const response = await $fetch('/api/member-users/update', {
         method: 'POST',
         body: {
           id,
-          ...data
+          ...data,
+          _departmentData: departmentData // Posíláme data o oddílu v body
         }
       }) as { success: boolean, member: MemberUser }
 
@@ -201,9 +303,25 @@ export const useMemberManagement = () => {
       loading.value = true
       error.value = null
 
+      // Získání informací o oddílu z localStorage (pokud je přihlášen přes oddíl)
+      let departmentData: any = null
+      if (process.client) {
+        const memberDepartment = localStorage.getItem('memberDepartment')
+        if (memberDepartment) {
+          try {
+            departmentData = JSON.parse(memberDepartment)
+          } catch (e) {
+            console.error('Error parsing memberDepartment:', e)
+          }
+        }
+      }
+
       const response = await $fetch('/api/member-users/delete', {
         method: 'POST',
-        body: { id }
+        body: {
+          id,
+          _departmentData: departmentData // Posíláme data o oddílu v body
+        }
       }) as { success: boolean, message: string }
 
       if (!response.success) {

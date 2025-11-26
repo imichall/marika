@@ -136,7 +136,7 @@ const ensureAuthenticated = async () => {
         const dept = JSON.parse(memberDepartment)
         const member = JSON.parse(memberUser)
         sidebarUser.value = {
-          email: `${member.full_name} (${dept.display_name})`,
+          email: member.full_name,
           role: 'member'
         }
         return

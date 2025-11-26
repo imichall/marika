@@ -19,6 +19,12 @@
         <div class="hidden sm:flex flex-col text-right">
           <span class="text-xs text-slate-500 dark:text-slate-400">Přihlášený uživatel</span>
           <span class="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[180px]">{{ userEmail }}</span>
+          <span v-if="departmentNames.length > 0" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {{ departmentNames.length === 1 ? 'Oddíl:' : 'Oddíly:' }}
+            <span class="font-medium text-slate-700 dark:text-slate-300 ml-1">
+              {{ departmentNames.join(', ') }}
+            </span>
+          </span>
         </div>
         <button
           class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
@@ -39,12 +45,22 @@
         >
           <div class="absolute left-0 top-0 h-full w-72 bg-white shadow-xl flex flex-col dark:bg-slate-900">
             <div class="flex items-center justify-between px-4 py-4 border-b border-slate-200 dark:border-slate-700">
-              <div>
+              <div class="flex-1">
                 <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Členská sekce</p>
                 <p class="text-sm font-medium text-slate-900 dark:text-white">Marika Singers</p>
+                <div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Přihlášený uživatel</p>
+                  <p class="text-sm font-medium text-slate-900 dark:text-white truncate">{{ userEmail }}</p>
+                  <p v-if="departmentNames.length > 0" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {{ departmentNames.length === 1 ? 'Oddíl:' : 'Oddíly:' }}
+                    <span class="font-medium text-slate-700 dark:text-slate-300 ml-1">
+                      {{ departmentNames.join(', ') }}
+                    </span>
+                  </p>
+                </div>
               </div>
               <button
-                class="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                class="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 ml-2"
                 @click="mobileMenuOpen = false"
               >
                 <Icon name="mdi:close" class="text-xl" />
@@ -106,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 // @ts-ignore Nuxt runtime import
 import { useRoute } from '#imports'
 
@@ -116,7 +132,7 @@ interface MemberLink {
   to: string
 }
 
-defineProps<{
+const props = defineProps<{
   sectionTitle: string
   userEmail: string
   links: MemberLink[]
@@ -125,6 +141,39 @@ defineProps<{
   onToggleTheme: () => void
   canAccessAdmin?: boolean
 }>()
+
+// Načtení oddílů z localStorage
+const departmentNames = ref<string[]>([])
+
+onMounted(() => {
+  if (process.client) {
+    // Nejprve zkusíme načíst všechny oddíly
+    const memberDepartments = localStorage.getItem('memberDepartments')
+    if (memberDepartments) {
+      try {
+        const depts = JSON.parse(memberDepartments)
+        departmentNames.value = depts.map((dept: any) => dept.display_name || dept.name).filter(Boolean)
+      } catch (e) {
+        console.error('Error parsing memberDepartments:', e)
+      }
+    }
+
+    // Pokud nemáme oddíly, použijeme fallback na hlavní oddíl
+    if (departmentNames.value.length === 0) {
+      const memberDepartment = localStorage.getItem('memberDepartment')
+      if (memberDepartment) {
+        try {
+          const dept = JSON.parse(memberDepartment)
+          if (dept.display_name || dept.name) {
+            departmentNames.value = [dept.display_name || dept.name]
+          }
+        } catch (e) {
+          console.error('Error parsing memberDepartment:', e)
+        }
+      }
+    }
+  }
+})
 
 const mobileMenuOpen = ref(false)
 const route = useRoute()

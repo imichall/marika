@@ -211,7 +211,7 @@ const handleDepartmentLogin = async () => {
         memberEmail: memberEmail.value,
         password: departmentPassword.value
       }
-    }) as { success: boolean; department?: any; member?: any }
+    }) as { success: boolean; department?: any; departments?: any[]; member?: any }
 
     if (response.success) {
       // Debug: Zobraz, co přišlo z API
@@ -219,24 +219,29 @@ const handleDepartmentLogin = async () => {
 
       // Uložíme informaci o oddílu + členovi do localStorage
       if (process.client) {
-        // Zajistíme, že department má permissions
+        // Zajistíme, že department má permissions včetně nových práv pro správu členů
         const departmentWithPermissions = {
           ...response.department,
-          permissions: response.department.permissions || {
-            repertoire_view: true,
-            repertoire_edit: false,
-            member_directory_view: true,
-            members_area_view: true,
-            member_resources_view: true,
-            member_resources_upload: false
+          permissions: {
+            repertoire_view: response.department.permissions?.repertoire_view ?? true,
+            repertoire_edit: response.department.permissions?.repertoire_edit ?? false,
+            member_directory_view: response.department.permissions?.member_directory_view ?? true,
+            members_area_view: response.department.permissions?.members_area_view ?? true,
+            member_resources_view: response.department.permissions?.member_resources_view ?? true,
+            member_resources_upload: response.department.permissions?.member_resources_upload ?? false,
+            member_management_create: response.department.permissions?.member_management_create ?? false,
+            member_management_edit: response.department.permissions?.member_management_edit ?? false,
+            member_management_delete: response.department.permissions?.member_management_delete ?? false
           }
         }
 
         const loginData = {
           department: departmentWithPermissions,
+          departments: response.departments || [], // Všechny oddíly člena
           member: response.member // Info o konkrétním členovi
         }
         localStorage.setItem('memberDepartment', JSON.stringify(loginData.department))
+        localStorage.setItem('memberDepartments', JSON.stringify(loginData.departments))
         localStorage.setItem('memberUser', JSON.stringify(loginData.member))
 
         // Debug: Ověř, co se uložilo

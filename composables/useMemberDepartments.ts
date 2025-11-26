@@ -9,6 +9,9 @@ export interface DepartmentPermissions {
   members_area_view: boolean
   member_resources_view: boolean
   member_resources_upload: boolean
+  member_management_create?: boolean
+  member_management_edit?: boolean
+  member_management_delete?: boolean
 }
 
 export interface MemberDepartment {

@@ -1,51 +1,94 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
-import { H3Event } from 'h3'
+import { H3Event, createError } from 'h3'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
-    const supabase = await serverSupabaseClient(event)
-    const user = await serverSupabaseUser(event)
+    const body = await readBody(event)
 
-    if (!user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized'
-      })
-    }
+    // Získání informací o oddílu z body (pokud je přihlášen přes oddíl)
+    const departmentData = body._departmentData || null
+    // Odstraníme _departmentData z body
+    delete body._departmentData
 
-    // Kontrola oprávnění - admin nebo editor s oprávněním member_management.delete
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('id, role')
-      .eq('email', user.email || '')
-      .single()
+    // Vytvoření správného Supabase klienta podle typu přihlášení
+    let supabase: any
+    let user: any = null
 
-    if (roleError || !roleData) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Nemáte oprávnění mazat členy'
-      })
-    }
-
-    // Admin má vždy oprávnění
-    if ((roleData as any).role !== 'admin') {
-      // Pro editory kontrolujeme oprávnění member_management.delete
-      const { data: permissionCheck } = await supabase
-        .rpc('check_permission', {
-          p_email: user.email || '',
-          p_section: 'member_management',
-          p_action: 'delete'
-        } as any)
-
-      if (!permissionCheck) {
+    // Nejdřív zkontrolujeme, zda je přihlášen přes oddíl (aby se nevyhodila chyba při volání serverSupabaseUser)
+    if (departmentData) {
+      // Uživatel přihlášen přes oddíl - kontrola práv oddílu
+      if (!departmentData.permissions?.member_management_delete) {
         throw createError({
           statusCode: 403,
-          statusMessage: 'Nemáte oprávnění mazat členy'
+          statusMessage: 'Váš oddíl nemá oprávnění mazat členy'
         })
+      }
+
+      // Pro operace přes oddíl použijeme service role client (obejde RLS)
+      const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw createError({
+          statusCode: 500,
+          statusMessage: 'Chybí konfigurace Supabase'
+        })
+      }
+
+      supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    } else {
+      // Zkusíme získat Supabase auth uživatele (může vyhodit chybu, pokud není session)
+      try {
+        user = await serverSupabaseUser(event)
+        supabase = await serverSupabaseClient(event)
+      } catch (authError: any) {
+        // Pokud není Supabase auth session, vyhodíme chybu
+        throw createError({
+          statusCode: 401,
+          statusMessage: 'Unauthorized'
+        })
+      }
+
+      if (user) {
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('id, role')
+          .eq('email', user.email || '')
+          .single()
+
+        if (roleError || !roleData) {
+          throw createError({
+            statusCode: 403,
+            statusMessage: 'Nemáte oprávnění mazat členy'
+          })
+        }
+
+        // Admin má vždy oprávnění
+        if ((roleData as any).role !== 'admin') {
+          // Pro editory kontrolujeme oprávnění member_management.delete
+          const { data: permissionCheck } = await supabase
+            .rpc('check_permission', {
+              p_email: user.email || '',
+              p_section: 'member_management',
+              p_action: 'delete'
+            } as any)
+
+          if (!permissionCheck) {
+            throw createError({
+              statusCode: 403,
+              statusMessage: 'Nemáte oprávnění mazat členy'
+            })
+          }
+        }
       }
     }
 
-    const body = await readBody(event)
     const { id } = body
 
     if (!id) {

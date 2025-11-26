@@ -1,51 +1,106 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
-import { H3Event } from 'h3'
+import { H3Event, createError } from 'h3'
+import { createClient } from '@supabase/supabase-js'
 
 export default defineEventHandler(async (event: H3Event) => {
   try {
-    const supabase = await serverSupabaseClient(event)
-    const user = await serverSupabaseUser(event)
+    const body = await readBody(event)
 
-    if (!user) {
-      throw createError({
-        statusCode: 401,
-        statusMessage: 'Unauthorized'
+    // Získání informací o oddílu z body (pokud je přihlášen přes oddíl)
+    const departmentData = body._departmentData || null
+    // Odstraníme _departmentData z body, aby se nepokoušelo uložit do databáze
+    delete body._departmentData
+
+    // Debug log
+    console.log('Create member - departmentData:', JSON.stringify(departmentData, null, 2))
+    console.log('Create member - permissions:', departmentData?.permissions)
+
+    // Vytvoření správného Supabase klienta podle typu přihlášení
+    let supabase: any
+    let user: any = null
+
+    // Nejdřív zkontrolujeme, zda je přihlášen přes oddíl (aby se nevyhodila chyba při volání serverSupabaseUser)
+    if (departmentData) {
+      // Uživatel přihlášen přes oddíl - kontrola práv oddílu
+      const hasPermission = departmentData.permissions?.member_management_create === true
+      console.log('Create member - hasPermission check:', {
+        permissions: departmentData.permissions,
+        member_management_create: departmentData.permissions?.member_management_create,
+        hasPermission
       })
-    }
 
-    // Kontrola oprávnění - admin nebo editor s oprávněním member_management.create
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('id, role')
-      .eq('email', user.email || '')
-      .single()
-
-    if (roleError || !roleData) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Nemáte oprávnění vytvářet členy'
-      })
-    }
-
-    // Admin má vždy oprávnění
-    if ((roleData as any).role !== 'admin') {
-      // Pro editory kontrolujeme oprávnění member_management.create
-      const { data: permissionCheck } = await supabase
-        .rpc('check_permission', {
-          p_email: user.email || '',
-          p_section: 'member_management',
-          p_action: 'create'
-        } as any)
-
-      if (!permissionCheck) {
+      if (!hasPermission) {
         throw createError({
           statusCode: 403,
-          statusMessage: 'Nemáte oprávnění vytvářet členy'
+          statusMessage: 'Váš oddíl nemá oprávnění vytvářet členy'
         })
+      }
+
+      // Pro operace přes oddíl použijeme service role client (obejde RLS)
+      const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL
+      const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+      if (!supabaseUrl || !supabaseServiceKey) {
+        throw createError({
+          statusCode: 500,
+          statusMessage: 'Chybí konfigurace Supabase'
+        })
+      }
+
+      supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      })
+    } else {
+      // Zkusíme získat Supabase auth uživatele (může vyhodit chybu, pokud není session)
+      try {
+        user = await serverSupabaseUser(event)
+        supabase = await serverSupabaseClient(event)
+      } catch (authError: any) {
+        // Pokud není Supabase auth session, vyhodíme chybu
+        throw createError({
+          statusCode: 401,
+          statusMessage: 'Unauthorized'
+        })
+      }
+
+      if (user) {
+        // Uživatel přihlášen přes Supabase auth (admin/editor)
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('id, role')
+          .eq('email', user.email || '')
+          .single()
+
+        if (roleError || !roleData) {
+          throw createError({
+            statusCode: 403,
+            statusMessage: 'Nemáte oprávnění vytvářet členy'
+          })
+        }
+
+        // Admin má vždy oprávnění
+        if ((roleData as any).role !== 'admin') {
+          // Pro editory kontrolujeme oprávnění member_management.create
+          const { data: permissionCheck } = await supabase
+            .rpc('check_permission', {
+              p_email: user.email || '',
+              p_section: 'member_management',
+              p_action: 'create'
+            } as any)
+
+          if (!permissionCheck) {
+            throw createError({
+              statusCode: 403,
+              statusMessage: 'Nemáte oprávnění vytvářet členy'
+            })
+          }
+        }
       }
     }
 
-    const body = await readBody(event)
     const { department_id, department_ids, full_name, email, phone, street, city, postal_code, full_address, birth_date, birth_place, notes, avatar_url, is_active } = body
 
     // Podpora pro department_ids (pole) i department_id (zpětná kompatibilita)
@@ -102,23 +157,23 @@ export default defineEventHandler(async (event: H3Event) => {
       `)
       .single()
 
-    if (insertError) {
+    if (insertError || !newMember) {
       throw createError({
         statusCode: 500,
-        statusMessage: insertError.message || 'Nepodařilo se vytvořit člena'
+        statusMessage: insertError?.message || 'Nepodařilo se vytvořit člena'
       })
     }
 
     // Vytvoření vztahů v pomocné tabulce pro všechny oddíly
-    if (departmentIds.length > 0) {
+    if (departmentIds.length > 0 && (newMember as any).id) {
       const departmentRelations = departmentIds.map(deptId => ({
-        member_user_id: newMember.id,
+        member_user_id: (newMember as any).id,
         department_id: deptId
       }))
 
       const { error: relationError } = await supabase
         .from('member_user_departments')
-        .insert(departmentRelations)
+        .insert(departmentRelations as any)
 
       if (relationError) {
         console.error('Error creating department relations:', relationError)

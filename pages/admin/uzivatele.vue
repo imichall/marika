@@ -365,7 +365,7 @@
       <!-- Tab: Členové -->
       <div v-if="memberTab === 'users'">
         <div class="flex justify-between items-center mb-6">
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-4 flex-1">
             <select
               v-model="selectedDepartmentFilter"
               class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900"
@@ -373,6 +373,15 @@
               <option value="">Všechny oddíly</option>
               <option v-for="dept in departments" :key="dept.id" :value="dept.id">{{ dept.display_name }}</option>
             </select>
+            <div class="relative flex-1 max-w-md">
+              <span class="material-icons-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-[20px]">search</span>
+              <input
+                v-model="memberSearchQuery"
+                type="text"
+                placeholder="Vyhledat podle jména, emailu, telefonu, adresy..."
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-violet-500 dark:focus:border-violet-400 focus:ring focus:ring-violet-200 dark:focus:ring-violet-900"
+              />
+            </div>
           </div>
         </div>
 
@@ -1297,6 +1306,61 @@
                             Nahrávat dokumenty
                           </span>
                         </label>
+                      </div>
+                    </div>
+
+                    <!-- Práva pro správu členů -->
+                    <div class="border-t-2 border-gray-200 dark:border-gray-700 pt-6 mt-6">
+                      <h4 class="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <span class="material-icons-outlined text-[20px] mr-2 text-violet-600 dark:text-violet-400">account_group</span>
+                        Práva pro správu členů
+                      </h4>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Nastavte, zda mohou členové tohoto oddílu přidávat, upravovat a mazat členy v sekci Seznam členů
+                      </p>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-violet-50 dark:hover:bg-gray-700 transition-colors">
+                          <input
+                            v-model="departmentForm.permissions.member_management_create"
+                            type="checkbox"
+                            id="perm-member-create"
+                            class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-2 focus:ring-violet-500 transition-all"
+                          />
+                          <label for="perm-member-create" class="ml-3 text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                            <span class="flex items-center">
+                              <span class="material-icons-outlined text-[18px] mr-2 text-gray-500">person_add</span>
+                              Přidávat členy
+                            </span>
+                          </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-violet-50 dark:hover:bg-gray-700 transition-colors">
+                          <input
+                            v-model="departmentForm.permissions.member_management_edit"
+                            type="checkbox"
+                            id="perm-member-edit"
+                            class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-2 focus:ring-violet-500 transition-all"
+                          />
+                          <label for="perm-member-edit" class="ml-3 text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                            <span class="flex items-center">
+                              <span class="material-icons-outlined text-[18px] mr-2 text-gray-500">edit</span>
+                              Upravovat členy
+                            </span>
+                          </label>
+                        </div>
+                        <div class="flex items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-violet-50 dark:hover:bg-gray-700 transition-colors">
+                          <input
+                            v-model="departmentForm.permissions.member_management_delete"
+                            type="checkbox"
+                            id="perm-member-delete"
+                            class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-violet-600 focus:ring-2 focus:ring-violet-500 transition-all"
+                          />
+                          <label for="perm-member-delete" class="ml-3 text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
+                            <span class="flex items-center">
+                              <span class="material-icons-outlined text-[18px] mr-2 text-gray-500">delete</span>
+                              Mazat členy
+                            </span>
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2228,6 +2292,7 @@ const memberPermissions = ref({
 })
 
 const selectedDepartmentFilter = ref('')
+const memberSearchQuery = ref('')
 const showCreateDepartmentModal = ref(false)
 const showPasswordModal = ref(false)
 const showMemberModal = ref(false)
@@ -2312,10 +2377,27 @@ const onAvatarDrop = (e: DragEvent) => {
   isDragOverAvatar.value = false
   const file = e.dataTransfer?.files?.[0]
   if (!file) return
-  if (!file.type.startsWith('image/')) {
-    toast.error('Prosím, nahrajte obrázek (JPG/PNG).')
+
+  // Povolené mime types včetně SVG
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml'
+  ]
+
+  if (!allowedMimeTypes.includes(file.type)) {
+    toast.error('Prosím, nahrajte obrázek (JPG/PNG/GIF/WEBP/SVG).')
     return
   }
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Soubor je příliš velký. Maximální velikost je 5 MB.')
+    return
+  }
+
   avatarFile.value = file
   const reader = new FileReader()
   reader.onload = (ev) => {
@@ -2332,12 +2414,43 @@ const departmentToDelete = ref<MemberDepartment | null>(null)
 
 // Computed
 const filteredMembers = computed(() => {
-  if (!selectedDepartmentFilter.value) return members.value
-  return members.value.filter(m => {
-    // Zkontrolujeme hlavní department_id nebo oddíly v member_user_departments
-    return m.department_id === selectedDepartmentFilter.value ||
-           (m.departments && m.departments.some((d: any) => d.id === selectedDepartmentFilter.value))
-  })
+  let filtered = members.value
+
+  // Filtrování podle oddílu
+  if (selectedDepartmentFilter.value) {
+    filtered = filtered.filter(m => {
+      // Zkontrolujeme hlavní department_id nebo oddíly v member_user_departments
+      return m.department_id === selectedDepartmentFilter.value ||
+             (m.departments && m.departments.some((d: any) => d.id === selectedDepartmentFilter.value))
+    })
+  }
+
+  // Filtrování podle vyhledávacího dotazu
+  if (memberSearchQuery.value.trim()) {
+    const query = memberSearchQuery.value.toLowerCase().trim()
+    filtered = filtered.filter(m => {
+      // Prohledáváme všechna pole
+      const searchableFields = [
+        m.full_name || '',
+        m.email || '',
+        m.phone || '',
+        m.street || '',
+        m.city || '',
+        m.postal_code || '',
+        m.full_address || '',
+        m.birth_place || '',
+        m.notes || '',
+        // Názvy oddílů
+        ...(m.departments?.map((d: any) => d.display_name || d.name || '') || []),
+        m.department?.display_name || '',
+        m.department?.name || ''
+      ]
+
+      return searchableFields.some(field => field.toLowerCase().includes(query))
+    })
+  }
+
+  return filtered
 })
 
 // Funkce pro získání oddílů člena
@@ -2608,7 +2721,10 @@ const openCreateDepartmentModal = () => {
       member_directory_view: true,
       members_area_view: true,
       member_resources_view: true,
-      member_resources_upload: false
+      member_resources_upload: false,
+      member_management_create: false,
+      member_management_edit: false,
+      member_management_delete: false
     }
   }
   showCreatePassword.value = false
@@ -2629,7 +2745,10 @@ const editDepartment = (dept: MemberDepartment) => {
       member_directory_view: true,
       members_area_view: true,
       member_resources_view: true,
-      member_resources_upload: false
+      member_resources_upload: false,
+      member_management_create: false,
+      member_management_edit: false,
+      member_management_delete: false
     }
   }
   showCreateDepartmentModal.value = true
@@ -2988,6 +3107,26 @@ const handleAvatarChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
+
+  // Povolené mime types včetně SVG
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml'
+  ]
+
+  if (!allowedMimeTypes.includes(file.type)) {
+    toast.error('Nepodporovaný formát souboru. Povoleny jsou pouze obrázky (JPG, PNG, GIF, WEBP, SVG).')
+    return
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error('Soubor je příliš velký. Maximální velikost je 5 MB.')
+    return
+  }
 
   avatarFile.value = file
 
