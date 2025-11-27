@@ -82,8 +82,8 @@
                   class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
                 >
                   <option value="title">Abecedně (název)</option>
-                  <option value="created_at">Datum vytvoření</option>
-                  <option value="updated_at">Poslední úprava</option>
+                  <!-- <option value="created_at">Datum vytvoření</option>
+                  <option value="updated_at">Poslední úprava</option> -->
                 </select>
                 <select
                   v-model="sortDir"
