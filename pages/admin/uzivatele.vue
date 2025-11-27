@@ -383,6 +383,17 @@
               />
             </div>
           </div>
+          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <span class="material-icons-outlined text-[18px]">people</span>
+            <span class="font-medium">
+              <template v-if="selectedDepartmentFilter">
+                {{ filteredMembersCount }} {{ filteredMembersCount === 1 ? 'člen' : filteredMembersCount < 5 ? 'členové' : 'členů' }} v oddíle
+              </template>
+              <template v-else>
+                Celkem {{ filteredMembersCount }} {{ filteredMembersCount === 1 ? 'člen' : filteredMembersCount < 5 ? 'členové' : 'členů' }}
+              </template>
+            </span>
+          </div>
         </div>
 
         <!-- Loading state -->
@@ -2453,6 +2464,11 @@ const filteredMembers = computed(() => {
   return filtered
 })
 
+// Počet filtrovaných členů
+const filteredMembersCount = computed(() => {
+  return filteredMembers.value.length
+})
+
 // Funkce pro získání oddílů člena
 const getMemberDepartments = (member: MemberUser) => {
   if (member.departments && member.departments.length > 0) {
@@ -2774,6 +2790,8 @@ const handleDepartmentSubmit = async () => {
       // Obnovení seznamu oddílů, aby se UI aktualizovalo
       await fetchDepartments()
     }
+    // Obnovení seznamu členů, aby se aktualizovaly jejich oddíly
+    await fetchMembers()
     closeDepartmentModal()
   } catch (err) {
     console.error('Error saving department:', err)
@@ -2791,7 +2809,7 @@ const confirmDeleteDepartment = async () => {
     await deleteDepartment(departmentToDelete.value.id)
     showDeleteDepartmentModal.value = false
     departmentToDelete.value = null
-    // Obnovení seznamu oddílů a členů
+    // Obnovení seznamu oddílů a členů (členové se aktualizují automaticky přes CASCADE)
     await fetchDepartments()
     await fetchMembers()
   } catch (err) {
@@ -3276,6 +3294,7 @@ const handleMemberSubmit = async () => {
       }
 
       await updateMemberData(editingMember.value.id, updateData)
+      // fetchMembers() je voláno automaticky v updateMember, ale pro jistotu to zkontrolujeme
     } else {
       // Create new member first
       const newMember = await createMember(memberForm.value)
@@ -3287,6 +3306,7 @@ const handleMemberSubmit = async () => {
           await updateMemberData(newMember.id, { avatar_url: avatarUrl } as any)
         }
       }
+      // fetchMembers() je voláno automaticky v createMember
     }
     showMemberModal.value = false
     clearAvatar()

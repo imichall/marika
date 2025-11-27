@@ -56,17 +56,69 @@ export const useMemberDepartments = () => {
 
       const { data, error: fetchError } = await supabase
         .from('member_departments')
-        .select(`
-          *,
-          member_users(count)
-        `)
+        .select('*')
         .order('display_name')
 
       if (fetchError) throw fetchError
 
-      departments.value = (data || []).map((dept: any) => ({
+      if (!data || data.length === 0) {
+        departments.value = []
+        return []
+      }
+
+      // Načtení počtu členů pro každý oddíl
+      // Musíme počítat jak podle hlavního department_id, tak podle member_user_departments
+      const departmentIds = data.map((d: any) => d.id)
+
+      // Načtení všech členů s jejich ID a hlavním department_id
+      const { data: allMembers, error: membersError } = await supabase
+        .from('member_users')
+        .select('id, department_id')
+        .in('department_id', departmentIds)
+
+      // Načtení všech vztahů z member_user_departments
+      const { data: multiDeptMembers, error: multiDeptError } = await supabase
+        .from('member_user_departments')
+        .select('department_id, member_user_id')
+        .in('department_id', departmentIds)
+
+      if (membersError) {
+        console.error('Error counting members by main department:', membersError)
+      }
+      if (multiDeptError) {
+        console.error('Error counting members by multi-departments:', multiDeptError)
+      }
+
+      // Seskupení počtů podle oddílu (používáme Set pro unikátní členy)
+      const countsByDepartment: Record<string, Set<string>> = {}
+
+      // Inicializace pro všechny oddíly
+      departmentIds.forEach((id: string) => {
+        countsByDepartment[id] = new Set()
+      })
+
+      // Přidání členů podle hlavního department_id
+      if (allMembers) {
+        allMembers.forEach((member: any) => {
+          if (member.department_id && member.id && countsByDepartment[member.department_id]) {
+            countsByDepartment[member.department_id].add(member.id)
+          }
+        })
+      }
+
+      // Přidání členů podle member_user_departments (unikátní členové)
+      if (multiDeptMembers) {
+        multiDeptMembers.forEach((relation: any) => {
+          if (relation.department_id && relation.member_user_id && countsByDepartment[relation.department_id]) {
+            countsByDepartment[relation.department_id].add(relation.member_user_id)
+          }
+        })
+      }
+
+      // Mapování oddílů s počty
+      departments.value = data.map((dept: any) => ({
         ...dept,
-        member_count: dept.member_users?.[0]?.count || 0
+        member_count: countsByDepartment[dept.id]?.size || 0
       }))
 
       return departments.value

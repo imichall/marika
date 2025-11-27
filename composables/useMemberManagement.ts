@@ -91,75 +91,75 @@ export const useMemberManagement = () => {
         query = query.or(`department_id.eq.${departmentId},id.in.(select member_user_id from member_user_departments where department_id.eq.${departmentId})`)
       }
 
-      const { data, error: fetchError } = await query
+      const { data: membersData, error: fetchError } = await query
 
       if (fetchError) throw fetchError
 
-      // Načtení všech oddílů pro každého člena z pomocné tabulky
-      const membersWithDepartments = await Promise.all((data || []).map(async (member: any) => {
-        const { data: memberDepartments, error: deptError } = await supabase
-          .from('member_user_departments')
-          .select(`
-            department_id,
-            department:member_departments(id, name, display_name)
-          `)
-          .eq('member_user_id', member.id)
+      if (!membersData || membersData.length === 0) {
+        members.value = []
+        return []
+      }
 
-        if (deptError) {
-          console.error(`Error loading departments for member ${member.id}:`, deptError)
-        }
+      // Načtení všech vztahů najednou pro všechny členy (efektivnější než N+1 dotazů)
+      const memberIds = membersData.map(m => m.id)
+      const { data: allMemberDepartments, error: deptError } = await supabase
+        .from('member_user_departments')
+        .select(`
+          member_user_id,
+          department_id,
+          department:member_departments(id, name, display_name)
+        `)
+        .in('member_user_id', memberIds)
 
-        console.log(`Member ${member.id} (${member.full_name}) - memberDepartments:`, memberDepartments)
+      if (deptError) {
+        console.error('Error loading member departments:', deptError)
+      }
 
-        const departments = memberDepartments?.map((md: any) => {
+      // Seskupení oddílů podle člena
+      const departmentsByMember: Record<string, Array<{ id: string; name: string; display_name: string }>> = {}
+
+      if (allMemberDepartments) {
+        allMemberDepartments.forEach((md: any) => {
+          if (!departmentsByMember[md.member_user_id]) {
+            departmentsByMember[md.member_user_id] = []
+          }
+
           const dept = md.department
-          if (!dept) {
-            console.warn(`Missing department data for member ${member.id}, department_id: ${md.department_id}`)
-            // Pokud nemáme department data, zkusíme načíst oddíl přímo
-            return {
+          if (dept) {
+            departmentsByMember[md.member_user_id].push({
+              id: dept.id || md.department_id,
+              name: dept.name || '',
+              display_name: dept.display_name || dept.name || ''
+            })
+          } else {
+            // Fallback pokud chybí department data
+            console.warn(`Missing department data for member ${md.member_user_id}, department_id: ${md.department_id}`)
+            departmentsByMember[md.member_user_id].push({
               id: md.department_id,
               name: '',
-              display_name: md.department_id // Fallback na ID
-            }
+              display_name: md.department_id
+            })
           }
-          return {
-            id: dept.id || md.department_id,
-            name: dept.name || '',
-            display_name: dept.display_name || dept.name || ''
-          }
-        }).filter(Boolean) || []
+        })
+      }
 
-        console.log(`Member ${member.id} (${member.full_name}) - parsed departments:`, departments)
+      // Mapování členů s jejich oddíly
+      const membersWithDepartments = membersData.map((member: any) => {
+        let departments = departmentsByMember[member.id] || []
 
-        // Pokud máme department_id ale žádné oddíly v departments, zkusíme načíst oddíl přímo
+        // Pokud nemá oddíly v pomocné tabulce, použijeme hlavní department jako fallback
         if (departments.length === 0 && member.department_id) {
-          try {
-            const { data: deptData } = await supabase
-              .from('member_departments')
-              .select('id, name, display_name')
-              .eq('id', member.department_id)
-              .single()
-
-            if (deptData) {
-              departments.push({
-                id: deptData.id,
-                name: deptData.name || '',
-                display_name: deptData.display_name || deptData.name || ''
-              })
-              console.log(`Loaded fallback department for member ${member.id}:`, deptData)
-            }
-          } catch (err) {
-            console.error(`Error loading fallback department for member ${member.id}:`, err)
+          if (member.department) {
+            departments = [{
+              id: member.department_id,
+              name: member.department.name || '',
+              display_name: member.department.display_name || member.department.name || ''
+            }]
+          } else {
+            // Pokud nemáme ani department join, zkusíme načíst oddíl přímo
+            // (ale to by nemělo být nutné, protože join by měl fungovat)
+            console.warn(`Member ${member.id} has department_id but no department data`)
           }
-        }
-
-        // Pokud nemá oddíly v pomocné tabulce, použijeme hlavní department
-        if (departments.length === 0 && member.department) {
-          departments.push({
-            id: member.department.id || member.department_id,
-            name: member.department.name || '',
-            display_name: member.department.display_name || member.department.name || ''
-          })
         }
 
         return {
@@ -167,7 +167,7 @@ export const useMemberManagement = () => {
           department: member.department,
           departments: departments
         }
-      }))
+      })
 
       members.value = membersWithDepartments
 
