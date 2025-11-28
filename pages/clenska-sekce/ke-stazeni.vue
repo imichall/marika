@@ -1,16 +1,23 @@
 <template>
   <div class="space-y-8">
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 space-y-6 dark:bg-slate-900/80 dark:border-slate-800">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <section
+      class="rounded-2xl bg-white border border-slate-100 shadow-sm p-6 space-y-6 dark:bg-slate-900/80 dark:border-slate-800"
+    >
+      <div
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div class="space-y-3">
           <div class="flex items-center gap-3">
             <div class="rounded-full bg-red-50 text-red-600 p-3">
               <Icon name="mdi:folder-download" class="text-2xl" />
             </div>
-            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">Dokumenty ke stažení</h2>
+            <h2 class="text-2xl font-semibold text-slate-900 dark:text-white">
+              Dokumenty ke stažení
+            </h2>
           </div>
           <p class="text-sm text-slate-600 dark:text-slate-300">
-            Interní materiály pro členy sboru – loga, stanovy, kronika a další soubory. Dokumenty jsou dostupné pouze po přihlášení.
+            Interní materiály pro členy sboru – loga, stanovy, kronika a další
+            soubory. Dokumenty jsou dostupné pouze po přihlášení.
           </p>
         </div>
         <button
@@ -23,9 +30,14 @@
         </button>
       </div>
 
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div
+        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+      >
         <div class="relative flex-1 max-w-md">
-          <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+          <Icon
+            name="mdi:magnify"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"
+          />
           <input
             v-model="searchQuery"
             type="search"
@@ -52,13 +64,24 @@
       </div>
     </section>
 
-    <section class="rounded-2xl bg-white border border-slate-100 shadow-sm dark:bg-slate-900/80 dark:border-slate-800">
+    <section
+      class="rounded-2xl bg-white border border-slate-100 shadow-sm dark:bg-slate-900/80 dark:border-slate-800"
+    >
       <ul class="divide-y divide-slate-200 dark:divide-slate-800">
-        <li v-if="loading" class="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
-          <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
+        <li
+          v-if="loading"
+          class="px-6 py-10 text-center text-slate-500 dark:text-slate-300"
+        >
+          <Icon
+            name="mdi:loading"
+            class="animate-spin text-2xl inline-block mr-2"
+          />
           Načítám dokumenty...
         </li>
-        <li v-else-if="!filteredResources.length" class="px-6 py-10 text-center text-slate-500 dark:text-slate-300">
+        <li
+          v-else-if="!filteredResources.length"
+          class="px-6 py-10 text-center text-slate-500 dark:text-slate-300"
+        >
           Žádné dokumenty neodpovídají filtru.
         </li>
         <li
@@ -88,20 +111,35 @@
               <div
                 class="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center"
               >
-                <Icon name="mdi:magnify-plus-outline" class="text-2xl text-white" />
+                <Icon
+                  name="mdi:magnify-plus-outline"
+                  class="text-2xl text-white"
+                />
               </div>
             </button>
             <div
               v-else
               class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600 shadow-inner dark:bg-red-500/20 dark:text-red-200"
             >
-              <Icon :name="resolveIcon(resource.content_type)" class="text-2xl" />
+              <Icon
+                :name="resolveIcon(resource.content_type)"
+                class="text-2xl"
+              />
             </div>
 
             <div class="space-y-1">
-              <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ resource.title }}</h3>
-              <p class="text-sm text-slate-600 dark:text-slate-300" v-if="resource.description">{{ resource.description }}</p>
-              <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+                {{ resource.title }}
+              </h3>
+              <p
+                class="text-sm text-slate-600 dark:text-slate-300"
+                v-if="resource.description"
+              >
+                {{ resource.description }}
+              </p>
+              <div
+                class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400"
+              >
                 <span
                   v-if="resource.category"
                   class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-red-600 font-medium dark:bg-red-500/20 dark:text-red-200"
@@ -150,16 +188,24 @@
       </ul>
     </section>
 
-    <Modal v-model="showPreviewModal" :title="previewResource?.title ?? 'Náhled dokumentu'">
+    <Modal
+      v-model="showPreviewModal"
+      :title="previewResource?.title ?? 'Náhled dokumentu'"
+    >
       <div class="space-y-4">
-        <div class="relative rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-center justify-center dark:border-slate-700 dark:bg-slate-900/60">
+        <div
+          class="relative rounded-lg border border-slate-200 bg-slate-50 p-3 flex items-center justify-center dark:border-slate-700 dark:bg-slate-900/60"
+        >
           <img
             v-if="activePreviewUrl"
             :src="activePreviewUrl"
             :alt="previewResource?.title ?? ''"
             class="max-h-[70vh] w-full object-contain rounded-md"
           />
-          <div v-else class="flex items-center justify-center gap-2 py-16 text-slate-500 dark:text-slate-300">
+          <div
+            v-else
+            class="flex items-center justify-center gap-2 py-16 text-slate-500 dark:text-slate-300"
+          >
             <Icon name="mdi:loading" class="animate-spin text-2xl" />
             Generuji náhled...
           </div>
@@ -185,7 +231,9 @@
     <Modal v-model="showModal" :title="modalTitle">
       <form class="space-y-4" @submit.prevent="submitForm">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Název *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >Název *</label
+          >
           <input
             v-model="form.title"
             required
@@ -194,7 +242,9 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Popis</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >Popis</label
+          >
           <textarea
             v-model="form.description"
             rows="3"
@@ -203,7 +253,9 @@
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Kategorie</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >Kategorie</label
+          >
           <input
             v-model="form.category"
             class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
@@ -212,7 +264,9 @@
         </div>
 
         <div v-if="!editingResource" class="space-y-2">
-          <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Soubor *</label>
+          <label class="text-sm font-medium text-slate-700 dark:text-slate-200"
+            >Soubor *</label
+          >
           <input
             ref="fileInput"
             type="file"
@@ -233,31 +287,52 @@
           <button
             type="submit"
             class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-            :disabled="loading || uploading || (!editingResource && !selectedFile)"
+            :disabled="
+              loading || uploading || (!editingResource && !selectedFile)
+            "
           >
-            <Icon :name="editingResource ? 'mdi:content-save-edit' : 'mdi:upload'" class="text-lg" />
-            {{ editingResource ? 'Uložit změny' : 'Nahrát dokument' }}
+            <Icon
+              :name="editingResource ? 'mdi:content-save-edit' : 'mdi:upload'"
+              class="text-lg"
+            />
+            {{ editingResource ? "Uložit změny" : "Nahrát dokument" }}
           </button>
         </div>
       </form>
     </Modal>
+
+    <!-- Confirm Delete Dialog -->
+    <ConfirmDialog
+      v-model="showDeleteDialog"
+      title="Odstranit dokument"
+      :message="`Opravdu chcete odstranit dokument '${resourceToDelete?.title}'? Tato akce je nevratná.`"
+      confirm-text="Ano, odstranit"
+      cancel-text="Zrušit"
+      confirm-icon="mdi:trash-can"
+      type="danger"
+      @confirm="handleDeleteConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from "vue";
 // @ts-ignore Nuxt auto-imports
-import { useRouter } from '#imports'
-import Modal from '~/components/Modal.vue'
-import { useToast } from '~/composables/useToast'
-import { useMemberResources, type MemberResource } from '~/composables/useMemberResources'
+import { useRouter } from "#imports";
+import Modal from "~/components/Modal.vue";
+import ConfirmDialog from "~/components/ConfirmDialog.vue";
+import { useToast } from "~/composables/useToast";
+import {
+  useMemberResources,
+  type MemberResource,
+} from "~/composables/useMemberResources";
 
 definePageMeta({
-  layout: 'members'
-})
+  layout: "members",
+});
 
-const toast = useToast()
-const router = useRouter()
+const toast = useToast();
+const router = useRouter();
 
 const {
   resources,
@@ -270,148 +345,159 @@ const {
   updateResource,
   deleteResource,
   downloadResource,
-  getPreviewUrl
-} = useMemberResources()
+  getPreviewUrl,
+} = useMemberResources();
 
-const searchQuery = ref('')
-const categoryFilter = ref<'vse' | string>('vse')
+const searchQuery = ref("");
+const categoryFilter = ref<"vse" | string>("vse");
 
-const showModal = ref(false)
-const editingResource = ref<MemberResource | null>(null)
-const selectedFile = ref<File | null>(null)
-const fileInput = ref<HTMLInputElement | null>(null)
+const showModal = ref(false);
+const editingResource = ref<MemberResource | null>(null);
+const selectedFile = ref<File | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
-const showPreviewModal = ref(false)
-const previewResource = ref<MemberResource | null>(null)
-const previewUrls = ref<Record<string, string>>({})
+const showPreviewModal = ref(false);
+const previewResource = ref<MemberResource | null>(null);
+const previewUrls = ref<Record<string, string>>({});
+
+const showDeleteDialog = ref(false);
+const resourceToDelete = ref<MemberResource | null>(null);
 
 const form = reactive({
-  title: '',
-  description: '',
-  category: ''
-})
+  title: "",
+  description: "",
+  category: "",
+});
 
 const normalize = (value: string) =>
   value
     ? value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-    : ''
+    : "";
 
 const filteredResources = computed(() => {
-  const query = normalize(searchQuery.value)
+  const query = normalize(searchQuery.value);
 
   return resources.value.filter((resource) => {
-    if (categoryFilter.value !== 'vse') {
-      if (!resource.category) return false
-      if (resource.category.toLowerCase() !== categoryFilter.value.toLowerCase()) return false
+    if (categoryFilter.value !== "vse") {
+      if (!resource.category) return false;
+      if (
+        resource.category.toLowerCase() !== categoryFilter.value.toLowerCase()
+      )
+        return false;
     }
 
-    if (!query) return true
-    const haystack = `${resource.title} ${resource.description ?? ''} ${resource.file_name}`
-    return normalize(haystack).includes(query)
-  })
-})
+    if (!query) return true;
+    const haystack = `${resource.title} ${resource.description ?? ""} ${
+      resource.file_name
+    }`;
+    return normalize(haystack).includes(query);
+  });
+});
 
 const categoryOptions = computed(() => {
-  const categories = new Set<string>()
+  const categories = new Set<string>();
   resources.value.forEach((resource) => {
-    if (resource.category) categories.add(resource.category)
-  })
-  return Array.from(categories).sort((a, b) => a.localeCompare(b, 'cs'))
-})
+    if (resource.category) categories.add(resource.category);
+  });
+  return Array.from(categories).sort((a, b) => a.localeCompare(b, "cs"));
+});
 
-const formatDate = (value: string) => new Date(value).toLocaleString('cs-CZ')
+const formatDate = (value: string) => new Date(value).toLocaleString("cs-CZ");
 
 const resolveIcon = (contentType: string | null) => {
-  if (!contentType) return 'mdi:file'
-  if (contentType.includes('pdf')) return 'mdi:file-pdf-box'
-  if (contentType.includes('image')) return 'mdi:file-image'
-  if (contentType.includes('zip')) return 'mdi:folder-zip'
-  return 'mdi:file'
-}
+  if (!contentType) return "mdi:file";
+  if (contentType.includes("pdf")) return "mdi:file-pdf-box";
+  if (contentType.includes("image")) return "mdi:file-image";
+  if (contentType.includes("zip")) return "mdi:folder-zip";
+  return "mdi:file";
+};
 
-const isImageResource = (resource: MemberResource) => resource.content_type?.startsWith('image/')
+const isImageResource = (resource: MemberResource) =>
+  resource.content_type?.startsWith("image/");
 
 const ensurePreview = async (resource: MemberResource) => {
-  if (!isImageResource(resource) || previewUrls.value[resource.id]) return
+  if (!isImageResource(resource) || previewUrls.value[resource.id]) return;
   try {
-    const url = await getPreviewUrl(resource)
+    const url = await getPreviewUrl(resource);
     if (url) {
-      previewUrls.value = { ...previewUrls.value, [resource.id]: url }
+      previewUrls.value = { ...previewUrls.value, [resource.id]: url };
     }
   } catch (err) {
-    console.error('Nepodařilo se načíst náhled dokumentu:', err)
+    console.error("Nepodařilo se načíst náhled dokumentu:", err);
   }
-}
+};
 
 const openPreview = async (resource: MemberResource) => {
-  await ensurePreview(resource)
-  previewResource.value = resource
-  showPreviewModal.value = true
-}
+  await ensurePreview(resource);
+  previewResource.value = resource;
+  showPreviewModal.value = true;
+};
 
 const closePreview = () => {
-  showPreviewModal.value = false
-}
+  showPreviewModal.value = false;
+};
 
 const downloadPreview = async () => {
   if (previewResource.value) {
-    await downloadResource(previewResource.value)
+    await downloadResource(previewResource.value);
   }
-}
+};
 
 const activePreviewUrl = computed(() =>
-  previewResource.value ? previewUrls.value[previewResource.value.id] ?? null : null
-)
+  previewResource.value
+    ? previewUrls.value[previewResource.value.id] ?? null
+    : null
+);
 
 const resetForm = () => {
-  form.title = ''
-  form.description = ''
-  form.category = ''
-  selectedFile.value = null
+  form.title = "";
+  form.description = "";
+  form.category = "";
+  selectedFile.value = null;
   if (fileInput.value) {
-    fileInput.value.value = ''
+    fileInput.value.value = "";
   }
-}
+};
 
 const openCreateModal = () => {
   if (!permissions.value.create) {
-    toast.error('Nemáte oprávnění nahrávat dokumenty')
-    return
+    toast.error("Nemáte oprávnění nahrávat dokumenty");
+    return;
   }
-  resetForm()
-  editingResource.value = null
-  showModal.value = true
-}
+  resetForm();
+  editingResource.value = null;
+  showModal.value = true;
+};
 
 const openEditModal = (resource: MemberResource) => {
   if (!permissions.value.edit) {
-    toast.error('Nemáte oprávnění upravovat dokumenty')
-    return
+    toast.error("Nemáte oprávnění upravovat dokumenty");
+    return;
   }
-  editingResource.value = resource
-  form.title = resource.title
-  form.description = resource.description ?? ''
-  form.category = resource.category ?? ''
-  showModal.value = true
-}
+  editingResource.value = resource;
+  form.title = resource.title;
+  form.description = resource.description ?? "";
+  form.category = resource.category ?? "";
+  showModal.value = true;
+};
 
 const closeModal = () => {
-  showModal.value = false
-  editingResource.value = null
-  resetForm()
-}
+  showModal.value = false;
+  editingResource.value = null;
+  resetForm();
+};
 
 const handleFileChange = (event: Event) => {
-  const input = event.target as HTMLInputElement
+  const input = event.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
-    selectedFile.value = input.files[0]
+    selectedFile.value = input.files[0];
   } else {
-    selectedFile.value = null
+    selectedFile.value = null;
   }
-}
+};
 
 const submitForm = async () => {
   try {
@@ -419,69 +505,78 @@ const submitForm = async () => {
       await updateResource(editingResource.value.id, {
         title: form.title,
         description: form.description || null,
-        category: form.category || null
-      })
-      toast.success('Metadata dokumentu byla upravena')
+        category: form.category || null,
+      });
+      toast.success("Metadata dokumentu byla upravena");
     } else {
       if (!selectedFile.value) {
-        toast.error('Vyberte prosím soubor')
-        return
+        toast.error("Vyberte prosím soubor");
+        return;
       }
       await createResource(
         {
           title: form.title,
           description: form.description || null,
-          category: form.category || null
+          category: form.category || null,
         },
         selectedFile.value
-      )
-      toast.success('Dokument byl nahrán')
+      );
+      toast.success("Dokument byl nahrán");
     }
-    closeModal()
+    closeModal();
   } catch (err: any) {
-    toast.error(err.message ?? 'Uložení se nezdařilo')
+    toast.error(err.message ?? "Uložení se nezdařilo");
   }
-}
+};
 
-const confirmDelete = async (resource: MemberResource) => {
+const confirmDelete = (resource: MemberResource) => {
   if (!permissions.value.delete) {
-    toast.error('Nemáte oprávnění mazat dokumenty')
-    return
+    toast.error("Nemáte oprávnění mazat dokumenty");
+    return;
   }
-  if (!confirm(`Opravdu chcete odstranit dokument „${resource.title}“?`)) return
+  resourceToDelete.value = resource;
+  showDeleteDialog.value = true;
+};
+
+const handleDeleteConfirm = async () => {
+  if (!resourceToDelete.value) return;
 
   try {
-    await deleteResource(resource.id)
-    if (previewUrls.value[resource.id]) {
-      const { [resource.id]: _, ...rest } = previewUrls.value
-      previewUrls.value = rest
+    const resourceId = resourceToDelete.value.id;
+    await deleteResource(resourceId);
+    if (previewUrls.value[resourceId]) {
+      const { [resourceId]: _, ...rest } = previewUrls.value;
+      previewUrls.value = rest;
     }
-    toast.success('Dokument byl odstraněn')
+    toast.success("Dokument byl odstraněn");
   } catch (err: any) {
-    toast.error(err.message ?? 'Mazání se nezdařilo')
+    toast.error(err.message ?? "Mazání se nezdařilo");
+  } finally {
+    resourceToDelete.value = null;
   }
-}
+};
 
-const modalTitle = computed(() => (editingResource.value ? 'Upravit dokument' : 'Nahrát nový dokument'))
+const modalTitle = computed(() =>
+  editingResource.value ? "Upravit dokument" : "Nahrát nový dokument"
+);
 
 onMounted(async () => {
-  const perms = await fetchPermissions()
+  const perms = await fetchPermissions();
   if (!perms.view) {
-    toast.error('Nemáte oprávnění k dokumentům')
-    router.push('/clenska-sekce/neni-opravneni')
-    return
+    toast.error("Nemáte oprávnění k dokumentům");
+    router.push("/clenska-sekce/neni-opravneni");
+    return;
   }
-  await fetchResources()
-})
+  await fetchResources();
+});
 
 watch(
   resources,
   (items) => {
     items.forEach((resource) => {
-      ensurePreview(resource)
-    })
+      ensurePreview(resource);
+    });
   },
   { immediate: true }
-)
+);
 </script>
-
