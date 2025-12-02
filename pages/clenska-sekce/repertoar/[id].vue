@@ -621,21 +621,49 @@ const isAudio = (file: any) =>
 const BUCKET_ID = "repertoire";
 const getFileUrl = async (file: any): Promise<string> => {
   if (fileUrlCache.value[file.id]) return fileUrlCache.value[file.id];
+
+  let signedUrl: string | null = null;
+
   try {
     const { data } = await supabase.storage
       .from(BUCKET_ID)
       .createSignedUrl(file.storage_path, 3600);
     if (data?.signedUrl) {
-      fileUrlCache.value[file.id] = data.signedUrl;
-      return data.signedUrl;
+      signedUrl = data.signedUrl;
     }
   } catch (e) {}
-  const { data: pub } = supabase.storage
-    .from(BUCKET_ID)
-    .getPublicUrl(file.storage_path);
-  const publicUrl = pub.publicUrl;
-  fileUrlCache.value[file.id] = publicUrl;
-  return publicUrl;
+
+  if (!signedUrl) {
+    const { data: pub } = supabase.storage
+      .from(BUCKET_ID)
+      .getPublicUrl(file.storage_path);
+    signedUrl = pub.publicUrl;
+  }
+
+  // Cache souboru pomocí Cache API (pro obrázky a PDF)
+  const isImageFile = file.content_type?.startsWith('image/');
+  const isPdfFile = isPdf(file);
+
+  if (signedUrl && (isImageFile || isPdfFile)) {
+    try {
+      const { getCachedFileUrl } = await import('~/utils/cache');
+      const cachedUrl = await getCachedFileUrl(signedUrl);
+      if (cachedUrl) {
+        fileUrlCache.value[file.id] = cachedUrl;
+        return cachedUrl;
+      }
+    } catch (err) {
+      console.error('Error caching file:', err);
+      // Fallback na původní URL
+    }
+  }
+
+  if (!signedUrl) {
+    throw new Error('Failed to get file URL');
+  }
+
+  fileUrlCache.value[file.id] = signedUrl;
+  return signedUrl;
 };
 
 const getOverlapClass = (files: any[], idx: number) => {

@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useToast } from './useToast'
+import { getCachedData, setCachedData, clearCache } from '~/utils/cache'
 
 export interface MemberUser {
   id: string
@@ -73,8 +74,18 @@ export const useMemberManagement = () => {
   const error = ref<string | null>(null)
 
   // Načtení všech členů
-  const fetchMembers = async (departmentId?: string) => {
+  const fetchMembers = async (departmentId?: string, forceRefresh = false) => {
     try {
+      // Kontrola cache (pouze pokud není forceRefresh a není departmentId - cacheujeme pouze všechny členy)
+      if (!forceRefresh && !departmentId && typeof window !== 'undefined') {
+        const cacheKey = 'members_all'
+        const cached = getCachedData<MemberUser[]>(cacheKey)
+        if (cached) {
+          members.value = cached
+          return cached
+        }
+      }
+
       loading.value = true
       error.value = null
 
@@ -171,6 +182,11 @@ export const useMemberManagement = () => {
 
       members.value = membersWithDepartments
 
+      // Uložení do cache (pouze pokud není departmentId)
+      if (!departmentId && typeof window !== 'undefined') {
+        setCachedData('members_all', members.value)
+      }
+
       return members.value
     } catch (err: any) {
       console.error('Error fetching members:', err)
@@ -237,7 +253,8 @@ export const useMemberManagement = () => {
       }
 
       toast.success('Člen byl úspěšně přidán')
-      await fetchMembers()
+      clearCache('members_all')
+      await fetchMembers(undefined, true)
 
       return response.member
     } catch (err: any) {
@@ -285,7 +302,8 @@ export const useMemberManagement = () => {
 
       const successMsg = 'Člen byl úspěšně aktualizován'
       toast.success(successMsg)
-      await fetchMembers()
+      clearCache('members_all')
+      await fetchMembers(undefined, true)
     } catch (err: any) {
       console.error('Error updating member:', err)
       const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se aktualizovat člena'
@@ -329,7 +347,8 @@ export const useMemberManagement = () => {
       }
 
       toast.success('Člen byl úspěšně smazán')
-      await fetchMembers()
+      clearCache('members_all')
+      await fetchMembers(undefined, true)
     } catch (err: any) {
       console.error('Error deleting member:', err)
       const errorMsg = err.data?.statusMessage || err.message || 'Nepodařilo se smazat člena'
@@ -360,7 +379,8 @@ export const useMemberManagement = () => {
       }
 
       toast.success(`Úspěšně importováno ${response.imported} členů`)
-      await fetchMembers()
+      clearCache('members_all')
+      await fetchMembers(undefined, true)
       return response
     } catch (err: any) {
       console.error('Error bulk importing members:', err)

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 import type { PermissionMap } from '~/types'
 import { useToast } from '~/composables/useToast'
+import { getCachedData, setCachedData, clearCache, getCachedFileUrl } from '~/utils/cache'
 
 export interface MemberResource {
   id: string
@@ -118,8 +119,17 @@ export const useMemberResources = () => {
     }
   }
 
-  const fetchResources = async () => {
+  const fetchResources = async (forceRefresh = false) => {
     try {
+      // Kontrola cache
+      if (!forceRefresh && typeof window !== 'undefined') {
+        const cached = getCachedData<MemberResource[]>('member_resources')
+        if (cached) {
+          resources.value = cached
+          return cached
+        }
+      }
+
       loading.value = true
       error.value = null
 
@@ -130,6 +140,11 @@ export const useMemberResources = () => {
 
       if (fetchError) throw fetchError
       resources.value = data ?? []
+
+      // Uložení do cache
+      if (typeof window !== 'undefined') {
+        setCachedData('member_resources', resources.value)
+      }
     } catch (err: any) {
       console.error('Chyba při načítání dokumentů:', err)
       error.value = err.message ?? 'Dokumenty se nepodařilo načíst'
@@ -179,6 +194,7 @@ export const useMemberResources = () => {
 
       if (insertError) throw insertError
       if (data) resources.value = [data as MemberResource, ...resources.value]
+      clearCache('member_resources')
       return data
     } catch (err: any) {
       console.error('Chyba při nahrávání dokumentu:', err)
@@ -207,6 +223,7 @@ export const useMemberResources = () => {
 
       if (updateError) throw updateError
       resources.value = resources.value.map((resource) => (resource.id === id ? (data as MemberResource) : resource))
+      clearCache('member_resources')
       return data
     } catch (err: any) {
       console.error('Chyba při aktualizaci dokumentu:', err)
@@ -232,6 +249,7 @@ export const useMemberResources = () => {
       if (deleteError) throw deleteError
 
       resources.value = resources.value.filter((item) => item.id !== id)
+      clearCache('member_resources')
     } catch (err: any) {
       console.error('Chyba při mazání dokumentu:', err)
       error.value = err.message ?? 'Dokument se nepodařilo odstranit'
@@ -274,7 +292,26 @@ export const useMemberResources = () => {
   }
 
   const getPreviewUrl = async (resource: MemberResource) => {
-    return createSignedUrl(resource, { expiresIn: 600, silent: true })
+    // Nejdřív získáme signed URL
+    const signedUrl = await createSignedUrl(resource, { expiresIn: 600, silent: true })
+    if (!signedUrl) return null
+
+    // Pokud je to obrázek nebo PDF, použijeme cache pro soubor
+    const isImage = resource.content_type?.startsWith('image/')
+    const isPdf = resource.content_type?.includes('pdf') || resource.file_name.toLowerCase().endsWith('.pdf')
+
+    if (isImage || isPdf) {
+      try {
+        // Použijeme cache pro soubor
+        return await getCachedFileUrl(signedUrl)
+      } catch (err) {
+        console.error('Error caching file:', err)
+        // Fallback na původní URL
+        return signedUrl
+      }
+    }
+
+    return signedUrl
   }
 
   return {

@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useToast } from './useToast'
+import { getCachedData, setCachedData, clearCache } from '~/utils/cache'
 
 export interface DepartmentPermissions {
   repertoire_view: boolean
@@ -49,8 +50,17 @@ export const useMemberDepartments = () => {
   const error = ref<string | null>(null)
 
   // Načtení všech oddílů
-  const fetchDepartments = async () => {
+  const fetchDepartments = async (forceRefresh = false) => {
     try {
+      // Kontrola cache
+      if (!forceRefresh && typeof window !== 'undefined') {
+        const cached = getCachedData<MemberDepartment[]>('departments')
+        if (cached) {
+          departments.value = cached
+          return cached
+        }
+      }
+
       loading.value = true
       error.value = null
 
@@ -121,6 +131,11 @@ export const useMemberDepartments = () => {
         member_count: countsByDepartment[dept.id]?.size || 0
       }))
 
+      // Uložení do cache
+      if (typeof window !== 'undefined') {
+        setCachedData('departments', departments.value)
+      }
+
       return departments.value
     } catch (err: any) {
       console.error('Error fetching departments:', err)
@@ -144,7 +159,8 @@ export const useMemberDepartments = () => {
       }) as { success: boolean, department: any }
 
       toast.success('Oddíl byl úspěšně vytvořen')
-      await fetchDepartments()
+      clearCache('departments')
+      await fetchDepartments(true)
 
       return response
     } catch (err: any) {
@@ -172,7 +188,8 @@ export const useMemberDepartments = () => {
 
       const successMsg = 'Oddíl byl úspěšně aktualizován'
       toast.success(successMsg)
-      await fetchDepartments()
+      clearCache('departments')
+      await fetchDepartments(true)
     } catch (err: any) {
       console.error('Error updating department:', err)
       const errorMsg = err.message || 'Nepodařilo se aktualizovat oddíl'
@@ -228,7 +245,8 @@ export const useMemberDepartments = () => {
       if (deleteError) throw deleteError
 
       toast.success('Oddíl byl úspěšně smazán')
-      await fetchDepartments()
+      clearCache('departments')
+      await fetchDepartments(true)
     } catch (err: any) {
       console.error('Error deleting department:', err)
       error.value = err.message || 'Nepodařilo se smazat oddíl'

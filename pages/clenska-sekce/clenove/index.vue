@@ -16,7 +16,7 @@
         <button
           v-if="canCreateMember"
           @click="openCreateMemberModal"
-          class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+          class="w-full md:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
         >
           <Icon name="mdi:account-plus" class="text-lg mr-2" />
           Přidat člena
@@ -24,210 +24,340 @@
       </div>
 
       <div class="flex flex-col gap-4">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="relative flex-1 max-w-md">
+        <div class="flex flex-col gap-4">
+          <div class="relative w-full">
             <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
             <input
               v-model="searchQuery"
               type="search"
-              class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+              class="w-full rounded-lg border border-slate-200 pl-10 pr-4 py-2.5 text-sm text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
               placeholder="Hledat podle jména, e-mailu nebo telefonu..."
             />
           </div>
-          <div class="flex items-center gap-2">
-            <label class="text-sm text-slate-600 dark:text-slate-300">Oddíl</label>
-            <select
-              v-model="departmentFilter"
-              class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            >
-              <option value="vse">Všechny oddíly</option>
-              <option
-                v-for="dept in departments"
-                :key="dept.id"
-                :value="dept.id"
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Oddíl</label>
+              <select
+                v-model="departmentFilter"
+                class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
               >
-                {{ dept.display_name }}
-              </option>
-            </select>
+                <option value="vse">Všechny oddíly</option>
+                <option
+                  v-for="dept in departments"
+                  :key="dept.id"
+                  :value="dept.id"
+                >
+                  {{ dept.display_name }}
+                </option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-800/60 dark:border-slate-700 px-3 py-2.5">
+              <span class="text-xs font-medium text-slate-500 whitespace-nowrap">Řazení</span>
+              <select
+                v-model="sortKey"
+                class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+              >
+                <option value="surname">Příjmení</option>
+                <option value="firstname">Jméno</option>
+              </select>
+              <select
+                v-model="sortDir"
+                class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+              >
+                <option value="asc">↑</option>
+                <option value="desc">↓</option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 dark:bg-slate-800/60 dark:border-slate-700 px-2.5 py-2">
-            <span class="text-xs font-medium text-slate-500">Řazení</span>
-            <select
-              v-model="sortKey"
-              class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            >
-              <option value="surname">Podle příjmení</option>
-              <option value="firstname">Podle jména</option>
-            </select>
-            <select
-              v-model="sortDir"
-              class="rounded-md border border-slate-200 px-2 py-1.5 text-xs text-slate-800 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-            >
-              <option value="asc">Vzestupně</option>
-              <option value="desc">Sestupně</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-2 text-sm text-slate-500">
+          <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 pt-1">
             <input
               id="active-only"
               v-model="activeOnly"
               type="checkbox"
-              class="rounded border-slate-300 text-red-600 focus:ring-red-500"
+              class="rounded border-slate-300 text-red-600 focus:ring-red-500 w-4 h-4"
             />
-            <label for="active-only">Pouze aktivní členové</label>
+            <label for="active-only" class="cursor-pointer">Pouze aktivní členové</label>
           </div>
         </div>
       </div>
     </section>
 
     <section class="rounded-2xl bg-white border border-slate-100 shadow-sm dark:bg-slate-900/80 dark:border-slate-800">
-      <div class="overflow-hidden rounded-2xl">
-
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-          <thead class="bg-slate-50 dark:bg-slate-800/60">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Člen</th>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Oddíl</th>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Kontakty</th>
-              <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Poznámka</th>
-              <th v-if="canEditMember || canDeleteMember" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Akce</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-slate-200 dark:bg-slate-900 dark:divide-slate-800">
-            <tr v-if="loading">
-              <td :colspan="canEditMember || canDeleteMember ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
-                <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
-                Načítám členy...
-              </td>
-            </tr>
-            <tr v-else-if="!filteredMembers.length">
-              <td :colspan="canEditMember || canDeleteMember ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
-                Žádní členové neodpovídají filtru.
-              </td>
-            </tr>
-            <tr
-              v-for="member in filteredMembers"
-              :key="member.id"
-              class="hover:bg-slate-50 transition-colors dark:hover:bg-slate-800/60"
-            >
-              <td class="px-4 py-3">
-                <NuxtLink :to="`/clenska-sekce/clenove/${member.id}`" class="flex items-center gap-3 hover:underline">
-                  <img
-                    v-if="member.avatar_url"
-                    :src="member.avatar_url"
-                    :alt="member.full_name"
-                    class="w-10 h-10 rounded-full object-cover"
+      <!-- Mobilní zobrazení - karty -->
+      <div class="md:hidden p-4 space-y-4">
+        <div v-if="loading" class="py-10 text-center text-slate-500">
+          <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
+          Načítám členy...
+        </div>
+        <div v-else-if="!filteredMembers.length" class="py-10 text-center text-slate-500">
+          Žádní členové neodpovídají filtru.
+        </div>
+        <div
+          v-for="member in filteredMembers"
+          :key="member.id"
+          class="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-white dark:bg-slate-900 hover:shadow-md transition-shadow"
+        >
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <NuxtLink :to="`/clenska-sekce/clenove/${getMemberSlug(member)}`" class="flex items-center gap-3 flex-1 min-w-0">
+              <img
+                v-if="member.avatar_url"
+                :src="member.avatar_url"
+                :alt="member.full_name"
+                class="w-12 h-12 rounded-full object-cover flex-shrink-0"
+              />
+              <div
+                v-else
+                class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0"
+              >
+                <Icon name="mdi:account" class="text-red-600 dark:text-red-400 text-xl" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ member.full_name }}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-1">
+                  <span
+                    class="inline-flex h-1.5 w-1.5 rounded-full mr-1"
+                    :class="member.is_active ? 'bg-emerald-500' : 'bg-slate-300'"
                   />
-                  <div
-                    v-else
-                    class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
+                  {{ member.is_active ? 'Aktivní' : 'Neaktivní' }}
+                </p>
+              </div>
+            </NuxtLink>
+            <div v-if="canEditMember || canDeleteMember" class="flex items-center gap-2 flex-shrink-0">
+              <button
+                v-if="canEditMember"
+                @click="openEditMemberModal(member)"
+                class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors p-1"
+                title="Upravit"
+              >
+                <Icon name="mdi:pencil" class="text-xl" />
+              </button>
+              <button
+                v-if="canDeleteMember"
+                @click="openDeleteMemberModal(member)"
+                class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors p-1"
+                title="Smazat"
+              >
+                <Icon name="mdi:delete" class="text-xl" />
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-sm">
+            <div>
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Oddíl:</span>
+              <div class="flex flex-wrap gap-1.5 items-center mt-1">
+                <template v-if="getMemberDepartments(member).length === 0">
+                  <span class="text-slate-400 text-xs">—</span>
+                </template>
+                <template v-else>
+                  <span
+                    v-for="(dept, index) in getMemberDepartments(member).slice(0, 2)"
+                    :key="dept.id"
+                    class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
                   >
-                    <Icon name="mdi:account" class="text-red-600 dark:text-red-400 text-xl" />
-                  </div>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ member.full_name }}</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">
-                      <span
-                        class="inline-flex h-1.5 w-1.5 rounded-full mr-1"
-                        :class="member.is_active ? 'bg-emerald-500' : 'bg-slate-300'"
-                      />
-                      {{ member.is_active ? 'Aktivní' : 'Neaktivní' }}
-                    </p>
-                  </div>
-                </NuxtLink>
-              </td>
-              <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-                <div class="flex flex-wrap gap-1.5 items-center">
-                  <template v-if="getMemberDepartments(member).length === 0">
-                    <span class="text-slate-400">—</span>
-                  </template>
-                  <template v-else>
-                    <span
-                      v-for="(dept, index) in getMemberDepartments(member).slice(0, 2)"
-                      :key="dept.id"
-                      class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
+                    {{ dept.display_name }}
+                  </span>
+                  <template v-if="getMemberDepartments(member).length > 2">
+                    <button
+                      @click="toggleDepartmentTooltip(member.id, $event)"
+                      class="inline-flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/70 transition-colors cursor-pointer min-w-[28px]"
+                      :class="{ 'bg-red-200 dark:bg-red-900/70': visibleTooltips[member.id] }"
                     >
-                      {{ dept.display_name }}
-                    </span>
-                    <template v-if="getMemberDepartments(member).length > 2">
-                      <button
-                        @click="toggleDepartmentTooltip(member.id, $event)"
-                        class="inline-flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/70 transition-colors cursor-pointer min-w-[28px]"
-                        :class="{ 'bg-red-200 dark:bg-red-900/70': visibleTooltips[member.id] }"
+                      +{{ getMemberDepartments(member).length - 2 }}
+                    </button>
+                    <Transition
+                      enter-active-class="transition ease-out duration-200"
+                      enter-from-class="opacity-0 scale-95"
+                      enter-to-class="opacity-100 scale-100"
+                      leave-active-class="transition ease-in duration-150"
+                      leave-from-class="opacity-100 scale-100"
+                      leave-to-class="opacity-0 scale-95"
+                    >
+                      <div
+                        v-if="visibleTooltips[member.id]"
+                        class="inline-flex flex-wrap gap-1.5 ml-1"
+                        @click.stop
                       >
-                        +{{ getMemberDepartments(member).length - 2 }}
-                      </button>
-                      <Transition
-                        enter-active-class="transition ease-out duration-200"
-                        enter-from-class="opacity-0 scale-95"
-                        enter-to-class="opacity-100 scale-100"
-                        leave-active-class="transition ease-in duration-150"
-                        leave-from-class="opacity-100 scale-100"
-                        leave-to-class="opacity-0 scale-95"
-                      >
-                        <div
-                          v-if="visibleTooltips[member.id]"
-                          class="inline-flex flex-wrap gap-1.5 ml-1"
-                          @click.stop
+                        <span
+                          v-for="dept in getMemberDepartments(member).slice(2)"
+                          :key="dept.id"
+                          class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
                         >
-                          <span
-                            v-for="dept in getMemberDepartments(member).slice(2)"
-                            :key="dept.id"
-                            class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
-                          >
-                            {{ dept.display_name }}
-                          </span>
-                        </div>
-                      </Transition>
-                    </template>
+                          {{ dept.display_name }}
+                        </span>
+                      </div>
+                    </Transition>
                   </template>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
-                <div class="space-y-1">
-                  <p v-if="member.email">
-                    <Icon name="mdi:email-outline" class="inline mr-1 text-red-500" />
-                    <a :href="`mailto:${member.email}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.email }}</a>
-                  </p>
-                  <p v-if="member.phone">
-                    <Icon name="mdi:phone" class="inline mr-1 text-red-500" />
-                    <a :href="`tel:${member.phone}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.phone }}</a>
-                  </p>
-                  <p v-if="!member.email && !member.phone" class="text-slate-400">—</p>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-sm text-slate-600 max-w-xs">
-                <p class="line-clamp-2 text-slate-600 dark:text-slate-300">{{ member.notes || '—' }}</p>
-              </td>
-              <td v-if="canEditMember || canDeleteMember" class="px-4 py-3 text-sm font-medium">
-                <div class="flex items-center gap-2">
-                  <button
-                    v-if="canEditMember"
-                    @click="openEditMemberModal(member)"
-                    class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-                    title="Upravit"
-                  >
-                    <Icon name="mdi:pencil" class="text-xl" />
-                  </button>
-                  <button
-                    v-if="canDeleteMember"
-                    @click="openDeleteMemberModal(member)"
-                    class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
-                    title="Smazat"
-                  >
-                    <Icon name="mdi:delete" class="text-xl" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </template>
+              </div>
+            </div>
+
+            <div v-if="member.email || member.phone">
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Kontakty:</span>
+              <div class="space-y-1 mt-1">
+                <p v-if="member.email" class="text-xs">
+                  <Icon name="mdi:email-outline" class="inline mr-1 text-red-500 text-sm" />
+                  <a :href="`mailto:${member.email}`" class="hover:underline text-red-600 dark:text-red-300 break-all">{{ member.email }}</a>
+                </p>
+                <p v-if="member.phone" class="text-xs">
+                  <Icon name="mdi:phone" class="inline mr-1 text-red-500 text-sm" />
+                  <a :href="`tel:${member.phone}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.phone }}</a>
+                </p>
+              </div>
+            </div>
+
+            <div v-if="member.notes">
+              <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Poznámka:</span>
+              <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2">{{ member.notes }}</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Desktop zobrazení - tabulka -->
+      <div class="hidden md:block overflow-hidden rounded-2xl">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
+            <thead class="bg-slate-50 dark:bg-slate-800/60">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Člen</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Oddíl</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Kontakty</th>
+                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Poznámka</th>
+                <th v-if="canEditMember || canDeleteMember" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Akce</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200 dark:bg-slate-900 dark:divide-slate-800">
+              <tr v-if="loading">
+                <td :colspan="canEditMember || canDeleteMember ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
+                  <Icon name="mdi:loading" class="animate-spin text-2xl inline-block mr-2" />
+                  Načítám členy...
+                </td>
+              </tr>
+              <tr v-else-if="!filteredMembers.length">
+                <td :colspan="canEditMember || canDeleteMember ? 5 : 4" class="px-4 py-10 text-center text-slate-500">
+                  Žádní členové neodpovídají filtru.
+                </td>
+              </tr>
+              <tr
+                v-for="member in filteredMembers"
+                :key="member.id"
+                class="hover:bg-slate-50 transition-colors dark:hover:bg-slate-800/60"
+              >
+                <td class="px-4 py-3">
+                  <NuxtLink :to="`/clenska-sekce/clenove/${getMemberSlug(member)}`" class="flex items-center gap-3 hover:underline">
+                    <img
+                      v-if="member.avatar_url"
+                      :src="member.avatar_url"
+                      :alt="member.full_name"
+                      class="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div
+                      v-else
+                      class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"
+                    >
+                      <Icon name="mdi:account" class="text-red-600 dark:text-red-400 text-xl" />
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ member.full_name }}</p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400">
+                        <span
+                          class="inline-flex h-1.5 w-1.5 rounded-full mr-1"
+                          :class="member.is_active ? 'bg-emerald-500' : 'bg-slate-300'"
+                        />
+                        {{ member.is_active ? 'Aktivní' : 'Neaktivní' }}
+                      </p>
+                    </div>
+                  </NuxtLink>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
+                  <div class="flex flex-wrap gap-1.5 items-center">
+                    <template v-if="getMemberDepartments(member).length === 0">
+                      <span class="text-slate-400">—</span>
+                    </template>
+                    <template v-else>
+                      <span
+                        v-for="(dept, index) in getMemberDepartments(member).slice(0, 2)"
+                        :key="dept.id"
+                        class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
+                      >
+                        {{ dept.display_name }}
+                      </span>
+                      <template v-if="getMemberDepartments(member).length > 2">
+                        <button
+                          @click="toggleDepartmentTooltip(member.id, $event)"
+                          class="inline-flex items-center justify-center rounded-full bg-red-100 dark:bg-red-900/50 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/70 transition-colors cursor-pointer min-w-[28px]"
+                          :class="{ 'bg-red-200 dark:bg-red-900/70': visibleTooltips[member.id] }"
+                        >
+                          +{{ getMemberDepartments(member).length - 2 }}
+                        </button>
+                        <Transition
+                          enter-active-class="transition ease-out duration-200"
+                          enter-from-class="opacity-0 scale-95"
+                          enter-to-class="opacity-100 scale-100"
+                          leave-active-class="transition ease-in duration-150"
+                          leave-from-class="opacity-100 scale-100"
+                          leave-to-class="opacity-0 scale-95"
+                        >
+                          <div
+                            v-if="visibleTooltips[member.id]"
+                            class="inline-flex flex-wrap gap-1.5 ml-1"
+                            @click.stop
+                          >
+                            <span
+                              v-for="dept in getMemberDepartments(member).slice(2)"
+                              :key="dept.id"
+                              class="inline-flex items-center gap-1.5 rounded-full bg-red-50 dark:bg-red-900/30 px-2.5 py-1 text-xs font-medium text-red-700 dark:text-red-300"
+                            >
+                              {{ dept.display_name }}
+                            </span>
+                          </div>
+                        </Transition>
+                      </template>
+                    </template>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
+                  <div class="space-y-1">
+                    <p v-if="member.email">
+                      <Icon name="mdi:email-outline" class="inline mr-1 text-red-500" />
+                      <a :href="`mailto:${member.email}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.email }}</a>
+                    </p>
+                    <p v-if="member.phone">
+                      <Icon name="mdi:phone" class="inline mr-1 text-red-500" />
+                      <a :href="`tel:${member.phone}`" class="hover:underline text-red-600 dark:text-red-300">{{ member.phone }}</a>
+                    </p>
+                    <p v-if="!member.email && !member.phone" class="text-slate-400">—</p>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-sm text-slate-600 max-w-xs">
+                  <p class="line-clamp-2 text-slate-600 dark:text-slate-300">{{ member.notes || '—' }}</p>
+                </td>
+                <td v-if="canEditMember || canDeleteMember" class="px-4 py-3 text-sm font-medium">
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="canEditMember"
+                      @click="openEditMemberModal(member)"
+                      class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                      title="Upravit"
+                    >
+                      <Icon name="mdi:pencil" class="text-xl" />
+                    </button>
+                    <button
+                      v-if="canDeleteMember"
+                      @click="openDeleteMemberModal(member)"
+                      class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors"
+                      title="Smazat"
+                    >
+                      <Icon name="mdi:delete" class="text-xl" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -251,16 +381,16 @@
         <div
           v-for="dept in departments"
           :key="dept.id"
-          class="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-md transition-shadow"
+          class="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 md:p-5 hover:shadow-md transition-shadow"
         >
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h3 class="text-lg font-semibold text-slate-900 dark:text-white">{{ dept.display_name }}</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400">{{ dept.name }}</p>
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4">
+            <div class="flex-1 min-w-0">
+              <h3 class="text-base md:text-lg font-semibold text-slate-900 dark:text-white truncate">{{ dept.display_name }}</h3>
+              <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 truncate">{{ dept.name }}</p>
             </div>
             <span
               :class="[
-                'px-2 py-1 text-xs font-semibold rounded-full',
+                'px-2 py-1 text-xs font-semibold rounded-full whitespace-nowrap flex-shrink-0',
                 dept.is_active
                   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300'
                   : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-300'
@@ -297,7 +427,7 @@
 
           <button
             @click="openEditPermissionsModal(dept)"
-            class="w-full inline-flex items-center justify-center px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors"
+            class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors"
           >
             <Icon name="mdi:pencil" class="text-lg mr-2" />
             Upravit práva
@@ -901,6 +1031,7 @@ import { useMemberManagement, type MemberUser } from '~/composables/useMemberMan
 import { useMemberDepartments, type MemberDepartment, type DepartmentPermissions } from '~/composables/useMemberDepartments'
 import { TransitionRoot, TransitionChild, Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
 import MultiTagSelect from '~/components/MultiTagSelect.vue'
+import { slugify } from '~/utils/string'
 
 definePageMeta({
   layout: 'members'
@@ -1109,6 +1240,11 @@ const normalize = (value: string) =>
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
     : ''
+
+// Funkce pro vytvoření slug z jména člena
+const getMemberSlug = (member: MemberUser): string => {
+  return slugify(member.full_name)
+}
 
 const getLastName = (fullName: string) => {
   const parts = fullName.trim().split(/\s+/)

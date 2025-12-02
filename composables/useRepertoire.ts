@@ -3,6 +3,7 @@ import { useSupabaseClient } from '#imports'
 import type { PermissionMap } from '~/types'
 import { useToast } from '~/composables/useToast'
 import { slugify } from '~/utils/string'
+import { getCachedData, setCachedData, clearCache } from '~/utils/cache'
 
 export interface RepertoireFile {
   id: string
@@ -132,8 +133,17 @@ export const useRepertoire = () => {
     }
   }
 
-  const fetchItems = async () => {
+  const fetchItems = async (forceRefresh = false) => {
     try {
+      // Kontrola cache
+      if (!forceRefresh && typeof window !== 'undefined') {
+        const cached = getCachedData<RepertoireItem[]>('repertoire_items')
+        if (cached) {
+          items.value = cached
+          return cached
+        }
+      }
+
       loading.value = true
       error.value = null
 
@@ -148,6 +158,11 @@ export const useRepertoire = () => {
         ...item,
         files: item.files ?? []
       }))
+
+      // Uložení do cache
+      if (typeof window !== 'undefined') {
+        setCachedData('repertoire_items', items.value)
+      }
     } catch (err: any) {
       console.error('Chyba při načítání repertoáru:', err)
       error.value = err.message ?? 'Nepodařilo se načíst repertoár'
@@ -197,9 +212,11 @@ export const useRepertoire = () => {
 
       if (files.length > 0 && data) {
         await uploadFiles(data.id, files)
-        await fetchItems()
+        clearCache('repertoire_items')
+        await fetchItems(true)
       } else if (data) {
         items.value = [data as RepertoireItem, ...items.value]
+        clearCache('repertoire_items')
       }
 
       return data
@@ -256,6 +273,7 @@ export const useRepertoire = () => {
       if (updateError) throw updateError
 
       items.value = items.value.map((item) => (item.id === id ? { ...item, ...data, files: data?.files ?? item.files } : item))
+      clearCache('repertoire_items')
       return data
     } catch (err: any) {
       console.error('Chyba při aktualizaci skladby:', err)
@@ -284,6 +302,7 @@ export const useRepertoire = () => {
       if (deleteError) throw deleteError
 
       items.value = items.value.filter((item) => item.id !== id)
+      clearCache('repertoire_items')
     } catch (err: any) {
       console.error('Chyba při mazání skladby:', err)
       error.value = err.message ?? 'Skladbu se nepodařilo odstranit'
@@ -351,6 +370,7 @@ export const useRepertoire = () => {
           : item
       )
 
+      clearCache('repertoire_items')
       return uploadedFiles
     } catch (err: any) {
       console.error('Chyba při nahrávání souborů repertoáru:', err)
@@ -380,6 +400,8 @@ export const useRepertoire = () => {
             }
           : item
       )
+
+      clearCache('repertoire_items')
     } catch (err: any) {
       console.error('Chyba při odstraňování souboru repertoáru:', err)
       error.value = err.message ?? 'Soubor se nepodařilo odstranit'
