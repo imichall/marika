@@ -397,7 +397,9 @@
                     <div class="bg-gray-50 p-4 rounded-xl space-y-2 text-left">
                       <div class="flex justify-between items-center">
                         <span class="text-gray-600">Částka k úhradě:</span>
-                        <span class="font-bold">{{ totalPrice }} Kč</span>
+                        <span class="font-bold"
+                          >{{ confirmedOrder.totalPrice }} Kč</span
+                        >
                       </div>
                       <div class="flex justify-between items-center">
                         <span class="text-gray-600">Číslo účtu:</span>
@@ -440,9 +442,27 @@
                             props.concert.time || "19:00"
                           }}</span>
                         </div>
+                        <div
+                          class="flex justify-between items-center border-t border-gray-200 pt-2 mt-2"
+                        >
+                          <span class="text-gray-600">Jednotková cena:</span>
+                          <span class="font-medium"
+                            >{{ props.concert.price }} Kč</span
+                          >
+                        </div>
                         <div class="flex justify-between items-center">
                           <span class="text-gray-600">Počet vstupenek:</span>
-                          <span class="font-medium">{{ ticketCount }}×</span>
+                          <span class="font-medium"
+                            >{{ confirmedOrder.ticketCount }}×</span
+                          >
+                        </div>
+                        <div
+                          class="flex justify-between items-center border-t border-gray-200 pt-2 mt-2"
+                        >
+                          <span class="text-gray-700 font-medium">Celkem:</span>
+                          <span class="font-bold text-lg">
+                            {{ confirmedOrder.totalPrice }} Kč</span
+                          >
                         </div>
                       </div>
                     </div>
@@ -706,6 +726,12 @@ const closeModal = () => {
 // Přidáme ref pro potvrzovací modál
 const showConfirmationModal = ref(false);
 
+// Uložíme hodnoty objednávky pro zobrazení v potvrzovacím modalu
+const confirmedOrder = ref({
+  ticketCount: 1,
+  totalPrice: 0,
+});
+
 const handleSubmit = async () => {
   if (currentStep.value === steps.value.length - 1) {
     try {
@@ -726,10 +752,32 @@ const handleSubmit = async () => {
             },
       };
 
+      // Uložíme hodnoty PŘED voláním API, aby se neztratily
+      const savedTicketCount = ticketCount.value;
+      const savedTotalPrice = totalPrice.value;
+
+      console.log("Ukládám hodnoty:", {
+        ticketCount: savedTicketCount,
+        totalPrice: savedTotalPrice,
+      });
+
       await createOrder(orderData);
+
+      // Nastavíme hodnoty pro potvrzovací modál
+      confirmedOrder.value = {
+        ticketCount: savedTicketCount,
+        totalPrice: savedTotalPrice,
+      };
+
+      console.log("Uložené hodnoty do confirmedOrder:", confirmedOrder.value);
+
       resetForm();
       emit("close");
-      showConfirmationModal.value = true;
+
+      // Zobrazíme potvrzovací modál s malým zpožděním
+      setTimeout(() => {
+        showConfirmationModal.value = true;
+      }, 50);
     } catch (err) {
       console.error("Error saving order:", err);
       toast.error(
