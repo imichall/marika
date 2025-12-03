@@ -14,7 +14,7 @@ function createEmailTemplate(content) {
                             <tbody>
                                 <tr>
                                     <td align="center">
-                                        <img src="https://dev-marikasingers.netlify.app/images/svg/marika-singers-logo.svg" alt="Marika Singers Logo" style="height: 60px; width: auto" />
+                                        <img src="https://marikasingers.cz/images/svg/marika-singers-logo.svg" alt="Marika Singers Logo" style="height: 60px; width: auto" />
                                     </td>
                                 </tr>
                             </tbody>
@@ -61,6 +61,55 @@ function createEmailTemplate(content) {
             </tbody>
         </table>
     `;
+}
+
+// Funkce pro načtení SMTP nastavení z databáze
+async function getSmtpSettings(supabase) {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .select('smtp_settings')
+            .single();
+
+        if (error) throw error;
+
+        const settings = data?.smtp_settings;
+        if (!settings || !settings.user || !settings.password) {
+            console.log('SMTP settings not configured in database, falling back to environment variables');
+            // Fallback na env proměnné (Gmail)
+            return {
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                user: process.env.GMAIL_USER,
+                password: process.env.GMAIL_APP_PASSWORD,
+                from_email: process.env.GMAIL_USER,
+                from_name: 'Marika Singers'
+            };
+        }
+
+        return {
+            host: settings.host || 'smtp.websupport.cz',
+            port: settings.port || 465,
+            secure: settings.secure !== false,
+            user: settings.user,
+            password: settings.password,
+            from_email: settings.from_email || settings.user,
+            from_name: settings.from_name || 'Marika Singers'
+        };
+    } catch (err) {
+        console.error('Error fetching SMTP settings:', err);
+        // Fallback na env proměnné
+        return {
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            user: process.env.GMAIL_USER,
+            password: process.env.GMAIL_APP_PASSWORD,
+            from_email: process.env.GMAIL_USER,
+            from_name: 'Marika Singers'
+        };
+    }
 }
 
 export async function startEmailServer() {
@@ -127,16 +176,28 @@ export async function startEmailServer() {
         throw new Error('Failed to verify Supabase connection. Check your credentials and try again.');
     }
 
-    // Vytvoření SMTP transportu pro Gmail
+    // Načtení SMTP nastavení z databáze
+    const smtpSettings = await getSmtpSettings(supabase);
+    console.log('SMTP settings loaded:', {
+        host: smtpSettings.host,
+        port: smtpSettings.port,
+        secure: smtpSettings.secure,
+        user: smtpSettings.user,
+        from: smtpSettings.from_email
+    });
+
+    // Vytvoření SMTP transportu
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: smtpSettings.host,
+        port: smtpSettings.port,
+        secure: smtpSettings.secure,
         auth: {
-            user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASSWORD
+            user: smtpSettings.user,
+            pass: smtpSettings.password
         }
     });
 
-    console.log('Gmail SMTP transport created');
+    console.log('SMTP transport created');
 
     // Funkce pro zpracování emailu
     const processEmail = async (emailData) => {
@@ -145,8 +206,11 @@ export async function startEmailServer() {
             const htmlContent = createEmailTemplate(emailData.body.replace(/\n/g, '<br>'));
 
             // Odeslání emailu
+            const fromAddress = smtpSettings.from_email || smtpSettings.user;
+            const fromName = smtpSettings.from_name || 'Marika Singers';
+
             await transporter.sendMail({
-                from: process.env.GMAIL_USER,
+                from: `"${fromName}" <${fromAddress}>`,
                 to: emailData.recipient,
                 subject: emailData.subject,
                 text: emailData.body,

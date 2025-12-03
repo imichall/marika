@@ -755,6 +755,7 @@ const handleSubmit = async () => {
       // Uložíme hodnoty PŘED voláním API, aby se neztratily
       const savedTicketCount = ticketCount.value;
       const savedTotalPrice = totalPrice.value;
+      const savedContactInfo = { ...contactInfo.value };
 
       console.log("Ukládám hodnoty:", {
         ticketCount: savedTicketCount,
@@ -771,6 +772,24 @@ const handleSubmit = async () => {
 
       console.log("Uložené hodnoty do confirmedOrder:", confirmedOrder.value);
 
+      // Odeslání emailu s rekapitulací (nečekáme na odpověď, aby nezpomalilo UX)
+      if (!props.concert.is_voluntary && savedContactInfo.email) {
+        sendOrderConfirmationEmail({
+          customerEmail: savedContactInfo.email,
+          customerName: savedContactInfo.name,
+          concertTitle: props.concert.title,
+          concertDate: formatDate(props.concert.date),
+          concertTime: props.concert.time || "19:00",
+          ticketCount: savedTicketCount,
+          unitPrice: Number(props.concert.price),
+          totalPrice: savedTotalPrice,
+          accountNumber: bankDetails.value.accountNumber,
+          bankCode: bankDetails.value.bankCode,
+          variableSymbol: formattedVariableSymbol.value,
+          paymentMessage: props.concert.payment_message || props.concert.title,
+        });
+      }
+
       resetForm();
       emit("close");
 
@@ -786,6 +805,28 @@ const handleSubmit = async () => {
           : "Nepodařilo se vytvořit objednávku. Zkuste to prosím znovu."
       );
     }
+  }
+};
+
+// Funkce pro odeslání potvrzovacího emailu
+const sendOrderConfirmationEmail = async (emailData) => {
+  try {
+    const response = await fetch("/api/send-order-confirmation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(emailData),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      console.log("Order confirmation email sent successfully");
+    } else {
+      console.warn("Order confirmation email not sent:", result.message);
+    }
+  } catch (err) {
+    console.error("Error sending order confirmation email:", err);
+    // Neblokujeme proces - email je bonus, ne kritická funkce
   }
 };
 
