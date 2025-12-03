@@ -63,15 +63,65 @@ function createEmailTemplate(content) {
     `;
 }
 
+// Funkce pro načtení SMTP nastavení z databáze
+async function getSmtpSettings(supabase) {
+    try {
+        const { data, error } = await supabase
+            .from('settings')
+            .select('smtp_settings')
+            .single();
+
+        if (error) throw error;
+
+        const settings = data?.smtp_settings;
+        if (!settings || !settings.user || !settings.password) {
+            console.log('SMTP settings not configured in database, falling back to environment variables');
+            return {
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                user: process.env.GMAIL_USER,
+                password: process.env.GMAIL_APP_PASSWORD,
+                from_email: process.env.GMAIL_USER,
+                from_name: 'Marika Singers'
+            };
+        }
+
+        return {
+            host: settings.host || 'smtp.websupport.cz',
+            port: settings.port || 465,
+            secure: settings.secure !== false,
+            user: settings.user,
+            password: settings.password,
+            from_email: settings.from_email || settings.user,
+            from_name: settings.from_name || 'Marika Singers'
+        };
+    } catch (err) {
+        console.error('Error fetching SMTP settings:', err);
+        return {
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            user: process.env.GMAIL_USER,
+            password: process.env.GMAIL_APP_PASSWORD,
+            from_email: process.env.GMAIL_USER,
+            from_name: 'Marika Singers'
+        };
+    }
+}
+
 // Funkce pro zpracování emailu
-async function processEmail(supabase, transporter, emailData) {
+async function processEmail(supabase, transporter, emailData, smtpSettings) {
     console.log('Processing email:', emailData.id);
     try {
         const htmlContent = createEmailTemplate(emailData.body.replace(/\n/g, '<br>'));
 
         // Odeslání emailu
+        const fromAddress = smtpSettings.from_email || smtpSettings.user;
+        const fromName = smtpSettings.from_name || 'Marika Singers';
+
         await transporter.sendMail({
-            from: process.env.GMAIL_USER,
+            from: `"${fromName}" <${fromAddress}>`,
             to: emailData.recipient,
             subject: emailData.subject,
             text: emailData.body,
@@ -120,12 +170,22 @@ export default async (req) => {
             }
         );
 
-        // Vytvoření SMTP transportu pro Gmail
+        // Načtení SMTP nastavení z databáze
+        const smtpSettings = await getSmtpSettings(supabase);
+        console.log('SMTP settings loaded:', {
+            host: smtpSettings.host,
+            port: smtpSettings.port,
+            user: smtpSettings.user
+        });
+
+        // Vytvoření SMTP transportu
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: smtpSettings.host,
+            port: smtpSettings.port,
+            secure: smtpSettings.secure,
             auth: {
-                user: process.env.GMAIL_USER,
-                pass: process.env.GMAIL_APP_PASSWORD
+                user: smtpSettings.user,
+                pass: smtpSettings.password
             }
         });
 
@@ -142,7 +202,7 @@ export default async (req) => {
         if (pendingEmails?.length > 0) {
             console.log(`Nalezeno ${pendingEmails.length} nevyřízených emailů`);
             for (const email of pendingEmails) {
-                await processEmail(supabase, transporter, email);
+                await processEmail(supabase, transporter, email, smtpSettings);
                 // Krátká pauza mezi emaily
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
