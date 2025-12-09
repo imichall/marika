@@ -81,6 +81,16 @@
                   >
                     {{ getStatusLabel("cancelled") }}
                   </button>
+                  <button
+                    v-if="
+                      canEdit && (order.payment_status === 'completed' || order.payment_status === 'cancelled')
+                    "
+                    @click="$emit('update-status', order.id, 'pending')"
+                    class="px-3 py-1 rounded-full text-sm font-medium transition-colors"
+                    :class="getStatusButtonClass('pending')"
+                  >
+                    {{ getStatusLabel("pending") }}
+                  </button>
                 </div>
               </div>
 
@@ -214,6 +224,15 @@
                   class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 >
                   Zrušit objednávku
+                </button>
+                <button
+                  v-if="
+                    canEdit && (order.payment_status === 'completed' || order.payment_status === 'cancelled')
+                  "
+                  @click="$emit('update-status', order.id, 'pending')"
+                  class="inline-flex justify-center rounded-md border border-transparent bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 focus-visible:ring-offset-2"
+                >
+                  Vrátit do stavu "čeká"
                 </button>
                 <button
                   v-if="permissions.delete"
