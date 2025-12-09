@@ -316,11 +316,43 @@
               </button>
             </div>
 
+            <!-- Kontrolky pro stránkování a počet výsledků -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-4">
+              <div class="flex items-center gap-3">
+                <label class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  Zobrazit na stránce:
+                </label>
+                <select
+                  v-model.number="pageSize"
+                  class="rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400"
+                >
+                  <option :value="20">20</option>
+                  <option :value="100">100</option>
+                  <option :value="999999">Vše</option>
+                </select>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                  Zobrazuji
+                  <span class="font-medium text-gray-900 dark:text-white">
+                    {{ Math.min((currentPage - 1) * pageSize + 1, filteredOrders.length) }}
+                  </span>
+                  –
+                  <span class="font-medium text-gray-900 dark:text-white">
+                    {{ Math.min(currentPage * pageSize, filteredOrders.length) }}
+                  </span>
+                  z
+                  <span class="font-medium text-gray-900 dark:text-white">
+                    {{ filteredOrders.length }}
+                  </span>
+                  objednávek
+                </span>
+              </div>
+            </div>
+
             <!-- Seznam objednávek -->
             <div
-              class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden h-[60vh]"
+              class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
             >
-              <div class="overflow-x-auto h-full relative">
+              <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
@@ -363,7 +395,7 @@
                   </thead>
                   <tbody class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                     <tr
-                      v-for="order in filteredOrders"
+                      v-for="order in pagedOrders"
                       :key="order.id"
                       @click="openOrderDetail(order)"
                       class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
@@ -679,6 +711,108 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              <!-- Stránkování -->
+              <div
+                v-if="totalPages > 1"
+                class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+              >
+                <div class="text-sm text-gray-600 dark:text-gray-300 text-center sm:text-left">
+                  Stránka
+                  <span class="font-medium text-gray-900 dark:text-white">{{ currentPage }}</span>
+                  z
+                  <span class="font-medium text-gray-900 dark:text-white">{{ totalPages }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <button
+                    class="inline-flex items-center justify-center p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="currentPage === 1"
+                    @click="currentPage = 1"
+                    title="První stránka"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="inline-flex items-center justify-center p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="currentPage === 1"
+                    @click="currentPage = Math.max(1, currentPage - 1)"
+                    title="Předchozí"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 19l-7-7 7-7"
+                      />
+                    </svg>
+                  </button>
+                  <div class="px-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+                    {{ currentPage }} / {{ totalPages }}
+                  </div>
+                  <button
+                    class="inline-flex items-center justify-center p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="currentPage >= totalPages"
+                    @click="currentPage = Math.min(totalPages, currentPage + 1)"
+                    title="Další"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="inline-flex items-center justify-center p-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="currentPage >= totalPages"
+                    @click="currentPage = totalPages"
+                    title="Poslední stránka"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 5l7 7-7 7M5 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1114,6 +1248,10 @@ const statusFilter = ref<"" | "pending" | "completed" | "cancelled">("");
 const sortBy = ref("date-desc");
 const concertFilter = ref("");
 
+// Stránkování
+const pageSize = ref(20);
+const currentPage = ref(1);
+
 // Pomocné funkce
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("cs-CZ", {
@@ -1230,12 +1368,42 @@ const filteredOrders = computed(() => {
   return result;
 });
 
+// Stránkované objednávky
+const pagedOrders = computed(() => {
+  const filtered = filteredOrders.value;
+
+  // Pokud je "Vše", zobraz všechny položky
+  if (pageSize.value >= 999999) {
+    return filtered;
+  }
+
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filtered.slice(start, end);
+});
+
+// Celkový počet stránek
+const totalPages = computed(() => {
+  if (pageSize.value >= 999999) {
+    return 1;
+  }
+  const total = filteredOrders.value.length;
+  const size = Math.max(1, pageSize.value || 1);
+  return Math.max(1, Math.ceil(total / size));
+});
+
+// Sledování změn filtrů a resetování stránky
+watch([searchQuery, statusFilter, sortBy, concertFilter, pageSize], () => {
+  currentPage.value = 1;
+});
+
 // Funkce pro resetování filtrů
 const resetFilters = (): void => {
   searchQuery.value = "";
   statusFilter.value = "";
   sortBy.value = "date-desc";
   concertFilter.value = "";
+  currentPage.value = 1;
 };
 
 // Výpočet statistik
